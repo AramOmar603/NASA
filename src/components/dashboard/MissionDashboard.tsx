@@ -27,6 +27,7 @@ export interface MissionDashboardProps extends GameViewProps {
   readonly event?: { readonly title: string; readonly description: string; readonly decisions: readonly { readonly id: string; readonly label: string }[] }
   readonly outcome?: { readonly status: 'success' | 'failure'; readonly summary: string }
   readonly preview?: boolean
+  readonly advanceBlockedReason?: string
   readonly onAction?: (action: GameAction) => void
   readonly onBuildingSelect?: (id: BuildingId) => void
   readonly onAllocationChange?: (id: ResourceId, percent: number) => void
@@ -48,7 +49,7 @@ function Battery({ value, capacity, label }: { value?: number; capacity?: number
 
 export function MissionDashboard({
   state, day, resources, radiation, crew = [], objectives = [], selectedBuildingId, alerts = [],
-  event, outcome, preview, onAction, onBuildingSelect, onAllocationChange, onDecision,
+  event, outcome, preview, advanceBlockedReason, onAction, onBuildingSelect, onAllocationChange, onDecision,
 }: MissionDashboardProps) {
   const titleId = useId()
   const currentDay = missionProgress(day)
@@ -80,7 +81,8 @@ export function MissionDashboard({
               <span>{Math.round(currentDay / missionLength * 100)}% complete</span>
             </div>
             <progress aria-label="Progress toward day 30" value={currentDay} max={missionLength} />
-            {onAction && <button type="button" disabled={Boolean(outcome)} onClick={() => onAction({ type: 'advanceTick' })}>Advance simulation</button>}
+            {onAction && <button type="button" disabled={Boolean(outcome || advanceBlockedReason)} onClick={() => onAction({ type: 'advanceTick' })}>Advance simulation</button>}
+            {advanceBlockedReason && <p>{advanceBlockedReason}</p>}
           </div>
         </section>
 

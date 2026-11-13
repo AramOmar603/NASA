@@ -31,7 +31,7 @@ const mockCrew = [
 
 const mockEvent = {
   title: 'Solar storm inbound',
-  description: 'The crew can take shelter immediately or stay outside to finish inspecting the solar array.',
+  description: 'Resolve the storm before day 30. Take shelter now or stay outside to finish inspecting the solar array.',
   decisions: [{ id: 'shelter', label: 'Shelter the crew' }, { id: 'continue', label: 'Continue inspection' }],
 }
 
@@ -64,8 +64,9 @@ function DashboardPreview() {
       { id: 'power', severity: 'advisory', message: 'Power usage exceeds daily production.' },
       ...(!decision ? [{ id: 'storm', severity: 'emergency' as const, message: 'Solar storm approaching. Choose a crew response.' }] : []),
     ]}
+    advanceBlockedReason={day === 29 && !decision ? 'Resolve the solar storm before advancing to day 30.' : undefined}
     onAction={(action) => {
-      if (action.type === 'advanceTick') setDay((previous) => Math.min(previous + 1, 30))
+      if (action.type === 'advanceTick') setDay((previous) => Math.min(previous + 1, decision === 'shelter' ? 30 : 29))
     }}
     onBuildingSelect={setSelectedBuildingId}
     onAllocationChange={(id, allocation) => setResources((previous) => {
