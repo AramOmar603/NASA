@@ -30,3 +30,16 @@ it('schedules one real greenhouse incident, repairs it with a kit, and completes
   expect(session.events.filter(({ type }) => type === 'equipmentDamaged')).toHaveLength(1)
   expect(createRookieSession()).toEqual(initial)
 })
+
+it('runs the guided greenhouse incident in the ten-day Level 2 session', () => {
+  const initial = createRookieSession(2)
+  expect(initial.config.missionDays).toBe(10)
+  const damaged = advanceRookie(initial, 2)
+  expect(damaged.events).toContainEqual({ type: 'equipmentDamaged', equipment: 'greenhouse' })
+  expect(damaged.config).toBe(initial.config)
+  const repaired = reduceSurvivalSession(damaged, { type: 'maintain', equipment: 'greenhouse' })
+  expect(repaired.state.condition.greenhouse).toBe(1)
+  expect(repaired.state.tick).toBe(1)
+  expect(repaired.state.resources).toEqual({ ...damaged.state.resources, spareKits: 4 })
+  expect(updateProblems(updateProblems([], initial, damaged), damaged, repaired)).toEqual([])
+})

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { advanceRookie, createRookieSession } from '../rookie-training/session'
+import type { TrainingLevel } from '../rookie-training/session'
 import { GreenhouseInterior } from '../rookie-training/GreenhouseInterior'
 
 import '../rookie-training/training.css'
@@ -45,8 +46,14 @@ const problemCopy = {
   shielding: ['🛡️ Shield Problem!', 'Astronauts need protection.'],
 } satisfies Record<Equipment, readonly [string, string]>
 
-export function MissionFeedback({ rookie = false, onRestart, onComplete }: { rookie?: boolean; onRestart?: () => void; onComplete?: () => void }) {
-  const [session, setSession] = useState(() => rookie ? createRookieSession() : createSurvivalSession())
+export function MissionFeedback({ rookie = false, trainingLevel, onRestart, onComplete }: {
+  rookie?: boolean
+  trainingLevel?: TrainingLevel
+  onRestart?: () => void
+  onComplete?: () => void
+}) {
+  const level = trainingLevel ?? (rookie ? 1 : undefined)
+  const [session, setSession] = useState(() => level ? createRookieSession(level) : createSurvivalSession())
   const [training, setTraining] = useState<Equipment>()
   const repairApplied = useRef(false)
   const [focus, setFocus] = useState<LunarCameraFocus>()
@@ -75,25 +82,25 @@ export function MissionFeedback({ rookie = false, onRestart, onComplete }: { roo
   if (state.outcome === 'failure') alerts.push({ id: 'mission-failed', severity: 'emergency', message: 'Mission failed.' })
 
   function advance() {
-    const next = rookie ? advanceRookie(session) : reduceSurvivalSession(session, { type: 'advanceTick' })
+    const next = level ? advanceRookie(session, level) : reduceSurvivalSession(session, { type: 'advanceTick' })
     setProblems(updateProblems(problems, session, next))
     setSession(next)
     setMessage('')
-    if (rookie && next.state.outcome === 'success') onComplete?.()
+    if (level && next.state.outcome === 'success') onComplete?.()
   }
 
   function inspectEquipment(equipment: Equipment) {
     const building = facilityFor(equipment)
     select(building.id)
     setFocus({ x: building.position.x, z: building.position.y })
-    if (rookie && equipment === 'greenhouse') {
+    if (level && equipment === 'greenhouse') {
       repairApplied.current = false
       setTraining(equipment)
     }
   }
 
   function repair(equipment: Equipment, lessonPassed = false) {
-    if (rookie && equipment === 'greenhouse' && !lessonPassed) {
+    if (level && equipment === 'greenhouse' && !lessonPassed) {
       inspectEquipment(equipment)
       return
     }
@@ -119,9 +126,9 @@ export function MissionFeedback({ rookie = false, onRestart, onComplete }: { roo
         <DepartmentLabels buttons={buttons} selected={selected} offline={offline} onSelect={select} />
       </div>
       <GameHUD state={view} day={state.tick} missionDays={config.missionDays} alerts={alerts}
-        showAllResources={rookie} overviewOpen={overview} onOverviewToggle={() => setOverview(!overview)} />
+        showAllResources={Boolean(level)} overviewOpen={overview} onOverviewToggle={() => setOverview(!overview)} />
       <div className="lg-survival-controls">
-        {rookie && <h1>Rookie Astronaut</h1>}
+        {level && <h1>{level === 2 ? 'First Emergency' : 'Rookie Astronaut'}</h1>}
         <button className="lg-button" type="button" disabled={!canPlay} onClick={advance}>Advance one day</button>
         <p>Spare kits {state.resources.spareKits}</p>
         {outcome && <p role="status">{outcome.summary}</p>}
@@ -157,7 +164,7 @@ export function MissionFeedback({ rookie = false, onRestart, onComplete }: { roo
         <div role="status">{message && <article className="mf-notice mf-feedback">
           {message.endsWith(' fixed.') && <strong>✅ Great job!</strong>}
           <p>{message}</p>
-          {rookie && message === 'Greenhouse fixed.' && <p>Plants need water at their roots.</p>}
+          {level && message === 'Greenhouse fixed.' && <p>Plants need water at their roots.</p>}
           <button className="lg-button" type="button" onClick={() => setMessage('')}>Close</button>
         </article>}</div>
         {pending.slice(0, 2).map(({ equipment, index, offline }) => {
@@ -174,16 +181,16 @@ export function MissionFeedback({ rookie = false, onRestart, onComplete }: { roo
         {pending.length > 2 && <p className="mf-notice">{pending.length - 2} more to check</p>}
       </section>
     </div>
-    {rookie && training === 'greenhouse' && canPlay && <GreenhouseInterior
+    {level && training === 'greenhouse' && canPlay && <GreenhouseInterior guided={level === 2}
       unavailable={state.resources.spareKits < 1 ? 'No spare kits left.' : state.condition.greenhouse >= 1 ? 'The greenhouse is already fixed.' : undefined}
       onClose={() => setTraining(undefined)} onRepair={() => {
         if (repairApplied.current) return true
         repairApplied.current = repair('greenhouse', true) === true
         return repairApplied.current
       }} />}
-    {rookie && outcome && <section className="rookie-result" aria-label="Mission result">
+    {level && outcome && <section className="rookie-result" aria-label="Mission result">
       <h2>{outcome.status === 'success' ? 'MISSION COMPLETE!' : 'Mission Failed — Try Again!'}</h2>
-      <p>{outcome.status === 'success' ? 'You kept the base going for seven days.' : 'The base could no longer keep the whole crew alive.'}</p>
+      <p>{outcome.status === 'success' ? `You kept the base going for ${config.missionDays} days.` : 'The base could no longer keep the whole crew alive.'}</p>
       <p>{state.crew.filter(({ health }) => health > 0).length} of {state.crew.length} astronauts survived.</p>
       {outcome.status === 'success' && <p>{events.some((event) => event.type === 'equipmentRepaired' && event.equipment === 'greenhouse')
         ? 'You found the irrigation leak and tested a repair. Plants need water at their roots.'

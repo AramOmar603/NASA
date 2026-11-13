@@ -84,3 +84,37 @@
   cursor: pointer;
 }
 .rookie-welcome button:focus-visible { outline: 3px solid #ffe082; outline-offset: 4px; }
+
+.rookie-start-actions { display: flex; flex-wrap: wrap; gap: .65rem; }
+.rookie-guided header { align-items: flex-start; }
+.rookie-guided .rookie-guide {
+  width: min(32rem, 100%);
+  padding: clamp(.65rem, 2vw, 1.25rem);
+  border: 3px solid #95ede3;
+  border-radius: 1rem;
+  background: #102c43;
+  box-shadow: 0 .25rem 1.5rem #70e8d35c;
+}
+.rookie-guided .rookie-guide h2 { font-size: clamp(1.12rem, 3vw, 1.8rem); font-weight: 850; }
+.rookie-guided .rookie-guide p {
+  padding: 0;
+  margin-top: .3rem;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  font-size: clamp(.92rem, 2vw, 1.16rem);
+}
+.rookie-guided .rookie-guide[data-tone="retry"] { background: #452c3f; border-color: #ffd884; }
+.rookie-guided .rookie-guide[data-tone="success"] { background: #123d32; border-color: #83f1ba; }
+.rookie-guided .rookie-guide button {
+  margin-top: .7rem;
+  min-height: 2.75rem;
+  background: #ffd884;
+  color: #292035;
+  border-color: #fff0bb;
+}
+.rookie-guided header > button { flex-shrink: 0; }
+@media (max-width: 500px) {
+  .rookie-guided header { flex-wrap: wrap; }
+  .rookie-guided header > button { margin-left: auto; }
+}

@@ -1,11 +1,13 @@
 import { useState } from 'react'
+import type { TrainingLevel } from './rookie-training/session'
 import { MissionFeedback } from './mission-feedback/MissionFeedback'
 
 export function App() {
+  const [level, setLevel] = useState<TrainingLevel>(1)
   const [attempt, setAttempt] = useState(0)
 
   if (attempt > 0) {
-    return <MissionFeedback key={attempt} rookie onRestart={() => setAttempt((previous) => previous + 1)} />
+    return <MissionFeedback key={attempt} trainingLevel={level} onRestart={() => setAttempt((previous) => previous + 1)} />
   }
 
   return (
@@ -19,7 +21,10 @@ export function App() {
           <li>Advance one day and check your crew’s supplies.</li>
           <li>If something breaks, tap <strong>Check it</strong> to help.</li>
         </ul>
-        <button type="button" onClick={() => setAttempt(1)}>Start Mission</button>
+        <div className="rookie-start-actions">
+          <button type="button" onClick={() => setAttempt(1)}>Start Mission</button>
+          <button type="button" onClick={() => { setLevel(2); setAttempt(1) }}>Level 2 · First Emergency</button>
+        </div>
       </section>
     </main>
   )
