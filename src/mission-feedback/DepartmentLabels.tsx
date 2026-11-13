@@ -37,7 +37,7 @@ export function DepartmentLabels({ buttons, selected, offline, onSelect }: {
         else delete buttons[id]
       }} aria-label={name + (offline.has(id) ? ', offline' : '')} aria-pressed={selected === id}
         data-offline={offline.has(id)} onClick={() => onSelect(id)}>
-        <span aria-hidden="true">{icon}</span> <span className="mf-label-name">{name}</span>
+        <span aria-hidden="true">{icon}</span>
       </button>
     })}
   </div>

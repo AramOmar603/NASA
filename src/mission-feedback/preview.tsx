@@ -33,6 +33,14 @@ function facilityFor(equipment: Equipment) {
   return outpost.find(({ id }) => equipmentFor(id) === equipment)!
 }
 
+const problemCopy = {
+  oxygenPlant: ['🚨 O₂ Machine Broke!', 'Astronauts need air.'],
+  recycler: ['💧 Water System Problem!', 'We need clean water.'],
+  solar: ['☀️ Solar Panels Offline!', 'The base needs power.'],
+  greenhouse: ['🌱 Greenhouse Trouble!', 'The crew needs food.'],
+  shielding: ['🛡️ Shield Problem!', 'Astronauts need protection.'],
+} satisfies Record<Equipment, readonly [string, string]>
+
 function MissionFeedback() {
   const [session, setSession] = useState(() => createSurvivalSession())
   const [selected, select] = useState<DepartmentId>()
@@ -45,8 +53,6 @@ function MissionFeedback() {
   const failures = activeFailures(session)
   const offline = new Set(failures.map(({ equipment }) => facilityFor(equipment).id))
   const pending = failures.filter(({ index }) => !postponed.has(index))
-  const emergency = pending[0]
-  const alertFacility = emergency && facilityFor(emergency.equipment)
   const canPlay = state.outcome === 'active'
   const outcome = canPlay ? undefined : {
     status: state.outcome as 'success' | 'failure',
@@ -67,12 +73,10 @@ function MissionFeedback() {
   function repair(equipment: Equipment) {
     const next = reduceSurvivalSession(session, { type: 'maintain', equipment })
     const feedback = repairFeedback(session, next, equipment)
-    const department = departments[facilityFor(equipment).id]
-    const wasOffline = state.condition[equipment] <= config.failureThreshold
     setSession(next)
     setMessage(feedback === 'operational'
-      ? '✅ Great job, Commander! ' + equipmentNames[equipment] + (wasOffline ? ' is back in action. ' : ' has been serviced. ') + department.lesson
-      : feedback === 'still-offline' ? 'One kit helped, but the machine still needs work.' : next.feedback ?? '')
+      ? equipmentNames[equipment] + ' fixed.'
+      : feedback === 'still-offline' ? 'Still offline. Try another kit.' : next.feedback ?? '')
   }
 
   return <main className="lg-survival mf-mission">
@@ -91,7 +95,6 @@ function MissionFeedback() {
       <button className="lg-button" type="button" disabled={!canPlay} onClick={advance}>Advance one day</button>
       <p>Spare kits {state.resources.spareKits}</p>
       {outcome && <p role="status">{outcome.summary}</p>}
-      <p role="status">{message}</p>
       <details>
         <summary>Departments</summary>
         <ul>{outpost.map(({ id }) => <li key={id}>
@@ -119,15 +122,24 @@ function MissionFeedback() {
       {selected === 'WTR-01' && <p>{flows ? 'Water recovered last day ' + flows.water.production.toFixed(1) + ' L' : 'Water recovery measurements start after the first day.'}</p>}
       {offline.has(selected) && <p>Offline. Restore this equipment to resume its work.</p>}
     </aside>}
-    {emergency && alertFacility && <section key={emergency.index} className="mf-emergency" aria-label="Equipment emergency">
-      <p role="alert">🚨 Commander, the {equipmentNames[emergency.equipment]} is offline.
-        {' '}{departments[alertFacility.id].name} needs your help. {departments[alertFacility.id].lesson}</p>
-      <button className="lg-button" type="button" onClick={() => select(alertFacility.id)}>Inspect</button>
-      <button className="lg-button" type="button" disabled={!canPlay || state.resources.spareKits < 1}
-        onClick={() => repair(emergency.equipment)}>Repair</button>
-      <button className="lg-button" type="button" onClick={() => postpone(new Set([...postponed, emergency.index]))}>Later</button>
-      {pending.length > 1 && <p>{pending.length - 1} more to review</p>}
-    </section>}
+    <section className="mf-notifications" aria-label="Mission notifications">
+      <div role="status">{message && <article className="mf-notice mf-feedback">
+        {message.endsWith(' fixed.') && <strong>✅ Great job!</strong>}
+        <p>{message}</p>
+        <button className="lg-button" type="button" onClick={() => setMessage('')}>Close</button>
+      </article>}</div>
+      {pending.map(({ equipment, index }) => {
+        const [title, detail] = problemCopy[equipment]
+        return <article key={index} className="mf-notice mf-emergency">
+          <div role="alert"><strong>{title}</strong><p>{detail}</p></div>
+          <button className="lg-button" type="button" onClick={() => select(facilityFor(equipment).id)}>Check it</button>
+          <button className="lg-button" type="button" disabled={!canPlay || state.resources.spareKits < 1}
+            onClick={() => repair(equipment)}>Fix</button>
+          <button className="lg-button" type="button"
+            onClick={() => postpone((previous) => new Set([...previous, index]))}>Later</button>
+        </article>
+      })}
+    </section>
     <MissionOverview open={overview} onClose={() => setOverview(false)} state={view} day={state.tick}
       missionDays={config.missionDays} foodUnit="kg" onAction={advance} alerts={alerts} outcome={outcome}
       crew={state.crew.map(({ health, doseMilliSv }, index) => ({
