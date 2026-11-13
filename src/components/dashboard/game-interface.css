@@ -104,3 +104,27 @@
   .lg-building { inset: auto .5rem max(.5rem, env(safe-area-inset-bottom)); width: auto; max-height: 55%; border-radius: .9rem .9rem .45rem .45rem; animation-name: lg-sheet; }
 }
 @media (prefers-reduced-motion: reduce) { .lg-building { animation: none; } }
+
+.lg-survival { position: relative; isolation: isolate; min-height: 100dvh; background: #080f1b; color: #eef8ff; }
+.lg-survival-world { position: absolute; inset: 0; }
+.lg-survival-controls {
+  --lg-text: #eef8ff;
+  --lg-line: #416274;
+  --lg-accent: #80f5d9;
+  position: absolute;
+  z-index: 8;
+  inset: auto auto 1rem 1rem;
+  max-width: min(24rem, calc(100% - 2rem));
+  max-height: min(60vh, 33rem);
+  overflow: auto;
+  background: #0b1926f5;
+  border: 1px solid var(--lg-line);
+  border-radius: .65rem;
+  padding: .65rem .85rem;
+  color-scheme: dark;
+}
+.lg-survival-controls :is(p, details, ul, ol, dl) { margin-block: .4rem; }
+.lg-survival-controls ul { display: flex; flex-wrap: wrap; gap: .3rem; }
+.lg-survival-controls dl div { display: flex; justify-content: space-between; gap: .7rem; }
+.lg-survival-controls summary { cursor: pointer; }
+.lg-survival-controls summary:focus-visible { outline: 2px solid var(--lg-accent); }

@@ -3,14 +3,16 @@ import type { Building, BuildingId, BuildingKind, GameViewProps } from '../../ty
 import './game-interface.css'
 
 type Metric = 'crewHealth' | 'lifeSupport' | 'livingConditions' | 'generation' | 'battery' |
-  'production' | 'crops' | 'efficiency' | 'condition' | 'equipment' | 'radiationRisk' |
-  'readiness' | 'protection'
+  'production' | 'crops' | 'efficiency' | 'equipment' | 'radiationRisk' |
+  'readiness' | 'protection' | 'condition'
 type Allocation = 'power' | 'water'
 
 export interface BuildingTelemetry {
   readonly readings?: Readonly<Partial<Record<Metric, string>>>
   readonly allocations?: Readonly<Partial<Record<Allocation, number>>>
   readonly canRepair?: boolean
+  readonly condition?: string
+  readonly repairUnavailableReason?: string
 }
 
 export type BuildingAction =
@@ -41,6 +43,7 @@ const fallbackPanel: PanelDefinition = { name: 'Building', symbol: '◇', metric
 
 export function resolveBuildingPanelKind(kind: BuildingKind): BuildingPanelKind | undefined {
   const key = kind.trim().toLowerCase().replace(/[\s_]+/g, '-')
+  if (key === 'oxygen-generator') return 'oxygen-production'
   return Object.hasOwn(panels, key) ? key as BuildingPanelKind : undefined
 }
 
@@ -50,9 +53,10 @@ export interface BuildingPanelProps extends GameViewProps {
   readonly telemetry?: Readonly<Partial<Record<BuildingId, BuildingTelemetry>>>
   readonly onAction?: (action: BuildingAction) => void
   readonly onClose: () => void
+  readonly foodUnit?: string
 }
 
-export function BuildingPanel({ state, buildings = state.buildings, selectedBuildingId, telemetry, onAction, onClose }: BuildingPanelProps) {
+export function BuildingPanel({ state, buildings = state.buildings, selectedBuildingId, telemetry, onAction, onClose, foodUnit = 'rations' }: BuildingPanelProps) {
   const heading = useId()
   const close = useRef<HTMLButtonElement>(null)
   const building = buildings.find(({ id }) => id === selectedBuildingId)
@@ -95,7 +99,8 @@ export function BuildingPanel({ state, buildings = state.buildings, selectedBuil
           {panel.metrics.map(([key, label]) => (
             <div key={key}><dt>{label}</dt><dd>{data?.readings?.[key] ?? 'Unavailable'}</dd></div>
           ))}
-          {panel.reserve && <div><dt>Base {panel.reserve.id} reserves</dt><dd>{reserve === undefined ? 'Unavailable' : `${reserve} ${panel.reserve.unit}`}</dd></div>}
+          {panel.reserve && <div><dt>Base {panel.reserve.id} reserves</dt><dd>{reserve === undefined ? 'Unavailable' : `${Number(reserve.toFixed(2))} ${panel.reserve.id === 'food' ? foodUnit : panel.reserve.unit}`}</dd></div>}
+          {data?.condition && <div><dt>Equipment condition</dt><dd>{data.condition}</dd></div>}
         </dl>
         {allocation && typeof percent === 'number' && onAction && (
           <label className="lg-allocation">
@@ -104,9 +109,10 @@ export function BuildingPanel({ state, buildings = state.buildings, selectedBuil
               onChange={(event) => onAction({ type: 'allocate', buildingId: id, resource: allocation, percent: event.currentTarget.valueAsNumber })} />
           </label>
         )}
-        {panel.repair && onAction && data?.canRepair !== undefined && (
-          <button type="button" className="lg-button" disabled={!data.canRepair} onClick={() => onAction({ type: 'repair', buildingId: id })}>Repair solar array</button>
+        {(panel.repair || data?.condition) && onAction && data?.canRepair !== undefined && (
+          <button type="button" className="lg-button" disabled={!data.canRepair} onClick={() => onAction({ type: 'repair', buildingId: id })}>Repair {panel.name.toLowerCase()}</button>
         )}
+        {data?.repairUnavailableReason && <p>{data.repairUnavailableReason}</p>}
       </div>
     </aside>
   )
