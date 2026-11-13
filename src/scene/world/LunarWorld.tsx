@@ -3,7 +3,8 @@ import type { Building, BuildingId, GridPosition } from '../../types'
 import { LunarEnvironment } from '../environment'
 
 export interface LunarBaseSlotProps {
-  readonly buildings: readonly Building[]
+  readonly buildings?: readonly Building[]
+  readonly selectedBuildingId?: BuildingId
   readonly onBuildingSelect?: (id: BuildingId) => void
   readonly onGroundSelect?: (position: GridPosition) => void
 }
@@ -14,12 +15,13 @@ export interface LunarWorldProps extends LunarBaseSlotProps {
   readonly className?: string
 }
 
-export function LunarWorld({ BaseComponent, className, buildings, onBuildingSelect, onGroundSelect }: LunarWorldProps) {
+export function LunarWorld({ BaseComponent, className, buildings, selectedBuildingId, onBuildingSelect, onGroundSelect }: LunarWorldProps) {
   return (
     <LunarEnvironment className={className}>
       {BaseComponent && (
         <BaseComponent
           buildings={buildings}
+          selectedBuildingId={selectedBuildingId}
           onBuildingSelect={onBuildingSelect}
           onGroundSelect={onGroundSelect}
         />

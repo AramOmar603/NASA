@@ -4,7 +4,8 @@
 
 ## Component contract
 
-- `buildings: readonly Building[]` is the current snapshot from `GameState.buildings`. Pass an empty array for a terrain-only preview.
+- `buildings?: readonly Building[]` forwards the current snapshot from `GameState.buildings`. Omit it to show the furnished outpost with corridors when using `LunarBase`. Pass an empty array to show no facilities.
+- `selectedBuildingId?: BuildingId` forwards the caller's current selection to the base for highlighting. Clear it when the ground is selected.
 - `BaseComponent?: ComponentType<LunarBaseSlotProps>` is the optional base or adapter. Supply a stable component reference once the base API is available.
 - `onBuildingSelect?: (id: BuildingId) => void` reports selection of a building. The base component should report the shared building ID and stop pointer propagation when it handles the hit.
 - `onGroundSelect?: (position: GridPosition) => void` reports a ground selection in game grid coordinates. The base component or adapter owns the placement hit test and should ignore drags and selections outside the building zone.
@@ -15,13 +16,14 @@ Both callbacks are optional and report user intent to the caller. The caller own
 ```tsx
 <LunarWorld
   buildings={state.buildings}
-  BaseComponent={LunarBaseAdapter}
+  BaseComponent={LunarBase}
+  selectedBuildingId={selectedBuildingId}
   onBuildingSelect={selectBuilding}
   onGroundSelect={selectGround}
 />
 ```
 
-`LunarBaseAdapter` is the future integration point. It maps the actual base API to `LunarBaseSlotProps`, including pointer hit testing and event forwarding.
+Once PR #6 is available in the same checkout, import `LunarBase` from `../buildings` in the caller. PR #6 implements the slot directly, including pointer hit testing and event forwarding. Omit `buildings={state.buildings}` in the example above to preview the full furnished outpost.
 
 ## Coordinate contract
 
