@@ -8,3 +8,6 @@ export function Dashboard({ state }: GameViewProps) {
     </section>
   )
 }
+
+export { MissionDashboard } from './MissionDashboard'
+export type { MissionDashboardProps } from './MissionDashboard'
