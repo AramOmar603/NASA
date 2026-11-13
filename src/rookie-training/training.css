@@ -143,3 +143,15 @@
 .equipment-note[data-step="retry"] { background: #623c46; }
 .equipment-note[data-step="done"] { background: #18513d; }
 .equipment-activity .equipment-retry { background: #ffd884; color: #292035; border-color: #fff0bb; }
+
+.equipment-scene {
+  height: clamp(8rem, 28dvh, 15rem);
+  overflow: hidden;
+  border: 1px solid #719ab5;
+  border-radius: .8rem;
+  background: #12273b;
+}
+.equipment-scene-fallback { display: grid; place-items: center; height: 100%; font-size: clamp(2rem, 8vw, 4rem); }
+.equipment-activity { max-height: calc(100dvh - 2rem); }
+.equipment-choices button[aria-pressed="true"] { border-color: #ffe18d; background: #295a68; }
+.equipment-activity button:disabled { opacity: .55; cursor: default; }

@@ -98,7 +98,7 @@ export function MissionFeedback({ rookie = false, trainingLevel, onRestart, onCo
   function inspectEquipment(equipment: Equipment) {
     const building = facilityFor(equipment)
     select(building.id)
-    setFocus({ x: building.position.x, z: building.position.y })
+    setFocus({ x: building.position.x, z: building.position.y, distance: level === 2 ? 26 : undefined })
     if (canPlay && hasLesson(equipment)) {
       repairApplied.current = false
       setTraining(equipment)
@@ -175,9 +175,9 @@ export function MissionFeedback({ rookie = false, trainingLevel, onRestart, onCo
         </article>}</div>
         {pending.slice(0, 2).map(({ equipment, index, offline }) => {
           const [title, detail] = level === 2 && equipment === 'solar'
-            ? ["☀️ Oh no! We're losing power!", "Let's check the solar panels!"]
+            ? ["☀️ Oh no! The solar panels are not working!", "Let’s go check them!"]
             : level === 2 && equipment === 'oxygenPlant'
-              ? ['🫧 Oh no! Oxygen production stopped!', 'Our astronauts need air!']
+              ? ['🫧 Oh no! The oxygen machine stopped!', 'Our astronauts need air!']
               : problemCopy[equipment]
           return <article key={index} className="mf-notice mf-emergency">
             <div role="alert"><strong>{offline || (level === 2 && hasLesson(equipment)) ? title : '🚨 Oh no! ' + equipmentNames[equipment] + ' damaged!'}</strong><p>{detail}</p></div>
