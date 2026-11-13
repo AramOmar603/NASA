@@ -56,3 +56,31 @@
   .rookie-look { right: .5rem; bottom: min(12rem, 31dvh); }
   .rookie-tools button { padding-inline: .3rem; }
 }
+
+.rookie-welcome {
+  display: grid;
+  place-items: center;
+  min-height: 100dvh;
+  padding: 1rem;
+  background: radial-gradient(ellipse at 50% 100%, #25465b, #080f1b 70%);
+  color: #edfaff;
+}
+.rookie-welcome section {
+  width: min(100%, 33rem);
+  padding: clamp(1.25rem, 5vw, 3rem);
+  border: 1px solid #54758b;
+  border-radius: 1.25rem;
+  background: #10283a;
+}
+.rookie-welcome h1 { font-size: clamp(2rem, 9vw, 4.5rem); font-weight: 800; letter-spacing: .08em; }
+.rookie-welcome ul { list-style: disc; padding-inline-start: 1.25rem; margin-block: 1rem; }
+.rookie-welcome li { margin-block: .35rem; }
+.rookie-welcome button {
+  padding: .75rem 1.25rem;
+  border-radius: .65rem;
+  background: #81ead5;
+  color: #10283a;
+  font-weight: 800;
+  cursor: pointer;
+}
+.rookie-welcome button:focus-visible { outline: 3px solid #ffe082; outline-offset: 4px; }

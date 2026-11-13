@@ -19,16 +19,8 @@
 }
 .mf-labels button:is(:hover, :focus-visible, [aria-pressed="true"]) { background: #196074; outline: 2px solid #8bf9ed; z-index: 1; }
 .mf-labels button[data-offline="true"] { border-color: #ff987a; background: #622b24; }
-.mf-lesson {
-  position: absolute;
-  z-index: 8;
-  background: #101f30f5;
-  color: #f1f8ff;
-  padding: .7rem;
-  border: 1px solid #437187;
-  border-radius: .65rem;
-  max-width: min(20rem, calc(100% - 2rem));
-}
+.mf-lesson { margin-top: .85rem; padding-top: .65rem; border-top: 1px solid #437187; }
+.mf-lesson p { margin-top: .25rem; }
 .mf-notifications {
   position: absolute;
   top: 5rem;
@@ -54,10 +46,8 @@
 .mf-notice strong { display: block; font-size: 1.05rem; }
 .mf-feedback { background: #103733; border-color: #67dfba; }
 .mf-notice button { margin: .45rem .35rem 0 0; }
-.mf-lesson { right: 1rem; bottom: 1rem; pointer-events: none; }
 .mf-mission .lg-survival-controls ol { max-height: 9rem; overflow: auto; }
 @media (max-width: 760px) {
   .mf-labels button { min-width: 2rem; min-height: 2rem; }
   .mf-notifications { top: 8rem; max-height: 34dvh; }
-  .mf-lesson { right: .5rem; bottom: .5rem; max-width: 11rem; font-size: .75rem; }
 }

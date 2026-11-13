@@ -5,7 +5,9 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 import { Sky } from './Sky'
 import { Surface } from './Surface'
 
-function CameraControls() {
+export type LunarCameraFocus = Readonly<{ x: number; z: number }>
+
+function CameraControls({ focus }: { focus?: LunarCameraFocus }) {
   const controls = useRef<OrbitControls>(null)
   const { camera, gl, invalidate } = useThree()
 
@@ -45,7 +47,31 @@ function CameraControls() {
     }
   }, [camera, gl, invalidate])
 
-  useFrame(() => controls.current?.update())
+  const destination = useRef<Vector3 | null>(null)
+  const movement = useRef(new Vector3())
+  useEffect(() => {
+    if (!focus) return
+    destination.current = new Vector3(focus.x, 3, focus.z)
+    invalidate()
+  }, [focus, invalidate])
+
+  useFrame((_, delta) => {
+    const orbit = controls.current
+    if (!orbit) return
+    const target = destination.current
+    if (target) {
+      const step = movement.current.copy(target).sub(orbit.target)
+      if (step.lengthSq() < 0.01 || matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        destination.current = null
+      } else {
+        step.multiplyScalar(1 - Math.exp(-Math.max(delta, 1 / 120) * 7))
+        invalidate()
+      }
+      orbit.target.add(step)
+      camera.position.add(step)
+    }
+    orbit.update()
+  })
   return null
 }
 
@@ -54,9 +80,10 @@ export interface LunarEnvironmentProps {
   children?: ReactNode
   /** CSS class for the outer container. Give it a measurable height. */
   className?: string
+  focus?: LunarCameraFocus
 }
 
-export function LunarEnvironment({ children, className }: LunarEnvironmentProps) {
+export function LunarEnvironment({ children, className, focus }: LunarEnvironmentProps) {
   return (
     <div className={className} style={className ? undefined : { height: 'min(75vh, 720px)' }}>
       <Canvas
@@ -83,7 +110,7 @@ export function LunarEnvironment({ children, className }: LunarEnvironmentProps)
         <Sky />
         <Surface />
         {children}
-        <CameraControls />
+        <CameraControls focus={focus} />
       </Canvas>
     </div>
   )

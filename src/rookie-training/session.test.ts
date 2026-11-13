@@ -1,5 +1,6 @@
 import { expect, it } from 'vitest'
 import { reduceSurvivalSession } from '../components/dashboard/survivalController'
+import { updateProblems } from '../mission-feedback/departments'
 import { advanceRookie, createRookieSession } from './session'
 
 it('schedules one real greenhouse incident, repairs it with a kit, and completes day seven', () => {
@@ -8,10 +9,18 @@ it('schedules one real greenhouse incident, repairs it with a kit, and completes
   expect(initial.state.crew).toHaveLength(4)
   const damaged = advanceRookie(initial)
   expect(damaged.events).toContainEqual({ type: 'equipmentDamaged', equipment: 'greenhouse' })
-  expect(damaged.state.condition.greenhouse).toBeLessThan(1)
+  expect(damaged.events).toContainEqual({ type: 'equipmentFailed', equipment: 'greenhouse' })
+  expect(damaged.state.condition.greenhouse).toBe(0)
+  const pending = updateProblems([], initial, damaged)
+  expect(pending).toEqual([expect.objectContaining({ equipment: 'greenhouse', offline: true })])
   const repaired = reduceSurvivalSession(damaged, { type: 'maintain', equipment: 'greenhouse' })
   expect(repaired.state.tick).toBe(1)
-  expect(repaired.state.resources.spareKits).toBe(4)
+  expect(repaired.state.resources).toEqual({ ...damaged.state.resources, spareKits: 4 })
+  expect(repaired.state.crew).toBe(damaged.state.crew)
+  expect(updateProblems(pending, damaged, repaired)).toEqual([])
+  const repeated = reduceSurvivalSession(repaired, { type: 'maintain', equipment: 'greenhouse' })
+  expect(repeated.state).toBe(repaired.state)
+  expect(repeated.events).toBe(repaired.events)
   expect(repaired.state.condition.greenhouse).toBe(1)
   expect(advanceRookie(repaired).flows!.food.production).toBeGreaterThan(advanceRookie(damaged).flows!.food.production)
   let session = repaired

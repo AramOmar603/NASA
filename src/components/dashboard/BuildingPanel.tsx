@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { useEffect, useId, useRef } from 'react'
 import type { Building, BuildingId, BuildingKind, GameViewProps } from '../../types'
 import './game-interface.css'
@@ -54,9 +55,10 @@ export interface BuildingPanelProps extends GameViewProps {
   readonly onAction?: (action: BuildingAction) => void
   readonly onClose: () => void
   readonly foodUnit?: string
+  readonly children?: ReactNode
 }
 
-export function BuildingPanel({ state, buildings = state.buildings, selectedBuildingId, telemetry, onAction, onClose, foodUnit = 'rations' }: BuildingPanelProps) {
+export function BuildingPanel({ state, buildings = state.buildings, selectedBuildingId, telemetry, onAction, onClose, foodUnit = 'rations', children }: BuildingPanelProps) {
   const heading = useId()
   const close = useRef<HTMLButtonElement>(null)
   const building = buildings.find(({ id }) => id === selectedBuildingId)
@@ -113,6 +115,7 @@ export function BuildingPanel({ state, buildings = state.buildings, selectedBuil
           <button type="button" className="lg-button" disabled={!data.canRepair} onClick={() => onAction({ type: 'repair', buildingId: id })}>Repair {panel.name.toLowerCase()}</button>
         )}
         {data?.repairUnavailableReason && <p>{data.repairUnavailableReason}</p>}
+        {children}
       </div>
     </aside>
   )

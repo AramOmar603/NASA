@@ -40,7 +40,7 @@ export const levels: readonly LevelDefinition[] = Object.freeze([
     missionDays: 7,
     learningObjectives: ['Keep all four astronauts alive while learning basic resource management and equipment repair.'],
     plannedEmergencies: [],
-    survivalOverrides: { dailyWear: 0.002, incidentProbability: 0, batteryCapacityKWh: 60 },
+    survivalOverrides: { dailyWear: 0.002, incidentProbability: 0, batteryCapacityKWh: 60, repairAmount: 1 },
   }),
   defineLevel({
     id: 2,

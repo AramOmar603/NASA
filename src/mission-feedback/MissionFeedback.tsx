@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { advanceRookie, createRookieSession } from '../rookie-training/session'
 import { GreenhouseInterior } from '../rookie-training/GreenhouseInterior'
 
@@ -12,6 +12,7 @@ import { createSurvivalSession, dashboardState, equipmentNames, reduceSurvivalSe
 import type { Equipment } from '../engine/survival'
 import { LunarBase, outpost } from '../scene/buildings'
 import { LunarEnvironment } from '../scene/environment'
+import type { LunarCameraFocus } from '../scene/environment/LunarEnvironment'
 import { DepartmentLabels, LabelPositions, useLabelButtons } from './DepartmentLabels'
 import { updateProblems, type EquipmentProblem, departments, repairFeedback, type DepartmentId } from './departments'
 import '../styles.css'
@@ -47,6 +48,8 @@ const problemCopy = {
 export function MissionFeedback({ rookie = false, onRestart, onComplete }: { rookie?: boolean; onRestart?: () => void; onComplete?: () => void }) {
   const [session, setSession] = useState(() => rookie ? createRookieSession() : createSurvivalSession())
   const [training, setTraining] = useState<Equipment>()
+  const repairApplied = useRef(false)
+  const [focus, setFocus] = useState<LunarCameraFocus>()
 
   const [selected, select] = useState<DepartmentId>()
   const [overview, setOverview] = useState(false)
@@ -79,10 +82,19 @@ export function MissionFeedback({ rookie = false, onRestart, onComplete }: { roo
     if (rookie && next.state.outcome === 'success') onComplete?.()
   }
 
+  function inspectEquipment(equipment: Equipment) {
+    const building = facilityFor(equipment)
+    select(building.id)
+    setFocus({ x: building.position.x, z: building.position.y })
+    if (rookie && equipment === 'greenhouse') {
+      repairApplied.current = false
+      setTraining(equipment)
+    }
+  }
+
   function repair(equipment: Equipment, lessonPassed = false) {
     if (rookie && equipment === 'greenhouse' && !lessonPassed) {
-      select(facilityFor(equipment).id)
-      setTraining(equipment)
+      inspectEquipment(equipment)
       return
     }
     const next = reduceSurvivalSession(session, { type: 'maintain', equipment })
@@ -96,75 +108,79 @@ export function MissionFeedback({ rookie = false, onRestart, onComplete }: { roo
   }
 
   return <main className="lg-survival mf-mission">
-    <div className="mf-world">
-      <LunarEnvironment className="lg-survival-world">
-        <CameraStart />
-        <LunarBase selectedBuildingId={selected} onBuildingSelect={(id) => select(id as DepartmentId)}
-          onGroundSelect={() => select(undefined)} />
-        <LabelPositions buttons={buttons} />
-      </LunarEnvironment>
-      <DepartmentLabels buttons={buttons} selected={selected} offline={offline} onSelect={select} />
+    <div inert={Boolean(training)} aria-hidden={training ? true : undefined}>
+      <div className="mf-world">
+        <LunarEnvironment className="lg-survival-world" focus={focus}>
+          <CameraStart />
+          <LunarBase selectedBuildingId={selected} onBuildingSelect={(id) => select(id as DepartmentId)}
+            onGroundSelect={() => select(undefined)} />
+          <LabelPositions buttons={buttons} />
+        </LunarEnvironment>
+        <DepartmentLabels buttons={buttons} selected={selected} offline={offline} onSelect={select} />
+      </div>
+      <GameHUD state={view} day={state.tick} missionDays={config.missionDays} alerts={alerts}
+        showAllResources={rookie} overviewOpen={overview} onOverviewToggle={() => setOverview(!overview)} />
+      <div className="lg-survival-controls">
+        {rookie && <h1>Rookie Astronaut</h1>}
+        <button className="lg-button" type="button" disabled={!canPlay} onClick={advance}>Advance one day</button>
+        <p>Spare kits {state.resources.spareKits}</p>
+        {outcome && <p role="status">{outcome.summary}</p>}
+        <details>
+          <summary>Departments</summary>
+          <ul>{outpost.map(({ id }) => <li key={id}>
+            <button className="lg-button" type="button" onClick={() => select(id)}>{departments[id].name}</button>
+          </li>)}</ul>
+          <p>Life support receives power first. Production readings describe the last completed day.</p>
+        </details>
+        <details>
+          <summary>Mission log</summary>
+          <ol>{events.map((event, index) => <li key={index}>{describeSurvivalEvent(event)}
+            {event.type === 'equipmentFailed' && !failures.some((failure) => failure.equipment === event.equipment) ? ' Resolved.' : ''}
+          </li>)}</ol>
+        </details>
+      </div>
+      <BuildingPanel state={view} selectedBuildingId={selected} telemetry={telemetry} foodUnit="kg"
+        onClose={() => select(undefined)} onAction={(action) => {
+          if (action.type !== 'repair' || !selected || action.buildingId !== selected) return
+          const equipment = equipmentFor(selected)
+          if (equipment) repair(equipment)
+        }}>
+      {selected && <div className="mf-lesson">
+        <strong>{departments[selected].name}</strong>
+        <p>{departments[selected].lesson}</p>
+        {selected === 'PWR-01' && <p>Battery reserve {state.resources.batteryKWh.toFixed(1)} kWh</p>}
+        {selected === 'WTR-01' && <p>{flows ? 'Water recovered last day ' + flows.water.production.toFixed(1) + ' L' : 'Water recovery measurements start after the first day.'}</p>}
+        {offline.has(selected) && <p>Offline. Restore this equipment to resume its work.</p>}
+      </div>}
+      </BuildingPanel>
+      <section className="mf-notifications" aria-label="Mission notifications">
+        <div role="status">{message && <article className="mf-notice mf-feedback">
+          {message.endsWith(' fixed.') && <strong>✅ Great job!</strong>}
+          <p>{message}</p>
+          {rookie && message === 'Greenhouse fixed.' && <p>Plants need water at their roots.</p>}
+          <button className="lg-button" type="button" onClick={() => setMessage('')}>Close</button>
+        </article>}</div>
+        {pending.slice(0, 2).map(({ equipment, index, offline }) => {
+          const [title, detail] = problemCopy[equipment]
+          return <article key={index} className="mf-notice mf-emergency">
+            <div role="alert"><strong>{offline ? title : '🚨 Oh no! ' + equipmentNames[equipment] + ' damaged!'}</strong><p>{detail}</p></div>
+            <button className="lg-button" type="button" onClick={() => inspectEquipment(equipment)}>🔍 Check it</button>
+            <button className="lg-button" type="button" disabled={!canPlay || state.resources.spareKits < 1}
+              onClick={() => repair(equipment)}>🔧 Fix it</button>
+            <button className="lg-button" type="button"
+              onClick={() => postpone((previous) => new Set([...previous, index]))}>Later</button>
+          </article>
+        })}
+        {pending.length > 2 && <p className="mf-notice">{pending.length - 2} more to check</p>}
+      </section>
     </div>
-    <GameHUD state={view} day={state.tick} missionDays={config.missionDays} alerts={alerts}
-      overviewOpen={overview} onOverviewToggle={() => setOverview(!overview)} />
-    <div className="lg-survival-controls">
-      {rookie && <h1>Rookie Astronaut</h1>}
-      <button className="lg-button" type="button" disabled={!canPlay} onClick={advance}>Advance one day</button>
-      <p>Spare kits {state.resources.spareKits}</p>
-      {outcome && <p role="status">{outcome.summary}</p>}
-      <details>
-        <summary>Departments</summary>
-        <ul>{outpost.map(({ id }) => <li key={id}>
-          <button className="lg-button" type="button" onClick={() => select(id)}>{departments[id].name}</button>
-        </li>)}</ul>
-        <p>Life support receives power first. Production readings describe the last completed day.</p>
-      </details>
-      <details>
-        <summary>Mission log</summary>
-        <ol>{events.map((event, index) => <li key={index}>{describeSurvivalEvent(event)}
-          {event.type === 'equipmentFailed' && !failures.some((failure) => failure.equipment === event.equipment) ? ' Resolved.' : ''}
-        </li>)}</ol>
-      </details>
-    </div>
-    <BuildingPanel state={view} selectedBuildingId={selected} telemetry={telemetry} foodUnit="kg"
-      onClose={() => select(undefined)} onAction={(action) => {
-        if (action.type !== 'repair' || !selected || action.buildingId !== selected) return
-        const equipment = equipmentFor(selected)
-        if (equipment) repair(equipment)
-      }} />
-    {selected && <aside className="mf-lesson">
-      <strong>{departments[selected].name}</strong>
-      <p>{departments[selected].lesson}</p>
-      {selected === 'PWR-01' && <p>Battery reserve {state.resources.batteryKWh.toFixed(1)} kWh</p>}
-      {selected === 'WTR-01' && <p>{flows ? 'Water recovered last day ' + flows.water.production.toFixed(1) + ' L' : 'Water recovery measurements start after the first day.'}</p>}
-      {offline.has(selected) && <p>Offline. Restore this equipment to resume its work.</p>}
-    </aside>}
-    <section className="mf-notifications" aria-label="Mission notifications">
-      <div role="status">{message && <article className="mf-notice mf-feedback">
-        {message.endsWith(' fixed.') && <strong>✅ Great job!</strong>}
-        <p>{message}</p>
-        {rookie && message === 'Greenhouse fixed.' && <p>Plants need water at their roots.</p>}
-        <button className="lg-button" type="button" onClick={() => setMessage('')}>Close</button>
-      </article>}</div>
-      {pending.slice(0, 2).map(({ equipment, index, offline }) => {
-        const [title, detail] = problemCopy[equipment]
-        return <article key={index} className="mf-notice mf-emergency">
-          <div role="alert"><strong>{offline ? title : '🚨 Oh no! ' + equipmentNames[equipment] + ' damaged!'}</strong><p>{detail}</p></div>
-          <button className="lg-button" type="button" onClick={() => {
-            select(facilityFor(equipment).id)
-            if (rookie && equipment === 'greenhouse') setTraining(equipment)
-          }}>🔍 Check it</button>
-          <button className="lg-button" type="button" disabled={!canPlay || state.resources.spareKits < 1}
-            onClick={() => repair(equipment)}>🔧 Fix it</button>
-          <button className="lg-button" type="button"
-            onClick={() => postpone((previous) => new Set([...previous, index]))}>Later</button>
-        </article>
-      })}
-      {pending.length > 2 && <p className="mf-notice">{pending.length - 2} more to check</p>}
-    </section>
     {rookie && training === 'greenhouse' && canPlay && <GreenhouseInterior
       unavailable={state.resources.spareKits < 1 ? 'No spare kits left.' : state.condition.greenhouse >= 1 ? 'The greenhouse is already fixed.' : undefined}
-      onClose={() => setTraining(undefined)} onRepair={() => repair('greenhouse', true) === true} />}
+      onClose={() => setTraining(undefined)} onRepair={() => {
+        if (repairApplied.current) return true
+        repairApplied.current = repair('greenhouse', true) === true
+        return repairApplied.current
+      }} />}
     {rookie && outcome && <section className="rookie-result" aria-label="Mission result">
       <h2>{outcome.status === 'success' ? 'MISSION COMPLETE!' : 'Mission Failed — Try Again!'}</h2>
       <p>{outcome.status === 'success' ? 'You kept the base going for seven days.' : 'The base could no longer keep the whole crew alive.'}</p>
