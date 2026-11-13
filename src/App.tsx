@@ -1,15 +1,26 @@
-import { Dashboard } from './components/dashboard/Dashboard'
-import { initialGameState } from './engine/initialGameState'
-import { Scene } from './scene/Scene'
+import { useEffect } from 'react'
+import { useThree } from '@react-three/fiber'
+import { LunarEnvironment } from './scene/environment'
+import { LunarBase, outpost } from './scene/buildings'
+import { SurvivalMission } from './components/dashboard/SurvivalMission'
+
+function OutpostCamera() {
+  const { camera, invalidate } = useThree()
+  useEffect(() => {
+    camera.position.set(43, 37, 82)
+    camera.lookAt(0, 3, 0)
+    invalidate()
+  }, [camera, invalidate])
+  return null
+}
 
 export function App() {
   return (
-    <main className="min-h-screen bg-slate-950 p-6 text-white">
-      <div className="mx-auto max-w-4xl space-y-6">
-        <h1 className="text-3xl font-semibold">NASA</h1>
-        <Scene state={initialGameState} />
-        <Dashboard state={initialGameState} />
-      </div>
-    </main>
+    <SurvivalMission buildings={outpost} renderWorld={(controls) => (
+      <LunarEnvironment className="lg-survival-world">
+        <OutpostCamera />
+        <LunarBase {...controls} />
+      </LunarEnvironment>
+    )} />
   )
 }
