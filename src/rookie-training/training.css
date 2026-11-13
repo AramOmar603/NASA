@@ -118,3 +118,28 @@
   .rookie-guided header { flex-wrap: wrap; }
   .rookie-guided header > button { margin-left: auto; }
 }
+
+.equipment-activity {
+  position: absolute;
+  z-index: 20;
+  inset: auto 1rem 1rem auto;
+  width: min(29rem, calc(100% - 2rem));
+  max-height: 70dvh;
+  overflow: auto;
+  display: grid;
+  gap: .8rem;
+  padding: 1rem;
+  border: 2px solid #81ead5;
+  border-radius: 1rem;
+  background: #10283a;
+  color: #edfaff;
+}
+.equipment-activity header, .equipment-choices { display: flex; gap: .5rem; align-items: center; flex-wrap: wrap; justify-content: space-between; }
+.equipment-activity h2 { font-size: 1.35rem; font-weight: 800; }
+.equipment-activity button { padding: .65rem 1rem; border: 2px solid #87d8eb; border-radius: .65rem; background: #174962; font-weight: 750; cursor: pointer; }
+.equipment-activity button:focus-visible { outline: 3px solid #fff0a1; outline-offset: 3px; }
+.equipment-activity .equipment-target { padding: 1rem; border: 2px solid #ffd884; border-radius: .75rem; background: #253d53; font-size: 1.25rem; text-align: center; }
+.equipment-note { padding: .85rem; border-radius: .75rem; background: #194b63; font-size: 1.14rem; font-weight: 750; }
+.equipment-note[data-step="retry"] { background: #623c46; }
+.equipment-note[data-step="done"] { background: #18513d; }
+.equipment-activity .equipment-retry { background: #ffd884; color: #292035; border-color: #fff0bb; }

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { advanceRookie, createRookieSession } from '../rookie-training/session'
 import type { TrainingLevel } from '../rookie-training/session'
+import { EquipmentActivity } from '../rookie-training/EquipmentActivity'
 import { GreenhouseInterior } from '../rookie-training/GreenhouseInterior'
 
 import '../rookie-training/training.css'
@@ -89,18 +90,23 @@ export function MissionFeedback({ rookie = false, trainingLevel, onRestart, onCo
     if (level && next.state.outcome === 'success') onComplete?.()
   }
 
+  function hasLesson(equipment: Equipment) {
+    return (level === 1 && equipment === 'greenhouse')
+      || (level === 2 && (equipment === 'solar' || equipment === 'oxygenPlant'))
+  }
+
   function inspectEquipment(equipment: Equipment) {
     const building = facilityFor(equipment)
     select(building.id)
     setFocus({ x: building.position.x, z: building.position.y })
-    if (level && equipment === 'greenhouse') {
+    if (canPlay && hasLesson(equipment)) {
       repairApplied.current = false
       setTraining(equipment)
     }
   }
 
   function repair(equipment: Equipment, lessonPassed = false) {
-    if (level && equipment === 'greenhouse' && !lessonPassed) {
+    if (hasLesson(equipment) && !lessonPassed) {
       inspectEquipment(equipment)
       return
     }
@@ -168,9 +174,13 @@ export function MissionFeedback({ rookie = false, trainingLevel, onRestart, onCo
           <button className="lg-button" type="button" onClick={() => setMessage('')}>Close</button>
         </article>}</div>
         {pending.slice(0, 2).map(({ equipment, index, offline }) => {
-          const [title, detail] = problemCopy[equipment]
+          const [title, detail] = level === 2 && equipment === 'solar'
+            ? ["☀️ Oh no! We're losing power!", "Let's check the solar panels!"]
+            : level === 2 && equipment === 'oxygenPlant'
+              ? ['🫧 Oh no! Oxygen production stopped!', 'Our astronauts need air!']
+              : problemCopy[equipment]
           return <article key={index} className="mf-notice mf-emergency">
-            <div role="alert"><strong>{offline ? title : '🚨 Oh no! ' + equipmentNames[equipment] + ' damaged!'}</strong><p>{detail}</p></div>
+            <div role="alert"><strong>{offline || (level === 2 && hasLesson(equipment)) ? title : '🚨 Oh no! ' + equipmentNames[equipment] + ' damaged!'}</strong><p>{detail}</p></div>
             <button className="lg-button" type="button" onClick={() => inspectEquipment(equipment)}>🔍 Check it</button>
             <button className="lg-button" type="button" disabled={!canPlay || state.resources.spareKits < 1}
               onClick={() => repair(equipment)}>🔧 Fix it</button>
@@ -181,18 +191,27 @@ export function MissionFeedback({ rookie = false, trainingLevel, onRestart, onCo
         {pending.length > 2 && <p className="mf-notice">{pending.length - 2} more to check</p>}
       </section>
     </div>
-    {level && training === 'greenhouse' && canPlay && <GreenhouseInterior guided={level === 2}
+    {level === 1 && training === 'greenhouse' && canPlay && <GreenhouseInterior
       unavailable={state.resources.spareKits < 1 ? 'No spare kits left.' : state.condition.greenhouse >= 1 ? 'The greenhouse is already fixed.' : undefined}
       onClose={() => setTraining(undefined)} onRepair={() => {
         if (repairApplied.current) return true
         repairApplied.current = repair('greenhouse', true) === true
         return repairApplied.current
       }} />}
+    {level === 2 && (training === 'solar' || training === 'oxygenPlant') && canPlay &&
+      <EquipmentActivity key={training} equipment={training}
+        production={training === 'solar' ? flows?.power.production : flows?.oxygen.production}
+        unavailable={state.resources.spareKits < 1 ? 'No spare kits left.' : state.condition[training] >= 1 ? 'This equipment is already fixed.' : undefined}
+        onClose={() => setTraining(undefined)} onRepair={() => repair(training, true) === true} />}
     {level && outcome && <section className="rookie-result" aria-label="Mission result">
       <h2>{outcome.status === 'success' ? 'MISSION COMPLETE!' : 'Mission Failed — Try Again!'}</h2>
       <p>{outcome.status === 'success' ? `You kept the base going for ${config.missionDays} days.` : 'The base could no longer keep the whole crew alive.'}</p>
       <p>{state.crew.filter(({ health }) => health > 0).length} of {state.crew.length} astronauts survived.</p>
-      {outcome.status === 'success' && <p>{events.some((event) => event.type === 'equipmentRepaired' && event.equipment === 'greenhouse')
+      {outcome.status === 'success' && level === 2 && <>
+        <p><strong>Level 2 — First Emergency Completed!</strong></p>
+        <p>Solar panels turn sunlight into electricity. The oxygen generator uses electricity to make air for the crew.</p>
+      </>}
+      {outcome.status === 'success' && level === 1 && <p>{events.some((event) => event.type === 'equipmentRepaired' && event.equipment === 'greenhouse')
         ? 'You found the irrigation leak and tested a repair. Plants need water at their roots.'
         : 'You tracked the supplies that keep astronauts alive.'}</p>}
       <button className="lg-button" type="button" onClick={onRestart}>Restart mission</button>
