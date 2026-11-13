@@ -10,7 +10,7 @@ import type { Equipment } from '../engine/survival'
 import { LunarBase, outpost } from '../scene/buildings'
 import { LunarEnvironment } from '../scene/environment'
 import { DepartmentLabels, LabelPositions, useLabelButtons } from './DepartmentLabels'
-import { activeFailures, departments, repairFeedback, type DepartmentId } from './departments'
+import { updateProblems, type EquipmentProblem, departments, repairFeedback, type DepartmentId } from './departments'
 import '../styles.css'
 import './preview.css'
 
@@ -47,12 +47,13 @@ function MissionFeedback() {
   const [overview, setOverview] = useState(false)
   const [postponed, postpone] = useState<ReadonlySet<number>>(() => new Set())
   const [message, setMessage] = useState('')
+  const [problems, setProblems] = useState<EquipmentProblem[]>([])
   const buttons = useLabelButtons()
   const { state, config, flows, events } = session
   const view = { ...dashboardState(state), buildings: outpost }
-  const failures = activeFailures(session)
+  const failures = problems.filter(({ offline }) => offline)
   const offline = new Set(failures.map(({ equipment }) => facilityFor(equipment).id))
-  const pending = failures.filter(({ index }) => !postponed.has(index))
+  const pending = problems.filter(({ index }) => !postponed.has(index))
   const canPlay = state.outcome === 'active'
   const outcome = canPlay ? undefined : {
     status: state.outcome as 'success' | 'failure',
@@ -66,16 +67,19 @@ function MissionFeedback() {
   if (state.outcome === 'failure') alerts.push({ id: 'mission-failed', severity: 'emergency', message: 'Mission failed.' })
 
   function advance() {
-    setSession((previous) => reduceSurvivalSession(previous, { type: 'advanceTick' }))
+    const next = reduceSurvivalSession(session, { type: 'advanceTick' })
+    setProblems(updateProblems(problems, session, next))
+    setSession(next)
     setMessage('')
   }
 
   function repair(equipment: Equipment) {
     const next = reduceSurvivalSession(session, { type: 'maintain', equipment })
     const feedback = repairFeedback(session, next, equipment)
+    setProblems(updateProblems(problems, session, next))
     setSession(next)
     setMessage(feedback === 'operational'
-      ? equipmentNames[equipment] + ' fixed.'
+      ? equipmentNames[equipment] + (next.state.condition[equipment] === 1 ? ' fixed.' : ' working, but still damaged.')
       : feedback === 'still-offline' ? 'Still offline. Try another kit.' : next.feedback ?? '')
   }
 
@@ -105,7 +109,7 @@ function MissionFeedback() {
       <details>
         <summary>Mission log</summary>
         <ol>{events.map((event, index) => <li key={index}>{describeSurvivalEvent(event)}
-          {event.type === 'equipmentFailed' && !failures.some((failure) => failure.index === index) ? ' Resolved.' : ''}
+          {event.type === 'equipmentFailed' && !failures.some((failure) => failure.equipment === event.equipment) ? ' Resolved.' : ''}
         </li>)}</ol>
       </details>
     </div>
@@ -128,17 +132,18 @@ function MissionFeedback() {
         <p>{message}</p>
         <button className="lg-button" type="button" onClick={() => setMessage('')}>Close</button>
       </article>}</div>
-      {pending.map(({ equipment, index }) => {
+      {pending.slice(0, 2).map(({ equipment, index, offline }) => {
         const [title, detail] = problemCopy[equipment]
         return <article key={index} className="mf-notice mf-emergency">
-          <div role="alert"><strong>{title}</strong><p>{detail}</p></div>
-          <button className="lg-button" type="button" onClick={() => select(facilityFor(equipment).id)}>Check it</button>
+          <div role="alert"><strong>{offline ? title : '🚨 Oh no! ' + equipmentNames[equipment] + ' damaged!'}</strong><p>{detail}</p></div>
+          <button className="lg-button" type="button" onClick={() => select(facilityFor(equipment).id)}>🔍 Check it</button>
           <button className="lg-button" type="button" disabled={!canPlay || state.resources.spareKits < 1}
-            onClick={() => repair(equipment)}>Fix</button>
+            onClick={() => repair(equipment)}>🔧 Fix it</button>
           <button className="lg-button" type="button"
             onClick={() => postpone((previous) => new Set([...previous, index]))}>Later</button>
         </article>
       })}
+      {pending.length > 2 && <p className="mf-notice">{pending.length - 2} more to check</p>}
     </section>
     <MissionOverview open={overview} onClose={() => setOverview(false)} state={view} day={state.tick}
       missionDays={config.missionDays} foodUnit="kg" onAction={advance} alerts={alerts} outcome={outcome}

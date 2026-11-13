@@ -14,15 +14,33 @@ export const departments = {
 
 export type DepartmentId = keyof typeof departments
 
-export function activeFailures({ state, config, events }: SurvivalSession) {
-  const latest = new Map<Equipment, number>()
-  events.forEach((event, index) => {
-    if (event.type === 'equipmentFailed') latest.set(event.equipment, index)
-  })
-  return [...latest].flatMap(([equipment, index]) =>
-    state.condition[equipment] <= config.failureThreshold ? [{ equipment, index }] : [])
+export interface EquipmentProblem {
+  equipment: Equipment
+  index: number
+  offline: boolean
 }
 
+export function updateProblems(previous: readonly EquipmentProblem[], before: SurvivalSession, after: SurvivalSession) {
+  const incidents = new Map(previous.map((problem) => [problem.equipment, problem]))
+  after.events.slice(before.events.length).forEach((event, offset) => {
+    if (event.type === 'equipmentDamaged' || event.type === 'equipmentFailed') {
+      const existing = incidents.get(event.equipment)
+      const offline = after.state.condition[event.equipment] <= after.config.failureThreshold
+      incidents.set(event.equipment, {
+        equipment: event.equipment,
+        index: existing && (existing.offline || !offline) ? existing.index : before.events.length + offset,
+        offline,
+      })
+    }
+    if (event.type === 'equipmentRepaired') {
+      const condition = after.state.condition[event.equipment]
+      const problem = incidents.get(event.equipment)
+      if (condition >= 1) incidents.delete(event.equipment)
+      else if (problem) incidents.set(event.equipment, { ...problem, offline: condition <= after.config.failureThreshold })
+    }
+  })
+  return [...incidents.values()]
+}
 export function repairFeedback(before: SurvivalSession, after: SurvivalSession, equipment: Equipment) {
   const event: SurvivalEvent | undefined = after.events[before.events.length]
   if (event?.type !== 'equipmentRepaired' || event.equipment !== equipment) return undefined
