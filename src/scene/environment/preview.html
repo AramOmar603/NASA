@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>LUNARIS | Lunar Environment</title>
+    <style>
+      * { box-sizing: border-box; }
+      body { margin: 0; background: #020306; color: #edf0f8; font: 1rem system-ui, sans-serif; }
+      main { position: relative; height: 100dvh; }
+      .scene { height: 100%; }
+      header, footer { position: absolute; z-index: 1; padding: 1.25rem; pointer-events: none; text-shadow: 0 1px 5px #000; }
+      header { top: 0; }
+      footer { bottom: 0; font-size: .875rem; }
+      h1 { margin: 0; font-size: clamp(1.6rem, 4vw, 2.75rem); letter-spacing: .16em; }
+      p { margin: .35rem 0 0; }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="./preview.tsx"></script>
+  </body>
+</html>
