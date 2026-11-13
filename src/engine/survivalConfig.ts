@@ -1,0 +1,33 @@
+// All defaults are gameplay assumptions, not NASA measurements or safety limits.
+export const survivalDefaults = {
+  missionDays: 30,
+  crewSize: 4,
+  oxygenKgPerPersonDay: 0.85,
+  waterLPerPersonDay: 4,
+  foodKgPerPersonDay: 0.65,
+  waterRecovery: 0.75,
+  oxygenPlantKgPerDay: 4.2,
+  greenhouseKgPerDay: 1.8,
+  solarKWhPerDay: 55,
+  batteryCapacityKWh: 50,
+  oxygenCapacityKg: 36,
+  waterCapacityL: 120,
+  foodCapacityKg: 65,
+  lifeSupportKWhPerDay: 8,
+  oxygenPlantKWhPerDay: 12,
+  recyclerKWhPerDay: 9,
+  greenhouseKWhPerDay: 14,
+  radiationMilliSvPerDay: 0.9,
+  shieldingFraction: 0.75,
+  healthLossPerMilliSv: 0.4,
+  oxygenDeficitDamage: 110,
+  waterDeficitDamage: 42,
+  foodDeficitDamage: 24,
+  dailyWear: 0.006,
+  incidentProbability: 0.12,
+  incidentDamage: 0.27,
+  failureThreshold: 0.2,
+  repairAmount: 0.45,
+} satisfies Record<string, number>
+
+export type SurvivalConfig = Readonly<typeof survivalDefaults>
