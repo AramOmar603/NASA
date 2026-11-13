@@ -1,0 +1,38 @@
+.mf-world, .mf-labels { position: absolute; inset: 0; }
+.mf-labels { pointer-events: none; }
+.mf-labels button {
+  position: absolute;
+  visibility: hidden;
+  pointer-events: auto;
+  transform: translate(-50%, -100%);
+  border: 1px solid #64e6d8;
+  border-radius: 999px;
+  background: #081c2bea;
+  color: #fff;
+  font: 600 .78rem system-ui, sans-serif;
+  padding: .3rem .55rem;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.mf-labels button:is(:hover, :focus-visible, [aria-pressed="true"]) { background: #196074; outline: 2px solid #8bf9ed; z-index: 1; }
+.mf-labels button[data-offline="true"] { border-color: #ff987a; background: #622b24; }
+.mf-emergency, .mf-lesson {
+  position: absolute;
+  z-index: 8;
+  background: #101f30f5;
+  color: #f1f8ff;
+  padding: .7rem;
+  border: 1px solid #437187;
+  border-radius: .65rem;
+  max-width: min(20rem, calc(100% - 2rem));
+}
+.mf-emergency { top: 5rem; left: 1rem; border-color: #ff987a; }
+.mf-emergency button { margin: .45rem .35rem 0 0; }
+.mf-lesson { right: 1rem; bottom: 1rem; pointer-events: none; }
+.mf-mission .lg-survival-controls ol { max-height: 9rem; overflow: auto; }
+@media (max-width: 760px) {
+  .mf-label-name { display: none; }
+  .mf-labels button { min-width: 2rem; min-height: 2rem; }
+  .mf-emergency { top: 8rem; }
+  .mf-lesson { right: .5rem; bottom: .5rem; max-width: 11rem; font-size: .75rem; }
+}
