@@ -22,7 +22,7 @@ function ModelMeshes({ model, children }: { model: Model; children?: ReactNode }
 
   return <group>
     {model.map(({ finish, geometry }) => <mesh key={finish} geometry={geometry}
-      castShadow={finish === 'ceramic' || finish === 'frame' || finish === 'blue'}
+      castShadow={finish === 'ceramic' || finish === 'frame' || finish === 'blue' || finish === 'regolith'}
       receiveShadow={finish !== 'glass' && finish !== 'grow'}>
       <meshStandardMaterial {...finishes[finish]} />
     </mesh>)}

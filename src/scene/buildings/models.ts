@@ -14,6 +14,7 @@ export const finishes = {
   leaf: { color: '#429e52', roughness: 0.85 },
   shoot: { color: '#92c964', roughness: 0.78 },
   grow: { color: '#d9fff1', emissive: '#78ffd8', emissiveIntensity: 1.6, toneMapped: false },
+  regolith: { color: '#726d66', roughness: 1 },
   soil: { color: '#2c2928', roughness: 1 },
 } as const
 type Finish = keyof typeof finishes
@@ -39,6 +40,12 @@ class Structure {
     this.add(finish, new CylinderGeometry(topRadius, radius, length, sides), x, y, z, rx, 0, rz)
   }
 
+  rotateY(angle: number) {
+    for (const parts of this.batches.values()) {
+      for (const part of parts) part.rotateY(angle)
+    }
+  }
+
   finish() {
     return [...this.batches].map(([finish, parts]) => {
       const geometry = mergeGeometries(parts)!
@@ -57,16 +64,40 @@ function deck(s: Structure, w: number, d: number) {
   }
 }
 
+function pressureHatch(s: Structure, x: number, y: number, z: number, facing = 1) {
+  s.tube('frame', x, y, z, 1.12, 0.22, horizontal)
+  s.tube('orange', x, y, z + facing * 0.13, 0.94, 0.14, horizontal)
+  s.box('dark', x + 0.49, y, z + facing * 0.22, 0.22, 0.48, 0.14)
+}
+
+function radiator(s: Structure, x: number, z: number, width: number, depth: number) {
+  s.box('frame', x, 0.7, z, width * 0.6, 1.1, depth * 0.6)
+  s.box('ceramic', x, 1.38, z, width, 0.24, depth)
+  for (const side of [-1, 0, 1]) s.box('frame', x + side * width * 0.33, 1.52, z, 0.08, 0.06, depth)
+}
+
 function habitat(s: Structure) {
   deck(s, 18, 8)
   s.tube('ceramic', 0, 3.15, 0, 2.65, 16, 0, horizontal, 12)
   for (const x of [-7.8, -4, 0, 4, 7.8]) s.tube('frame', x, 3.15, 0, 2.75, 0.26, 0, horizontal)
-  for (const x of [-6, -2, 2, 6]) {
-    for (const z of [-2.56, 2.56]) {
-      s.box('dark', x, 3.4, z, 2.35, 1.03, 0.2)
-      s.box('window', x, 3.4, z * 1.04, 1.87, 0.67, 0.13)
+  for (const side of [-1, 1]) {
+    for (const x of [-5.2, 5.2]) {
+      s.tube('regolith', x, 1.02, side * 2.55, 1.55, 2.02, 0, 0, 8, 0.65)
+      s.box('frame', x, 3.55, side * 2.54, 1.44, 0.84, 0.38)
+      s.box('window', x, 3.53, side * 2.75, 0.76, 0.38, 0.07)
+      s.box('ceramic', x, 4.01, side * 2.64, 1.52, 0.16, 0.72)
     }
   }
+  // Two pressure doors mark the boundaries of the EVA transfer chamber.
+  s.tube('ceramic', 0, 1.68, -3.1, 1.25, 2.8, horizontal)
+  pressureHatch(s, 0, 1.68, -4.56, -1)
+  pressureHatch(s, 0, 1.68, -1.63)
+  s.box('frame', 2.28, 0.96, -3.17, 1.32, 1.6, 0.86)
+  s.box('orange', 2.28, 1.1, -3.64, 1.12, 0.96, 0.12)
+  s.box('frame', 0, 0.23, -4.38, 2.9, 0.44, 1.2)
+  s.tube('frame', 0, 1.72, 2.37, 1.44, 0.55, horizontal)
+  pressureHatch(s, 0, 1.72, 2.65)
+  radiator(s, 6.1, -4.25, 3.2, 1.7)
   s.box('orange', 0, 5.82, 0, 6, 0.13, 0.65)
   s.tube('frame', -4, 6.52, 0, 0.1, 1.45)
   s.tube('ceramic', -4, 7.24, 0, 0.79, 0.16, 0.48, 0, 12, 0.46)
@@ -77,17 +108,27 @@ function greenhouse(s: Structure) {
   for (const x of [-5.8, 5.8]) {
     for (const z of [-7.7, -3.85, 0, 3.85, 7.7]) s.box('frame', x, 2.35, z, 0.24, 4.1, 0.23)
     s.box('frame', x, 4.4, 0, 0.23, 0.23, 16)
-    s.box('glass', x, 2.52, 0, 0.07, 3.7, 15.7)
-    s.box('glass', x / 2, 5.25, 0, 6.1, 0.07, 15.7, 0, 0, -Math.sign(x) * 0.285)
+    s.box('ceramic', x, 1.06, 0, 0.33, 1.32, 15.7)
+    s.box('ceramic', x, 3.87, 0, 0.33, 1.32, 15.7)
+    for (const z of [-5.775, -1.925, 1.925, 5.775]) {
+      s.box('glass', x, 2.46, z, 0.1, 1.49, 2.78)
+      for (const edge of [-1, 1]) s.box('frame', x, 2.46, z + edge * 1.62, 0.32, 1.49, 0.48)
+    }
+    s.box('ceramic', x / 2, 5.25, 0, 6.1, 0.22, 15.7, 0, 0, -Math.sign(x) * 0.285)
     for (const z of [-7.7, -3.85, 0, 3.85, 7.7]) {
       s.box('frame', x / 2, 5.26, z, 6.1, 0.18, 0.17, 0, 0, -Math.sign(x) * 0.285)
     }
   }
   s.box('frame', 0, 6.12, 0, 0.2, 0.19, 16)
-  for (const z of [-7.8, 7.8]) s.box('glass', 0, 2.52, z, 11.65, 3.7, 0.07)
+  for (const z of [-7.8, 7.8]) {
+    s.box('ceramic', 0, 2.53, z, 11.65, 4.22, 0.28)
+    pressureHatch(s, 0, 1.68, z + Math.sign(z) * 0.17, Math.sign(z))
+  }
+  radiator(s, -4.6, 8.64, 2.65, 1.4)
   for (const x of [-3.65, 0, 3.65]) {
     s.box('ceramic', x, 0.75, 0, 2.45, 0.7, 12.8)
-    s.box('soil', x, 1.14, 0, 2.18, 0.12, 12.45)
+    s.box('blue', x, 1.14, 0, 2.18, 0.12, 12.45)
+    s.tube('frame', x + 1.07, 1.02, 0, 0.09, 12.8, horizontal)
     s.box('grow', x, 4.05, 0, 0.22, 0.13, 12.8)
     for (let row = 0; row < 9; row++) {
       for (const dx of [-0.55, 0.55]) {
@@ -101,21 +142,27 @@ function greenhouse(s: Structure) {
 }
 
 function solar(s: Structure) {
-  const tilt = 0.44
+  const tilt = 0.94
   for (const z of [-5, 5]) {
     for (const x of [-6, 6]) {
       s.box('frame', x, 0.22, z, 2.4, 0.44, 2.7)
-      s.tube('frame', x, 1.6, z, 0.24, 2.85)
+      s.tube('frame', x, 1.64, z, 0.29, 2.94)
+      for (const dx of [-0.8, 0.8]) s.box('frame', x + dx, 1.22, z, 0.16, 2.15, 0.18, 0, 0, dx * 0.62)
+      s.box('orange', x, 0.12, z + 2.5, 0.16, 0.24, 5)
       s.box('frame', x, 3.05, z, 11, 0.26, 5.8, tilt)
-      s.box('blue', x, 3.22, z, 10.7, 0.12, 5.55, tilt)
+      s.box('blue', x, 3.05 + 0.18 * Math.cos(tilt), z + 0.18 * Math.sin(tilt), 10.7, 0.12, 5.55, tilt)
       for (let col = -5; col <= 5; col++) {
         for (let row = -2; row <= 2; row++) {
-          s.box('cells', x + col * 0.95, 3.30 - row * Math.sin(tilt), z + row * Math.cos(tilt),
+          s.box('cells', x + col * 0.95, 3.05 + 0.26 * Math.cos(tilt) - row * Math.sin(tilt), z + 0.26 * Math.sin(tilt) + row * Math.cos(tilt),
             0.9, 0.035, 0.93, tilt)
         }
       }
     }
   }
+  s.box('orange', 0, 0.14, 0, 12, 0.28, 0.22)
+  s.box('frame', 0, 0.58, 0, 1.3, 1.15, 1.1)
+  // Face the preview sun toward -X and +Z.
+  s.rotateY(-0.96)
 }
 
 function utility(s: Structure, kind: 'oxygen-generator' | 'water-recycler' | 'battery') {
@@ -133,20 +180,25 @@ function utility(s: Structure, kind: 'oxygen-generator' | 'water-recycler' | 'ba
       s.tube('frame', x, 2.92, 3.7, 0.98, 0.18)
       s.tube('frame', x, 3.83, 3.7, 0.23, 0.35)
     } else {
-      s.box('orange', x, 1.17, 3.42, 2.3, 1.53, 1.8)
+      s.box('blue', x, 1.17, 3.42, 2.3, 1.53, 1.8)
+      s.box('ceramic', x, 1.36, 4.36, 1.64, 0.74, 0.08)
+      s.box('orange', x, 1.35, 4.42, 0.15, 0.43, 0.09)
       s.box('dark', x, 1.95, 3.42, 2.4, 0.16, 1.95)
     }
   }
+  if (battery) radiator(s, 0, -4.12, 5.4, 1.35)
   s.tube('frame', 0, battery ? 2.25 : 4.12, 3.7, 0.13, 9.8, 0, horizontal)
 }
 
 function shelter(s: Structure) {
   deck(s, 14, 12)
   s.tube('frame', 0, 2.12, 0, 5.25, 3.5, 0, 0, 8, 3.7)
-  s.tube('ceramic', 0, 3.89, 0, 3.65, 0.35, 0, 0, 8)
+  s.tube('regolith', 0, 2.23, -0.28, 5.6, 3.34, 0, 0, 10, 3.85)
+  s.tube('regolith', 0, 4.15, -0.28, 3.84, 0.62, 0, 0, 10, 2.75)
+  s.tube('frame', 4.7, 1.72, 0, 1.42, 1.7, 0, horizontal)
   s.box('frame', 0, 1.61, 4.2, 3.4, 2.45, 2.2)
   s.box('orange', 0, 1.55, 5.32, 2.5, 2.2, 0.14)
-  s.box('dark', 0, 1.51, 5.42, 1.9, 1.92, 0.15)
+  pressureHatch(s, 0, 1.61, 5.52)
   for (const x of [-2.4, 2.4]) s.box('orange', x, 4.1, 0, 0.32, 0.09, 4.8)
 }
 
@@ -185,6 +237,9 @@ export function makeCorridor(length: number) {
   const ribCount = Math.ceil(length / 2)
   for (let index = 0; index <= ribCount; index++) {
     s.tube('frame', 0, 1.72, -length / 2 + length * index / ribCount, 1.42, 0.17, horizontal, 0, 8)
+  }
+  for (const end of [-1, 1]) {
+    s.tube('frame', 0, 1.72, end * (length / 2 - 0.18), 1.49, 0.34, horizontal, 0, 8)
   }
   s.box('orange', 0, 3.08, 0, 0.4, 0.08, length)
   return s.finish()
