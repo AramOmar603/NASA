@@ -14,3 +14,17 @@ The configuration uses kg of oxygen and food, liters of water, kWh of energy, an
 ## Integration
 
 `SurvivalState` extends `GameState`; existing readers can consume its tick, resources, and buildings. Resource keys carry their units: `oxygenKg`, `waterL`, `foodKg`, `batteryKWh`, and `spareKits`. The caller can use the shared `advanceTick` action and `tickAdvanced` event. Maintenance, failure, and completion require the engine-specific action/event types. Building placement needs a separate integration decision before production capacity can depend on player-built structures.
+
+## Public API
+
+| Export | Contract |
+| --- | --- |
+| `createSurvivalState(seed?, config?)` | Creates a new simulation at tick zero. The default seed is 1 and is normalized to an unsigned 32-bit integer. |
+| `applySurvivalAction(state, action, config?)` | Returns `{ state, events }` without mutating its inputs. Terminal states and maintenance with no spare kits or no damage return the same snapshot and no events. |
+| `SurvivalState` | Extends `GameState` with per-person health and dose, equipment condition, per-load delivered power, outcome, and the current random seed. |
+| `Equipment` | One of `solar`, `oxygenPlant`, `recycler`, `greenhouse`, or `shielding`. |
+| `SurvivalAction` | The shared `advanceTick` action or `maintain` with an `Equipment` key. |
+| `SurvivalEvent` | `tickAdvanced` carries the new tick. `equipmentDamaged`, `equipmentFailed`, and `equipmentRepaired` carry an equipment key. `missionCompleted` carries a success or failure outcome. |
+| `survivalDefaults`, `SurvivalConfig` | The default gameplay constants and the read-only configuration type, exported from `survivalConfig.ts`. |
+
+The dashboard sends `{ type: 'advanceTick' }` to advance a day and `{ type: 'maintain', equipment: 'oxygenPlant' }` to repair the oxygen plant. Use the corresponding equipment key for another repair. The app should feed the returned state into the next transition and use the returned events for feedback.
