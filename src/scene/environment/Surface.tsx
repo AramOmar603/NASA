@@ -59,7 +59,8 @@ function createRocks() {
     const radius = 75 + random() ** 1.5 * 570
     const x = Math.cos(angle) * radius
     const z = Math.sin(angle) * radius
-    if (Math.max(Math.abs(x), Math.abs(z)) <= BASE_HALF_EXTENT + 4) {
+    // Reserve clearance for a rotated rock with a maximum radius of 4.75 m.
+    if (Math.max(Math.abs(x), Math.abs(z)) <= BASE_HALF_EXTENT + 4.75) {
       i--
       continue
     }
