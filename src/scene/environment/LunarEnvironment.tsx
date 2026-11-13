@@ -5,7 +5,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 import { Sky } from './Sky'
 import { Surface } from './Surface'
 
-export type LunarCameraFocus = Readonly<{ x: number; z: number }>
+export type LunarCameraFocus = Readonly<{ x: number; z: number; distance?: number }>
 
 function CameraControls({ focus }: { focus?: LunarCameraFocus }) {
   const controls = useRef<OrbitControls>(null)
@@ -49,9 +49,12 @@ function CameraControls({ focus }: { focus?: LunarCameraFocus }) {
 
   const destination = useRef<Vector3 | null>(null)
   const movement = useRef(new Vector3())
+  const offset = useRef(new Vector3())
+  const distance = useRef<number | undefined>(undefined)
   useEffect(() => {
     if (!focus) return
     destination.current = new Vector3(focus.x, 3, focus.z)
+    distance.current = focus.distance
     invalidate()
   }, [focus, invalidate])
 
@@ -61,14 +64,16 @@ function CameraControls({ focus }: { focus?: LunarCameraFocus }) {
     const target = destination.current
     if (target) {
       const step = movement.current.copy(target).sub(orbit.target)
-      if (step.lengthSq() < 0.01 || matchMedia('(prefers-reduced-motion: reduce)').matches) {
-        destination.current = null
-      } else {
-        step.multiplyScalar(1 - Math.exp(-Math.max(delta, 1 / 120) * 7))
-        invalidate()
-      }
+      const zoom = offset.current.copy(camera.position).sub(orbit.target)
+      const remainingZoom = distance.current === undefined ? 0 : distance.current - zoom.length()
+      const finished = (step.lengthSq() < .01 && Math.abs(remainingZoom) < .1)
+        || matchMedia('(prefers-reduced-motion: reduce)').matches
+      const blend = finished ? 1 : 1 - Math.exp(-Math.max(delta, 1 / 120) * 7)
+      step.multiplyScalar(blend)
       orbit.target.add(step)
-      camera.position.add(step)
+      camera.position.add(step).addScaledVector(zoom.normalize(), remainingZoom * blend)
+      if (finished) destination.current = null
+      else invalidate()
     }
     orbit.update()
   })
