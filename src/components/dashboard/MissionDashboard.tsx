@@ -20,7 +20,8 @@ export interface MissionDashboardProps extends GameViewProps {
   readonly day: number
   readonly resources?: Readonly<Partial<Record<ResourceId, ResourceTelemetry>>>
   readonly radiation?: { readonly dose: number; readonly limit: number }
-  readonly crew?: readonly { readonly id: string; readonly name: string; readonly role: string; readonly status: string }[]
+  readonly crew?: readonly { readonly id: string; readonly name: string; readonly role: string; readonly status: string; readonly health?: number }[]
+  readonly objectives?: readonly { readonly id: string; readonly title: string; readonly complete?: boolean }[]
   readonly selectedBuildingId?: BuildingId
   readonly alerts?: readonly { readonly id: string; readonly severity: 'advisory' | 'emergency'; readonly message: string }[]
   readonly event?: { readonly title: string; readonly description: string; readonly decisions: readonly { readonly id: string; readonly label: string }[] }
@@ -46,7 +47,7 @@ function Battery({ value, capacity, label }: { value?: number; capacity?: number
 }
 
 export function MissionDashboard({
-  state, day, resources, radiation, crew = [], selectedBuildingId, alerts = [],
+  state, day, resources, radiation, crew = [], objectives = [], selectedBuildingId, alerts = [],
   event, outcome, preview, onAction, onBuildingSelect, onAllocationChange, onDecision,
 }: MissionDashboardProps) {
   const titleId = useId()
@@ -119,7 +120,7 @@ export function MissionDashboard({
 
         <div className="md-operations">
           <section className="md-panel md-block">
-            <h2>Resource allocation</h2>
+            <h2>Power distribution</h2>
             {onAllocationChange && allocations.length > 0 ? allocations.map(({ id, name, allocation }) => (
               <label className="md-allocation" key={id}>
                 <span>{name} <output>{allocation}%</output></span>
@@ -134,7 +135,7 @@ export function MissionDashboard({
             <ul className="md-crew">
               {crew.map((member) => <li key={member.id}>
                 <span className="md-avatar" aria-hidden="true">{member.name.slice(0, 1)}</span>
-                <div><strong>{member.name}</strong><small>{member.role}</small></div>
+                <div><strong>{member.name}</strong><small>{member.role}</small>{member.health !== undefined && <><small>Health {member.health}%</small><progress aria-label={member.name + ' health'} value={member.health} max={100} /></>}</div>
                 <span className="md-crew-status">{member.status}</span>
               </li>)}
             </ul>
@@ -162,6 +163,13 @@ export function MissionDashboard({
                 </div>
               </li>)}</ul> : <p className="md-muted">No active alerts</p>}
             </div>
+          </section>
+          <section className="md-panel md-block">
+            <h2>Mission objectives</h2>
+            {objectives.length ? <ul className="md-alerts">{objectives.map((objective) => <li key={objective.id}>
+              <strong>{objective.complete ? 'Complete' : 'In progress'}</strong>
+              <p>{objective.title}</p>
+            </li>)}</ul> : <p className="md-muted">No objectives assigned</p>}
           </section>
           <section className="md-panel md-block md-event">
             <h2>Mission event</h2>

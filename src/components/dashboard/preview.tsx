@@ -15,18 +15,18 @@ const mockState: GameState = {
   ],
 }
 
-const mockTelemetry: MissionDashboardProps['resources'] = {
-  oxygen: { capacity: 100, production: 12, consumption: 10, allocation: 75 },
-  water: { capacity: 240, production: 30, consumption: 24, allocation: 65 },
-  food: { capacity: 140, production: 6, consumption: 8, allocation: 55 },
-  power: { capacity: 120, production: 18, consumption: 25, allocation: 80 },
+const mockTelemetry: NonNullable<MissionDashboardProps['resources']> = {
+  oxygen: { capacity: 100, production: 12, consumption: 10, allocation: 40 },
+  water: { capacity: 240, production: 30, consumption: 24, allocation: 30 },
+  food: { capacity: 140, production: 6, consumption: 8, allocation: 20 },
+  power: { capacity: 120, production: 18, consumption: 25, allocation: 10 },
 }
 
 const mockCrew = [
-  { id: '1', name: 'Maya Chen', role: 'Commander', status: 'Ready' },
-  { id: '2', name: 'Amir Saleh', role: 'Flight engineer', status: 'On duty' },
-  { id: '3', name: 'Lena Ortiz', role: 'Medical officer', status: 'Ready' },
-  { id: '4', name: 'Noah Park', role: 'Science officer', status: 'On duty' },
+  { id: '1', name: 'Maya Chen', role: 'Commander', status: 'Ready', health: 100 },
+  { id: '2', name: 'Amir Saleh', role: 'Flight engineer', status: 'On duty', health: 96 },
+  { id: '3', name: 'Lena Ortiz', role: 'Medical officer', status: 'Ready', health: 100 },
+  { id: '4', name: 'Noah Park', role: 'Science officer', status: 'On duty', health: 96 },
 ]
 
 const mockEvent = {
@@ -51,7 +51,11 @@ function DashboardPreview() {
     state={{ ...mockState, tick: day }}
     day={day}
     resources={resources}
-    crew={mockCrew}
+    crew={mockCrew.map((member) => decision === 'continue' ? { ...member, health: 0, status: 'Radiation casualty' } : member)}
+    objectives={[
+      { id: 'survive', title: 'Keep all four astronauts alive for 30 simulated days', complete: outcome?.status === 'success' },
+      { id: 'shelter', title: 'Protect the crew from the solar storm', complete: decision === 'shelter' },
+    ]}
     radiation={{ dose: decision === 'continue' ? 65 : 18, limit: 50 }}
     selectedBuildingId={selectedBuildingId}
     event={decision ? undefined : mockEvent}
@@ -64,10 +68,22 @@ function DashboardPreview() {
       if (action.type === 'advanceTick') setDay((previous) => Math.min(previous + 1, 30))
     }}
     onBuildingSelect={setSelectedBuildingId}
-    onAllocationChange={(id, allocation) => setResources((previous) => ({
-      ...previous,
-      [id]: { ...previous?.[id], allocation },
-    }))}
+    onAllocationChange={(id, allocation) => setResources((previous) => {
+      const otherIds = Object.keys(mockTelemetry).filter((key) => key !== id)
+      const remaining = 100 - allocation
+      const previousRemaining = otherIds.reduce((sum, key) => sum + (previous[key]?.allocation ?? 0), 0)
+      const next = { ...previous, [id]: { ...previous[id], allocation } }
+      let assigned = 0
+      otherIds.forEach((key, index) => {
+        const weight = previousRemaining ? (previous[key]?.allocation ?? 0) / previousRemaining : 1 / otherIds.length
+        const share = index === otherIds.length - 1
+          ? remaining - assigned
+          : Math.min(remaining - assigned, Math.round(remaining * weight))
+        next[key] = { ...previous[key], allocation: share }
+        assigned += share
+      })
+      return next
+    })}
     onDecision={setDecision}
   />
 }
