@@ -29,6 +29,22 @@ describe('lunar outpost geometry', () => {
     }
   })
 
+  it('keeps the furnished facility envelopes separate', () => {
+    const boxes = outpost.map(({ id, kind, position }) => {
+      const box = bounds(makeBuilding(kind))
+      box.min.x += position.x
+      box.max.x += position.x
+      box.min.z += position.y
+      box.max.z += position.y
+      return { id, box }
+    })
+    for (const [index, { id, box }] of boxes.entries()) {
+      for (const other of boxes.slice(index + 1)) {
+        expect(box.intersectsBox(other.box), id + ' overlaps ' + other.id).toBe(false)
+      }
+    }
+  })
+
   it('keeps corridor decks grounded and ribs inside the placement zone', () => {
     for (const { x, z, length, axis } of corridors) {
       const box = bounds(makeCorridor(length))
