@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { advanceRookie, createRookieSession } from '../rookie-training/session'
-import { RepairLesson, repairActivities } from '../rookie-training/RepairLesson'
-import { TrainingFocus } from '../rookie-training/TrainingFocus'
+import { GreenhouseInterior } from '../rookie-training/GreenhouseInterior'
+
 import '../rookie-training/training.css'
 import { useThree } from '@react-three/fiber'
 import { BuildingPanel } from '../components/dashboard/BuildingPanel'
@@ -47,7 +47,7 @@ const problemCopy = {
 export function MissionFeedback({ rookie = false, onRestart, onComplete }: { rookie?: boolean; onRestart?: () => void; onComplete?: () => void }) {
   const [session, setSession] = useState(() => rookie ? createRookieSession() : createSurvivalSession())
   const [training, setTraining] = useState<Equipment>()
-  const activity = training && repairActivities[training]
+
   const [selected, select] = useState<DepartmentId>()
   const [overview, setOverview] = useState(false)
   const [postponed, postpone] = useState<ReadonlySet<number>>(() => new Set())
@@ -80,7 +80,7 @@ export function MissionFeedback({ rookie = false, onRestart, onComplete }: { roo
   }
 
   function repair(equipment: Equipment, lessonPassed = false) {
-    if (rookie && repairActivities[equipment] && !lessonPassed) {
+    if (rookie && equipment === 'greenhouse' && !lessonPassed) {
       select(facilityFor(equipment).id)
       setTraining(equipment)
       return
@@ -92,6 +92,7 @@ export function MissionFeedback({ rookie = false, onRestart, onComplete }: { roo
     setMessage(feedback === 'operational'
       ? equipmentNames[equipment] + (next.state.condition[equipment] === 1 ? ' fixed.' : ' working, but still damaged.')
       : feedback === 'still-offline' ? 'Still offline. Try another kit.' : next.feedback ?? '')
+    return next.state.condition[equipment] === 1 && feedback === 'operational'
   }
 
   return <main className="lg-survival mf-mission">
@@ -100,7 +101,6 @@ export function MissionFeedback({ rookie = false, onRestart, onComplete }: { roo
         <CameraStart />
         <LunarBase selectedBuildingId={selected} onBuildingSelect={(id) => select(id as DepartmentId)}
           onGroundSelect={() => select(undefined)} />
-        {rookie && <TrainingFocus active={Boolean(activity)} />}
         <LabelPositions buttons={buttons} />
       </LunarEnvironment>
       <DepartmentLabels buttons={buttons} selected={selected} offline={offline} onSelect={select} />
@@ -152,7 +152,7 @@ export function MissionFeedback({ rookie = false, onRestart, onComplete }: { roo
           <div role="alert"><strong>{offline ? title : '🚨 Oh no! ' + equipmentNames[equipment] + ' damaged!'}</strong><p>{detail}</p></div>
           <button className="lg-button" type="button" onClick={() => {
             select(facilityFor(equipment).id)
-            if (rookie && repairActivities[equipment]) setTraining(equipment)
+            if (rookie && equipment === 'greenhouse') setTraining(equipment)
           }}>🔍 Check it</button>
           <button className="lg-button" type="button" disabled={!canPlay || state.resources.spareKits < 1}
             onClick={() => repair(equipment)}>🔧 Fix it</button>
@@ -162,9 +162,9 @@ export function MissionFeedback({ rookie = false, onRestart, onComplete }: { roo
       })}
       {pending.length > 2 && <p className="mf-notice">{pending.length - 2} more to check</p>}
     </section>
-    {rookie && activity && training && canPlay && <RepairLesson key={training} activity={activity}
-      unavailable={state.resources.spareKits < 1 ? 'No spare kits left.' : state.condition[training] >= 1 ? 'This equipment is already in full condition.' : undefined}
-      onClose={() => setTraining(undefined)} onFinish={() => repair(training, true)} />}
+    {rookie && training === 'greenhouse' && canPlay && <GreenhouseInterior
+      unavailable={state.resources.spareKits < 1 ? 'No spare kits left.' : state.condition.greenhouse >= 1 ? 'The greenhouse is already fixed.' : undefined}
+      onClose={() => setTraining(undefined)} onRepair={() => repair('greenhouse', true) === true} />}
     {rookie && outcome && <section className="rookie-result" aria-label="Mission result">
       <h2>{outcome.status === 'success' ? 'MISSION COMPLETE!' : 'Mission Failed — Try Again!'}</h2>
       <p>{outcome.status === 'success' ? 'You kept the base going for seven days.' : 'The base could no longer keep the whole crew alive.'}</p>
