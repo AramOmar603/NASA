@@ -19,7 +19,10 @@ export interface ResourceTelemetry {
 export interface MissionDashboardProps extends GameViewProps {
   readonly day: number
   readonly resources?: Readonly<Partial<Record<ResourceId, ResourceTelemetry>>>
-  readonly radiation?: { readonly dose: number; readonly limit: number }
+  readonly radiation?: { readonly dose: number; readonly limit?: number }
+  readonly missionDays?: number
+  readonly foodUnit?: string
+  readonly allocationExplanation?: string
   readonly crew?: readonly { readonly id: string; readonly name: string; readonly role: string; readonly status: string; readonly health?: number }[]
   readonly objectives?: readonly { readonly id: string; readonly title: string; readonly complete?: boolean }[]
   readonly selectedBuildingId?: BuildingId
@@ -34,9 +37,7 @@ export interface MissionDashboardProps extends GameViewProps {
   readonly onDecision?: (id: string) => void
 }
 
-const missionLength = 30
-
-function missionProgress(day: number) {
+function missionProgress(day: number, missionLength: number) {
   return Math.min(missionLength, Math.max(0, Math.trunc(Number.isFinite(day) ? day : 0)))
 }
 
@@ -49,16 +50,16 @@ function Battery({ value, capacity, label }: { value?: number; capacity?: number
 
 export function MissionDashboard({
   state, day, resources, radiation, crew = [], objectives = [], selectedBuildingId, alerts = [],
-  event, outcome, preview, advanceBlockedReason, onAction, onBuildingSelect, onAllocationChange, onDecision,
+  event, outcome, preview, missionDays: missionLength = 30, foodUnit = 'rations', allocationExplanation, advanceBlockedReason, onAction, onBuildingSelect, onAllocationChange, onDecision,
 }: MissionDashboardProps) {
   const titleId = useId()
-  const currentDay = missionProgress(day)
+  const currentDay = missionProgress(day, missionLength)
   const building = state.buildings.find(({ id }) => id === selectedBuildingId)
   const allocations = missionResources.flatMap(({ id, name }) => {
     const allocation = resources?.[id]?.allocation
     return allocation === undefined ? [] : [{ id, name, allocation }]
   })
-  const radiationLimitReached = radiation && radiation.dose >= radiation.limit
+  const radiationLimitReached = radiation?.limit !== undefined && radiation.dose >= radiation.limit
 
   return (
     <section className="mission-dashboard" aria-labelledby={titleId}>
@@ -80,7 +81,7 @@ export function MissionDashboard({
               <span>{currentDay} / {missionLength} days</span>
               <span>{Math.round(currentDay / missionLength * 100)}% complete</span>
             </div>
-            <progress aria-label="Progress toward day 30" value={currentDay} max={missionLength} />
+            <progress aria-label={`Progress toward day ${missionLength}`} value={currentDay} max={missionLength} />
             {onAction && <button type="button" disabled={Boolean(outcome || advanceBlockedReason)} onClick={() => onAction({ type: 'advanceTick' })}>Advance simulation</button>}
             {advanceBlockedReason && <p>{advanceBlockedReason}</p>}
           </div>
@@ -94,27 +95,28 @@ export function MissionDashboard({
         <section aria-label="Life support and radiation">
           <h2 className="md-section-title">Life support</h2>
           <div className="md-resources">
-            {missionResources.map(({ id, name, symbol, unit, color }) => {
+            {missionResources.map(({ id, name, symbol, unit: defaultUnit, color }) => {
+              const unit = id === 'food' ? foodUnit : defaultUnit
               const balance = state.resources[id]
               const telemetry = resources?.[id]
               return <article key={id} className="md-panel md-resource" style={{ accentColor: color }}>
                 <span className="md-resource-icon" style={{ color }} aria-hidden="true">{symbol}</span>
                 <h3>{name}</h3>
-                <p className="md-reading">{balance ?? '—'} <small>{unit}</small></p>
+                <p className="md-reading">{balance === undefined ? '—' : Number(balance.toFixed(2))} <small>{unit}</small></p>
                 <Battery value={balance} capacity={telemetry?.capacity} label={`${name} capacity`} />
                 <dl className="md-flow">
-                  <div><dt>Production</dt><dd>{telemetry?.production === undefined ? '—' : `+${telemetry.production} ${unit}/day`}</dd></div>
-                  <div><dt>Consumption</dt><dd>{telemetry?.consumption === undefined ? '—' : `−${telemetry.consumption} ${unit}/day`}</dd></div>
+                  <div><dt>Production</dt><dd>{telemetry?.production === undefined ? '—' : `+${Number(telemetry.production.toFixed(2))} ${unit}/day`}</dd></div>
+                  <div><dt>Consumption</dt><dd>{telemetry?.consumption === undefined ? '—' : `−${Number(telemetry.consumption.toFixed(2))} ${unit}/day`}</dd></div>
                 </dl>
               </article>
             })}
             <article className="md-panel md-resource" style={{ accentColor: '#d6a6fd' }}>
               <span className="md-resource-icon text-violet-300" aria-hidden="true">☢</span>
               <h3>Radiation safety</h3>
-              <p className="md-reading">{radiation?.dose ?? '—'} <small>mSv</small></p>
-              <Battery value={radiation?.dose} capacity={radiation?.limit} label="Radiation dose relative to safety limit" />
+              <p className="md-reading">{radiation ? Number(radiation.dose.toFixed(2)) : '—'} <small>mSv</small></p>
+              {radiation?.limit !== undefined && <Battery value={radiation.dose} capacity={radiation?.limit} label="Radiation dose relative to safety limit" />}
               <p className={radiationLimitReached ? 'md-danger' : 'md-muted'}>
-                {radiation ? radiationLimitReached ? 'Safety limit reached' : `Below ${radiation.limit} mSv limit` : 'Telemetry unavailable'}
+                {radiation?.limit !== undefined ? radiationLimitReached ? 'Safety limit reached' : `Below ${radiation.limit} mSv limit` : radiation ? 'Highest cumulative crew dose' : 'Telemetry unavailable'}
               </p>
             </article>
           </div>
@@ -129,7 +131,7 @@ export function MissionDashboard({
                 <input type="range" aria-label={`${name} allocation`} min={0} max={100} step={1} value={allocation} disabled={Boolean(outcome)}
                   onChange={(e) => onAllocationChange(id, e.currentTarget.valueAsNumber)} />
               </label>
-            )) : <p className="md-muted">Allocation controls unavailable</p>}
+            )) : <p className="md-muted">{allocationExplanation ?? 'Allocation controls unavailable'}</p>}
           </section>
           <section className="md-panel md-block">
             <h2>Crew status</h2>

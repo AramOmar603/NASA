@@ -66,3 +66,34 @@ also accepts optional crew, radiation, resource flow, alerts, and mission outcom
 The overview also exposes crew health and mission objectives. Its mock power
 allocation redistributes the remaining budget across systems to keep the total
 at 100%. Per-building controls use separate building telemetry.
+
+## Live survival integration
+
+Run `npm ci` and `npm run dev`, then open
+`/src/components/dashboard/survival-preview.html` on the Vite server.
+**Advance one day** runs one engine tick. Open **Mission overview** to see
+stocks, previous-day gross flows, radiation and crew vitals. Select a facility
+in the 3D world or in **Base facilities and power** to see its condition and
+repair it when damaged. A repair uses one spare kit and leaves the day unchanged.
+**Mission log** shows engine incidents, repair events and mission completion.
+
+`SurvivalMission` owns a session initialized with one seed and configuration.
+Pass it the visual building catalog and an optional `renderWorld` function
+that receives the selection handlers. The supplied preview composes the
+existing lunar environment and outpost. The main app entry point still uses
+its current composition. The engine models fixed subsystems, and the catalog
+associates each recognized visual building kind with the corresponding
+subsystem. The scene's `oxygen-generator` maps to `oxygen-production`.
+
+The controller adapts unit-bearing engine keys to the reusable dashboard.
+The engine exposes delivered energy and stocks, but no gross-flow fields.
+The controller reconstructs previous-day gross flows from the pre-tick
+inventories, post-tick equipment condition, delivered power, and shared
+configuration. Repairs preserve those last-day readings. If the engine's
+flow formulas change, update this adapter or expose gross flow in the engine
+result directly.
+
+Power distribution follows the engine's fixed priority. The live UI has no
+manual allocation sliders or emergency response choices because the engine
+has no actions for those. Equipment failures appear as critical alerts, and
+radiation is shown as cumulative crew exposure without an invented threshold.
