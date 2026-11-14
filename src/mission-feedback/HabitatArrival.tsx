@@ -13,6 +13,7 @@ export function HabitatArrival({ active, onBegin }: { active: boolean; onBegin: 
     <section className="habitat-arrival" inert={!active} aria-label="Inside the Home Center">
       <HabitatInterior checked={checked} onCheck={() => setChecked(true)} />
       <div className="habitat-arrival-note">
+        <p className="mission-wordmark">🌙 LAMOON</p>
         <h1>Welcome home, astronaut!</h1>
         <p role="status">{checked
           ? 'Ready to explore? Head outside to start your first day.'

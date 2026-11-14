@@ -1,4 +1,5 @@
-import type { BuildingTelemetry } from '../components/dashboard/BuildingPanel'
+import type { SurvivalSession } from '../components/dashboard/survivalController'
+import { DepartmentInfo } from './DepartmentInfo'
 import { useState } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { GreenhouseInterior } from '../rookie-training/GreenhouseInterior'
@@ -21,6 +22,7 @@ function UtilityRoom({ id, active }: { id: keyof typeof rooms; active: boolean }
       fallback={<div className="visit-scene-fallback">{departments[id].icon}</div>}>
       <color attach="background" args={['#182741']} />
       <ambientLight intensity={1.7} />
+      <directionalLight position={[-3, 4, 5]} intensity={1.05} color="#dcecff" />
       <pointLight position={[1, 3, 3]} color={color} intensity={32} />
       <mesh position={[0, -.15, 0]}>
         <boxGeometry args={[7, .25, 8]} /><meshStandardMaterial color="#48536e" />
@@ -41,7 +43,7 @@ function UtilityRoom({ id, active }: { id: keyof typeof rooms; active: boolean }
         </mesh>
       </> : id === 'PWR-01' ? (
         <group position={[0, .85, -1]}>
-          <mesh><boxGeometry args={[3.5, 1.65, 1.2]} /><meshStandardMaterial color="#30395e" /></mesh>
+          <mesh><boxGeometry args={[3.5, 1.65, 1.2]} /><meshStandardMaterial color="#495983" /></mesh>
           {[-1, 0, 1].map((x) => <mesh key={x} position={[x, 0, .62]}>
             <boxGeometry args={[.55, 1.12, .07]} />
             <meshStandardMaterial color={color} emissive={color} emissiveIntensity={active ? .7 : .15} />
@@ -60,11 +62,11 @@ function UtilityRoom({ id, active }: { id: keyof typeof rooms; active: boolean }
   )
 }
 
-export function DepartmentVisit({ id, damaged, repairAvailable, telemetry, onRepair, onBack, onTour }: {
+export function DepartmentVisit({ id, damaged, repairAvailable, session, onRepair, onBack, onTour }: {
   id: DepartmentId
   damaged: boolean
   repairAvailable: boolean
-  telemetry?: BuildingTelemetry
+  session: SurvivalSession
   onRepair: () => void
   onBack: () => void
   onTour?: () => void
@@ -72,7 +74,7 @@ export function DepartmentVisit({ id, damaged, repairAvailable, telemetry, onRep
   const [learned, setLearned] = useState(false)
   const habitat = id === 'HAB-01'
   if (id === 'BIO-01') return (
-    <GreenhouseInterior exploring damaged={damaged} repairAvailable={repairAvailable} onStartRepair={onRepair} onClose={onBack} onRepair={() => false} />
+    <GreenhouseInterior exploring departmentInfo={<DepartmentInfo id={id} session={session} />} damaged={damaged} repairAvailable={repairAvailable} onStartRepair={onRepair} onClose={onBack} onRepair={() => false} />
   )
 
   const equipment = id === 'OXY-01' || id === 'SOL-01'
@@ -88,16 +90,9 @@ export function DepartmentVisit({ id, damaged, repairAvailable, telemetry, onRep
       )}
       {room && <div className="visit-room"><UtilityRoom id={id as keyof typeof rooms} active={learned} /></div>}
       <div className="visit-card">
-        <h2><span className="mission-icon" aria-hidden="true">{departments[id].icon}</span> {departments[id].name}</h2>
-        <p role="status">{learned ? room?.cue ?? departments[id].lesson
-          : habitat ? 'Welcome home! Tap the console or the glowing exit.'
-            : 'Tap Learn to see what this does.'}</p>
-        {equipment && telemetry && <dl className="visit-readings">
-          <div><dt>Condition</dt><dd>{telemetry.condition ?? 'Unavailable'}</dd></div>
-          <div><dt>{id === 'SOL-01' ? 'Electricity produced last day' : 'Oxygen produced last day'}</dt>
-            <dd>{telemetry.readings?.generation ?? 'Unavailable'}</dd></div>
-          {id === 'SOL-01' && <div><dt>Battery reserve</dt><dd>{telemetry.readings?.battery}</dd></div>}
-        </dl>}
+        {habitat && <p className="mission-wordmark">🌙 LAMOON</p>}
+        <DepartmentInfo id={id} session={session} />
+        {learned && room && <p role="status">{room.cue}</p>}
         <div className="visit-actions">
           {!learned && <button type="button" onClick={() => setLearned(true)}>
             {habitat ? 'Check mission console' : 'Learn how it works'}
@@ -107,7 +102,7 @@ export function DepartmentVisit({ id, damaged, repairAvailable, telemetry, onRep
           {habitat && onTour && <button className="visit-tour" type="button" onClick={onTour}>
             <span aria-hidden="true">🚀</span> Take the Base Tour
           </button>}
-          <button autoFocus type="button" onClick={onBack}>{habitat ? '🚪 Exit to Moon base' : '↩ Back to Base'}</button>
+          <button autoFocus type="button" onClick={onBack}>{habitat ? '🚪 Explore Moon Base' : '↩ Back to Base'}</button>
         </div>
       </div>
     </section>

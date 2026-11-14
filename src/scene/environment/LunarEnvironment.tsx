@@ -5,7 +5,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 import { Sky, sunlightPosition } from './Sky'
 import { Surface } from './Surface'
 
-export type LunarCameraFocus = Readonly<{ x: number; z: number; distance?: number; onArrival?: () => void }>
+export type LunarCameraFocus = Readonly<{ x: number; z: number; distance?: number; cameraOffset?: readonly [number, number, number]; onArrival?: () => void }>
 
 function CameraControls({ focus }: { focus?: LunarCameraFocus }) {
   const controls = useRef<OrbitControls>(null)
@@ -50,9 +50,14 @@ function CameraControls({ focus }: { focus?: LunarCameraFocus }) {
   const destination = useRef<Vector3 | null>(null)
   const movement = useRef(new Vector3())
   const offset = useRef(new Vector3())
+  const endOffset = useRef(new Vector3())
   const distance = useRef<number | undefined>(undefined)
   useEffect(() => {
-    if (!focus) return
+    if (!focus) {
+      destination.current = null
+      if (controls.current) controls.current.enabled = true
+      return
+    }
     destination.current = new Vector3(focus.x, 3, focus.z)
     distance.current = focus.distance
     invalidate()
@@ -65,15 +70,23 @@ function CameraControls({ focus }: { focus?: LunarCameraFocus }) {
     if (target) {
       const step = movement.current.copy(target).sub(orbit.target)
       const zoom = offset.current.copy(camera.position).sub(orbit.target)
-      const remainingZoom = distance.current === undefined ? 0 : distance.current - zoom.length()
-      const finished = (step.lengthSq() < .01 && Math.abs(remainingZoom) < .1)
+      const desiredOffset = endOffset.current
+      if (focus?.cameraOffset) {
+        orbit.enabled = false
+        const aspect = gl.domElement.clientWidth / Math.max(1, gl.domElement.clientHeight)
+        desiredOffset.set(...focus.cameraOffset).multiplyScalar(1 / Math.max(.38, Math.min(1, aspect)))
+      } else {
+        desiredOffset.copy(zoom).setLength(distance.current ?? zoom.length())
+      }
+      const finished = (step.lengthSq() < .01 && zoom.distanceToSquared(desiredOffset) < .01)
         || matchMedia('(prefers-reduced-motion: reduce)').matches
       const blend = finished ? 1 : 1 - Math.exp(-Math.max(delta, 1 / 120) * 7)
       step.multiplyScalar(blend)
       orbit.target.add(step)
-      camera.position.add(step).addScaledVector(zoom.normalize(), remainingZoom * blend)
+      camera.position.copy(orbit.target).add(zoom.lerp(desiredOffset, blend))
       if (finished) {
         destination.current = null
+        orbit.enabled = true
         focus?.onArrival?.()
       } else invalidate()
     }
@@ -102,7 +115,10 @@ export function LunarEnvironment({ children, className, focus, interactive = tru
         shadows={{ type: PCFShadowMap }}
         fallback={fallback ?? <div />}
       >
-        <ambientLight intensity={0.63} color="#e1e8ff" />
+        {/* A low, shadow-free fill keeps camera-facing equipment readable. */}
+        <ambientLight intensity={0.68} color="#edf2ff" />
+        <hemisphereLight args={['#d5e7ff', '#a59d91', 0.72]} />
+        <directionalLight position={[38, 52, 85]} color="#e6efff" intensity={0.95} />
         <directionalLight
           castShadow
           color="#fff3df"

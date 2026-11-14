@@ -66,7 +66,7 @@ export function MissionDashboard({
       <header className="md-header flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <span className="md-mark" aria-hidden="true">◈</span>
-          <div><h1 id={titleId}>LUNARIS</h1><p>Junior Astronaut Mission Trainer</p></div>
+          <div><h1 id={titleId}>LAMOON</h1><p>Junior Astronaut Mission Trainer</p></div>
         </div>
         {preview && <span className="md-badge">Preview · Mock data</span>}
       </header>

@@ -21,11 +21,9 @@
   cursor: pointer;
 }
 .mf-labels button:is(:hover, :focus-visible, [aria-pressed="true"]) { background: #196074; outline: 2px solid var(--marker-accent); scale: 1.1; z-index: 1; }
-.mf-lesson { margin-top: .85rem; padding-top: .65rem; border-top: 1px solid #437187; }
-.mf-lesson p { margin-top: .25rem; }
 .mf-notifications {
   position: absolute;
-  top: 5rem;
+  top: 5.4rem;
   left: 1rem;
   z-index: 11;
   width: min(18rem, calc(100% - 2rem));
@@ -48,10 +46,9 @@
 .mf-notice strong { display: block; font-size: 1.05rem; }
 .mf-feedback { background: #103733; border-color: #67dfba; }
 .mf-notice button { margin: .45rem .35rem 0 0; }
-.mf-mission .lg-survival-controls ol { max-height: 9rem; overflow: auto; }
 @media (max-width: 760px) {
   .mf-labels button { min-width: 2rem; min-height: 2rem; }
-  .mf-notifications { top: 8rem; max-height: 34dvh; }
+  .mf-notifications { top: 7.35rem; max-height: 34dvh; }
 }
 
 .moon-arrival {
@@ -102,7 +99,6 @@
 }
 [data-approaching="true"] .moon-arrival-fallback span { animation: moon-fallback-zoom 4.2s ease-in-out both; }
 @keyframes moon-fallback-zoom { to { transform: scale(5); } }
-.habitat-first-step { border-left: 3px solid #87ffe5; padding-inline-start: .6rem; }
 
 .habitat-arrival {
   position: fixed;
@@ -186,3 +182,14 @@
 @media (prefers-reduced-motion: reduce) {
   .mf-labels button { transition: none; }
 }
+
+.moon-arrival-note .go-to-base {
+  color: #17233a;
+  background: linear-gradient(125deg, #9dffdf, #d4c4ff 59%, #ffe68c);
+  border: 2px solid #d5fff9;
+  border-radius: 1rem;
+  box-shadow: 0 0 1.25rem #8ee5fc80;
+  min-height: 3rem;
+  font-size: clamp(1rem, 4vw, 1.3rem);
+}
+.moon-arrival-note .go-to-base:hover { filter: brightness(1.12); }

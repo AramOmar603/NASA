@@ -38,7 +38,10 @@ function MoonSurface() {
   )
 }
 
-export function MoonArrival({ onApproach, onArrival }: { onApproach: () => void; onArrival: () => void }) {
+export function MoonArrival({ onApproach, onArrival }: {
+  onApproach: () => void
+  onArrival: () => void
+}) {
   const [startedAt, setStartedAt] = useState<number>()
   const approaching = startedAt !== undefined
   const arrival = useRef(onArrival)
@@ -54,6 +57,7 @@ export function MoonArrival({ onApproach, onArrival }: { onApproach: () => void;
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) onArrival()
     else setStartedAt(performance.now())
   }
+
 
   return (
     <section className="moon-arrival" data-approaching={approaching} aria-label="Moon approach">
@@ -72,10 +76,11 @@ export function MoonArrival({ onApproach, onArrival }: { onApproach: () => void;
         </Canvas>
       </div>
       <div className="moon-arrival-note">
-        <h1>{approaching ? 'Descending toward the Moon base…' : 'Welcome to the Moon!'}</h1>
+        <p className="mission-wordmark">🌙 LAMOON</p>
+        <h1 role="status">{approaching ? 'Descending toward the Moon base…' : 'Welcome to the Moon!'}</h1>
         {!approaching && <>
           <p>The bright ring marks your Moon base.</p>
-          <button autoFocus type="button" onClick={startApproach}>Zoom to the Home Center</button>
+          <button autoFocus className="go-to-base" type="button" onClick={startApproach}>🚀 GO TO BASE</button>
         </>}
       </div>
     </section>

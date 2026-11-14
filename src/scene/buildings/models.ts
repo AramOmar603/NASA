@@ -4,11 +4,11 @@ import type { BaseBuildingKind } from './layout'
 
 export const finishes = {
   ceramic: { color: '#e3e9ed', roughness: 0.58 },
-  frame: { color: '#364956', metalness: 0.46, roughness: 0.54 },
-  dark: { color: '#152232', roughness: 0.8 },
+  frame: { color: '#506776', metalness: 0.28, roughness: 0.54 },
+  dark: { color: '#283c50', roughness: 0.8 },
   orange: { color: '#f0ad50', roughness: 0.66 },
-  blue: { color: '#19386e', metalness: 0.52, roughness: 0.34 },
-  cells: { color: '#355fa0', metalness: 0.45, roughness: 0.4 },
+  blue: { color: '#284e84', metalness: 0.3, roughness: 0.34 },
+  cells: { color: '#4274b1', metalness: 0.28, roughness: 0.4 },
   window: { color: '#122e43', emissive: '#42a3bd', emissiveIntensity: 0.64, roughness: 0.22 },
   glass: { color: '#a5edff', transparent: true, opacity: 0.14, depthWrite: false, roughness: 0.15 },
   leaf: { color: '#429e52', roughness: 0.85 },

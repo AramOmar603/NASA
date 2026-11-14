@@ -6,10 +6,8 @@ import { GreenhouseInterior } from '../rookie-training/GreenhouseInterior'
 
 import '../rookie-training/training.css'
 import { useThree } from '@react-three/fiber'
-import { BuildingPanel } from '../components/dashboard/BuildingPanel'
-import { GameHUD } from '../components/dashboard/GameHUD'
 import { MissionOverview } from '../components/dashboard/MissionOverview'
-import { buildingTelemetry, describeSurvivalEvent } from '../components/dashboard/SurvivalMission'
+import { describeSurvivalEvent } from '../components/dashboard/SurvivalMission'
 import { createSurvivalSession, dashboardState, equipmentNames, reduceSurvivalSession } from '../components/dashboard/survivalController'
 import type { Equipment } from '../engine/survival'
 import { LunarBase, outpost } from '../scene/buildings'
@@ -20,11 +18,16 @@ import { DepartmentLabels, LabelPositions, useLabelButtons } from './DepartmentL
 import { updateProblems, type EquipmentProblem, departments, repairFeedback, type DepartmentId } from './departments'
 import '../styles.css'
 import './preview.css'
+import './mission-layout.css'
+
+const baseOverview = { x: 0, z: 0, cameraOffset: [43, 34, 82] } as const
+const homeApproach = { x: 0, z: 0, distance: 28 } as const
 
 function CameraStart() {
   const { camera, invalidate } = useThree()
   useEffect(() => {
-    camera.position.set(43, 37, 82)
+    camera.position.set(...baseOverview.cameraOffset)
+    camera.position.y += 3
     camera.lookAt(0, 3, 0)
     invalidate()
   }, [camera, invalidate])
@@ -48,11 +51,12 @@ const problemCopy = {
   shielding: ['🛡️ Safety Shelter Needs Help!', 'This room helps keep the crew safe.'],
 } satisfies Record<Equipment, readonly [string, string]>
 
-export function MissionFeedback({ rookie = false, trainingLevel, startAtHabitat = false, spawnInsideHabitat = false, onReplayIntro, onRestart, onComplete }: {
+export function MissionFeedback({ rookie = false, trainingLevel, startAtHabitat = false, spawnInsideHabitat = false, showBaseOverview = true, onReplayIntro, onRestart, onComplete }: {
   rookie?: boolean
   trainingLevel?: TrainingLevel
   startAtHabitat?: boolean
   spawnInsideHabitat?: boolean
+  showBaseOverview?: boolean
   onReplayIntro?: () => void
   onRestart?: () => void
   onComplete?: () => void
@@ -63,11 +67,15 @@ export function MissionFeedback({ rookie = false, trainingLevel, startAtHabitat 
   const [visit, setVisit] = useState<DepartmentId | undefined>(spawnInsideHabitat ? 'HAB-01' : undefined)
   const [approaching, setApproaching] = useState<DepartmentId>()
   const pendingVisit = useRef<DepartmentId>(undefined)
-  const [navigation, setNavigation] = useState<'map' | 'help'>()
+  const [navigation, setNavigation] = useState<'map' | 'help' | 'more'>()
   const repairApplied = useRef(false)
-  const [focus, setFocus] = useState<LunarCameraFocus | undefined>(() => startAtHabitat ? { x: 0, z: 0, distance: 28 } : undefined)
+  const [focus, setFocus] = useState<LunarCameraFocus | undefined>(() => spawnInsideHabitat || !showBaseOverview ? homeApproach : baseOverview)
 
-  const [selected, select] = useState<DepartmentId | undefined>(startAtHabitat ? 'HAB-01' : undefined)
+  useEffect(() => {
+    if (showBaseOverview && !spawnInsideHabitat) setFocus(baseOverview)
+  }, [showBaseOverview, spawnInsideHabitat])
+
+  const [selected, select] = useState<DepartmentId>()
   const [overview, setOverview] = useState(false)
   const [postponed, postpone] = useState<ReadonlySet<number>>(() => new Set())
   const [message, setMessage] = useState('')
@@ -83,7 +91,6 @@ export function MissionFeedback({ rookie = false, trainingLevel, startAtHabitat 
     status: state.outcome as 'success' | 'failure',
     summary: state.outcome === 'success' ? 'All four astronauts made it home!' : 'The base could no longer keep the whole crew safe.',
   }
-  const telemetry = Object.fromEntries(outpost.map((building) => [building.id, buildingTelemetry(building, session)]))
   const alerts = failures.map(({ equipment, index }) => ({
     id: String(index), severity: 'emergency' as const, message: equipmentNames[equipment] + ' needs help.',
   }))
@@ -91,6 +98,7 @@ export function MissionFeedback({ rookie = false, trainingLevel, startAtHabitat 
   if (state.outcome === 'failure') alerts.push({ id: 'mission-failed', severity: 'emergency', message: 'Mission failed.' })
 
   function advance() {
+    if (!canPlay) return
     const next = level ? advanceRookie(session, level) : reduceSurvivalSession(session, { type: 'advanceTick' })
     setProblems(updateProblems(problems, session, next))
     setSession(next)
@@ -129,7 +137,8 @@ export function MissionFeedback({ rookie = false, trainingLevel, startAtHabitat 
 
   function leaveVisit() {
     setVisit(undefined)
-    setFocus({ x: 0, z: 0, distance: 92 })
+    select(undefined)
+    setFocus({ ...baseOverview })
   }
 
   function inspectEquipment(equipment: Equipment) {
@@ -167,65 +176,71 @@ export function MissionFeedback({ rookie = false, trainingLevel, startAtHabitat 
         </LunarEnvironment>
         <DepartmentLabels buttons={buttons} selected={selected} offline={offline} onSelect={explore} />
       </div>
-      <nav className="base-navigation" aria-label="Base navigation">
-        <button type="button" onClick={() => explore('HAB-01')}>🏠 Return Home</button>
-        <button type="button" aria-expanded={navigation === 'map'} onClick={() => setNavigation(navigation === 'map' ? undefined : 'map')}>🗺️ Base Map</button>
-        <button type="button" aria-expanded={navigation === 'help'} onClick={() => setNavigation(navigation === 'help' ? undefined : 'help')}>❓ Help</button>
-      </nav>
-      {navigation && <section className="base-navigation-panel" aria-label={navigation === 'map' ? 'Base Map' : 'Help'}>
-        <button autoFocus type="button" onClick={() => setNavigation(undefined)}>↩ Back</button>
-        {navigation === 'map' ? <>
-          <h2>Base Map</h2>
+      <header className="mission-status" aria-label="Mission status">
+        <strong><span aria-hidden="true">🌙</span> LAMOON</strong>
+        <dl>
+          <div><dt>📅 Mission Day</dt><dd>{state.tick} / {config.missionDays}</dd></div>
+          <div><dt>O₂ Oxygen</dt><dd>{view.resources.oxygen?.toFixed(1)} <small>kg</small></dd></div>
+          <div><dt>⚡ Electricity</dt><dd>{view.resources.power?.toFixed(1)} <small>kWh</small></dd></div>
+          <div><dt>💧 Water</dt><dd>{view.resources.water?.toFixed(1)} <small>L</small></dd></div>
+          <div><dt>🌱 Food</dt><dd>{view.resources.food?.toFixed(1)} <small>kg</small></dd></div>
+        </dl>
+        <button className="lamoon-button" type="button" aria-expanded={navigation === 'more'}
+          onClick={() => setNavigation(navigation === 'more' ? undefined : 'more')}>More</button>
+      </header>
+
+      <div className="mission-actions">
+        {startAtHabitat && state.tick === 0 && !navigation && !selected &&
+          <p className="mission-hint">Ready, astronaut? Tap <strong>Next Day</strong> to start.</p>}
+        <nav className="mission-dock" aria-label="Base navigation">
+          <button className="lamoon-button dock-primary" type="button" disabled={!canPlay} onClick={advance}>▶ Next Day</button>
+          <button className="lamoon-button" type="button" onClick={() => explore('HAB-01')}>🏠 Home</button>
+          <button className="lamoon-button" type="button" aria-expanded={navigation === 'map'}
+            onClick={() => setNavigation(navigation === 'map' ? undefined : 'map')}>🗺️ Map</button>
+          <button className="lamoon-button" type="button" aria-expanded={navigation === 'help'}
+            onClick={() => setNavigation(navigation === 'help' ? undefined : 'help')}>❓ Help</button>
+        </nav>
+      </div>
+
+      {navigation && <section className="mission-popover" aria-labelledby="mission-menu-title">
+        <div className="mission-card-heading">
+          <h2 id="mission-menu-title">{navigation === 'map' ? 'Base Map' : navigation === 'help' ? 'Help' : 'Mission extras'}</h2>
+          <button autoFocus className="lamoon-button" type="button" onClick={() => setNavigation(undefined)}>Back</button>
+        </div>
+        {navigation === 'map' ? (
           <div className="base-map">
-            {outpost.map(({ id, position }) => <button key={id} type="button"
+            {outpost.map(({ id, position }) => <button key={id} className="lamoon-button" type="button"
               style={{ left: `${50 + position.x * 1.28}%`, top: `${48 + position.y * 1.45}%` }}
-              aria-label={`Explore ${departments[id].name}`} onClick={() => explore(id)}>
+              aria-label={`Visit ${departments[id].name}`} onClick={() => explore(id)}>
               <span className="mission-icon" aria-hidden="true">{departments[id].icon}</span><small>{departments[id].name}</small>
             </button>)}
           </div>
-        </> : <p>Pick a place on the Base Map to explore. Use Return Home to find your crew.</p>}
+        ) : navigation === 'help' ? <>
+          <p>Tap a building to learn about it. Use Home to visit your crew or Next Day to move the mission forward.</p>
+          {onReplayIntro && <button className="lamoon-button" type="button" onClick={onReplayIntro}>🚀 Replay Base Tour</button>}
+        </> : <>
+          {level && <p>{level === 2 ? 'Level 2 · First Emergency' : 'Level 1 · Rookie Astronaut'}</p>}
+          <p>Spare kits: {state.resources.spareKits}</p>
+          {outcome && <p role="status">{outcome.summary}</p>}
+          <div className="mission-extra-actions">
+            <button className="lamoon-button" type="button" onClick={() => { setNavigation(undefined); setOverview(true) }}>Detailed readings</button>
+            {onReplayIntro && <button className="lamoon-button" type="button" onClick={onReplayIntro}>🚀 Replay Base Tour</button>}
+          </div>
+          <details>
+            <summary>Departments</summary>
+            <ul className="mission-department-list">{outpost.map(({ id }) => <li key={id}>
+              <button className="lamoon-button" type="button" onClick={() => explore(id)}>{departments[id].icon} {departments[id].name}</button>
+            </li>)}</ul>
+          </details>
+          <details>
+            <summary>Mission log</summary>
+            {events.length === 0 ? <p>No events yet.</p> : <ol>{events.map((event, index) => <li key={index}>{describeSurvivalEvent(event)}
+              {event.type === 'equipmentFailed' && !failures.some((failure) => failure.equipment === event.equipment) ? ' Resolved.' : ''}
+            </li>)}</ol>}
+          </details>
+        </>}
       </section>}
-      <GameHUD state={view} day={state.tick} missionDays={config.missionDays} alerts={alerts}
-        showAllResources={Boolean(level)} overviewOpen={overview} onOverviewToggle={() => setOverview(!overview)} />
-      <div className="lg-survival-controls">
-        {startAtHabitat && state.tick === 0 && <p className="habitat-first-step">
-          <strong>Start here · Home Center</strong><br />
-          This is home for your crew. Press <strong>Advance one day</strong> to begin.
-        </p>}
-        {level && <h1>{level === 2 ? 'First Emergency' : 'Rookie Astronaut'}</h1>}
-        <button className="lg-button" type="button" disabled={!canPlay} onClick={advance}>Advance one day</button>
-        {onReplayIntro && <button className="lg-button" type="button" onClick={onReplayIntro}>Replay base tour</button>}
-        <p>Spare kits {state.resources.spareKits}</p>
-        {outcome && <p role="status">{outcome.summary}</p>}
-        <details>
-          <summary>Departments</summary>
-          <ul>{outpost.map(({ id }) => <li key={id}>
-            <button className="lg-button" type="button" onClick={() => explore(id)}>{departments[id].name}</button>
-          </li>)}</ul>
-          <p>The crew’s air system gets power first. Readings are from the last full day.</p>
-        </details>
-        <details>
-          <summary>Mission log</summary>
-          <ol>{events.map((event, index) => <li key={index}>{describeSurvivalEvent(event)}
-            {event.type === 'equipmentFailed' && !failures.some((failure) => failure.equipment === event.equipment) ? ' Resolved.' : ''}
-          </li>)}</ol>
-        </details>
-      </div>
-      <BuildingPanel state={view} selectedBuildingId={selected} telemetry={telemetry} foodUnit="kg"
-        onClose={() => select(undefined)} onAction={(action) => {
-          if (action.type !== 'repair' || !selected || action.buildingId !== selected) return
-          const equipment = equipmentFor(selected)
-          if (equipment) inspectEquipment(equipment)
-        }}>
-      {selected && <div className="mf-lesson">
-        <strong>{departments[selected].name}</strong>
-        <p>{departments[selected].lesson}</p>
-        <button className="lg-button" type="button" onClick={() => explore(selected)}>🔍 Explore {departments[selected].name}</button>
-        {selected === 'PWR-01' && <p>Battery reserve {state.resources.batteryKWh.toFixed(1)} kWh</p>}
-        {selected === 'WTR-01' && <p>{flows ? 'Water recovered last day ' + flows.water.production.toFixed(1) + ' L' : 'Water recovery measurements start after the first day.'}</p>}
-        {offline.has(selected) && <p>Offline. Restore this equipment to resume its work.</p>}
-      </div>}
-      </BuildingPanel>
+
       <section className="mf-notifications" aria-label="Mission notifications">
         <div role="status">{message && <article className="mf-notice mf-feedback">
           {message.endsWith(' fixed.') && <strong>✅ Great job!</strong>}
@@ -252,8 +267,8 @@ export function MissionFeedback({ rookie = false, trainingLevel, startAtHabitat 
       </section>
     </div>
     {approaching && <p className="visit-approach" role="status">Approaching {departments[approaching].name}…</p>}
-    {visit && !training && <DepartmentVisit key={visit} id={visit} damaged={problems.some(({ equipment }) => equipment === visitingEquipment)} repairAvailable={canRepairVisit}
-      telemetry={telemetry[visit]} onTour={onReplayIntro} onBack={leaveVisit} onRepair={() => {
+    {visit && !training && <DepartmentVisit key={visit} id={visit} damaged={visitingEquipment !== undefined && state.condition[visitingEquipment] < 1} repairAvailable={canRepairVisit}
+      session={session} onTour={onReplayIntro} onBack={leaveVisit} onRepair={() => {
         if (visitingEquipment) repair(visitingEquipment)
       }} />}
     {level === 1 && training === 'greenhouse' && canPlay && <GreenhouseInterior
@@ -269,7 +284,7 @@ export function MissionFeedback({ rookie = false, trainingLevel, startAtHabitat 
         unavailable={state.resources.spareKits < 1 ? 'No spare kits left.' : state.condition[training] >= 1 ? 'This equipment is already fixed.' : undefined}
         onClose={() => setTraining(undefined)} onRepair={() => repair(training, true) === true} />}
     {level && outcome && <section className="rookie-result" aria-label="Mission result">
-      <h2>{outcome.status === 'success' ? 'MISSION COMPLETE!' : 'Mission Failed — Try Again!'}</h2>
+      <h2>LAMOON · {outcome.status === 'success' ? 'MISSION COMPLETE!' : 'Mission Failed — Try Again!'}</h2>
       <p>{outcome.status === 'success' ? `You kept the base going for ${config.missionDays} days.` : 'The base could no longer keep the whole crew alive.'}</p>
       <p>{state.crew.filter(({ health }) => health > 0).length} of {state.crew.length} astronauts survived.</p>
       {outcome.status === 'success' && level === 2 && <>

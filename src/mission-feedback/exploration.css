@@ -1,18 +1,10 @@
-.base-navigation, .base-navigation-panel, .visit-card {
+.visit-card {
   position: absolute;
   z-index: 12;
   color: #edfaff;
   font-family: system-ui, sans-serif;
 }
-.base-navigation {
-  top: 9rem;
-  right: 1rem;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: .35rem;
-}
-.base-navigation button, .base-navigation-panel button, .visit-card button {
+.visit-card button {
   padding: .55rem .75rem;
   border: 1px solid #76c9d3;
   border-radius: .65rem;
@@ -21,22 +13,10 @@
   font-weight: 750;
   cursor: pointer;
 }
-.base-navigation button:focus-visible, .base-navigation-panel button:focus-visible, .visit-card button:focus-visible {
+.visit-card button:focus-visible {
   outline: 3px solid #ffe18a;
   outline-offset: 3px;
 }
-.base-navigation-panel {
-  top: 12rem;
-  right: 1rem;
-  width: min(30rem, calc(100% - 2rem));
-  max-height: calc(100dvh - 13rem);
-  overflow: auto;
-  background: #10283a;
-  border: 1px solid #7ce4db;
-  border-radius: 1rem;
-  padding: .75rem;
-}
-.base-navigation-panel h2 { font-size: 1.35rem; font-weight: 800; }
 .base-map {
   position: relative;
   height: 19rem;
@@ -81,8 +61,6 @@
 .visit-actions button:last-child { background: #87ffe5; color: #10283a; }
 @keyframes visit-in { from { opacity: 0; } }
 @media (max-width: 44rem) {
-  .base-navigation { top: 11rem; right: .65rem; }
-  .base-navigation-panel { top: 14rem; max-height: calc(100dvh - 15rem); }
   .base-map button { min-width: 2.35rem; }
   .base-map small { font-size: .6rem; }
 }
@@ -146,3 +124,35 @@
 .visit-actions button { min-height: 2.75rem; }
 .visit-actions button:hover { border-color: #e0fdff; }
 .base-map button:hover { background: #2b5269; }
+
+.department-info {
+  padding: .7rem;
+  border: 1px solid #b7b3ff;
+  border-radius: .9rem;
+  background: linear-gradient(145deg, #24476b, #40386d);
+  color: #fff;
+}
+.department-info-heading { display: flex; flex-wrap: wrap; align-items: center; gap: .35rem .65rem; }
+.department-info h2 { font-size: 1.3rem; font-weight: 850; }
+.department-badge {
+  border-radius: .55rem;
+  padding: .15rem .5rem;
+  color: #15372c;
+  background: #b4f5d6;
+  font-size: .8rem;
+  font-weight: 800;
+}
+.department-badge[data-damaged="true"] { color: #572828; background: #ffdf9f; }
+.department-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .35rem; }
+.department-stats div { padding: .35rem; background: #122a49; border-radius: .5rem; }
+.department-stats dt { font-size: .76rem; line-height: 1.2; color: #d6edff; }
+.department-stats dd { font-weight: 850; color: #fff0ab; }
+.visit-card { max-height: calc(100dvh - 2rem); overflow: auto; }
+.greenhouse-info { width: min(31rem, 100%); }
+.rookie-interior .department-info p { padding: .3rem 0; background: none; border: 0; box-shadow: none; }
+.rookie-interior header:has(.greenhouse-info) { align-items: flex-start; }
+.rookie-interior header:has(.greenhouse-info) > button { flex-shrink: 0; }
+
+@media (max-width: 520px) {
+  .rookie-interior header:has(.greenhouse-info) { flex-direction: column-reverse; align-items: flex-end; }
+}
