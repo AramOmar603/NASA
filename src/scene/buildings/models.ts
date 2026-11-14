@@ -3,14 +3,14 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js'
 import type { BaseBuildingKind } from './layout'
 
 export const finishes = {
-  ceramic: { color: '#e3e7e9', roughness: 0.58 },
-  frame: { color: '#40505c', metalness: 0.46, roughness: 0.54 },
+  ceramic: { color: '#e3e9ed', roughness: 0.58 },
+  frame: { color: '#364956', metalness: 0.46, roughness: 0.54 },
   dark: { color: '#152232', roughness: 0.8 },
-  orange: { color: '#e69231', roughness: 0.66 },
-  blue: { color: '#163668', metalness: 0.52, roughness: 0.34 },
-  cells: { color: '#294f88', metalness: 0.45, roughness: 0.4 },
-  window: { color: '#122e43', emissive: '#247593', emissiveIntensity: 0.48, roughness: 0.22 },
-  glass: { color: '#a5edff', transparent: true, opacity: 0.17, depthWrite: false, roughness: 0.15 },
+  orange: { color: '#f0ad50', roughness: 0.66 },
+  blue: { color: '#19386e', metalness: 0.52, roughness: 0.34 },
+  cells: { color: '#355fa0', metalness: 0.45, roughness: 0.4 },
+  window: { color: '#122e43', emissive: '#42a3bd', emissiveIntensity: 0.64, roughness: 0.22 },
+  glass: { color: '#a5edff', transparent: true, opacity: 0.14, depthWrite: false, roughness: 0.15 },
   leaf: { color: '#429e52', roughness: 0.85 },
   shoot: { color: '#92c964', roughness: 0.78 },
   grow: { color: '#d9fff1', emissive: '#78ffd8', emissiveIntensity: 1.6, toneMapped: false },

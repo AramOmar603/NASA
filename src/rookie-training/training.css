@@ -19,11 +19,9 @@
 .rookie-interior button { background: #14536a; border: 2px solid #a4e8eb; border-radius: .8rem; padding: .55rem .75rem; color: white; font-weight: 700; cursor: pointer; }
 .rookie-interior button:focus-visible, .rookie-interior button[aria-pressed=true] { outline: 3px solid #ffe082; }
 .rookie-tools { display: flex; gap: .5rem; }
-.rookie-tools span { display: block; font-size: 2rem; }
 .rookie-tools small { font-size: .75rem; }
 .rookie-tools button:nth-child(2) { background: #574386; }
 .rookie-tools button:nth-child(3) { background: #805333; }
-.rookie-look { position: absolute; right: 1rem; top: 45%; display: flex; gap: .4rem; }
 .rookie-water { position: absolute; left: 26%; top: 46%; pointer-events: none; font-size: 2rem; animation: rookie-flow 1s ease-out both; }
 @keyframes rookie-flow { from { transform: translateY(-1.5rem); } to { transform: translateY(1.5rem); opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .rookie-water { animation: none; } }
@@ -49,11 +47,8 @@
 .rookie-tools small:last-child { font-weight: 500; color: #e4f8ff; }
 .rookie-tools button:disabled { opacity: .65; cursor: default; }
 .rookie-interior footer[data-pick-tool=true] .rookie-tools { filter: drop-shadow(0 0 .55rem #79e5d478); }
-.rookie-look { top: auto; bottom: min(13rem, 29dvh); }
-.mf-labels button { background: linear-gradient(150deg,#185067,#112b41); box-shadow: 0 .18rem .65rem #0009; }
 @media (max-width: 500px) {
   .rookie-interior :is(header, footer) { inset-inline: .5rem; }
-  .rookie-look { right: .5rem; bottom: min(12rem, 31dvh); }
   .rookie-tools button { padding-inline: .3rem; }
 }
 
@@ -155,3 +150,54 @@
 .equipment-activity { max-height: calc(100dvh - 2rem); }
 .equipment-choices button[aria-pressed="true"] { border-color: #ffe18d; background: #295a68; }
 .equipment-activity button:disabled { opacity: .55; cursor: default; }
+
+.rookie-interior footer {
+  align-items: center;
+  gap: .45rem;
+  bottom: max(.55rem, env(safe-area-inset-bottom));
+  pointer-events: none;
+}
+.rookie-interior .rookie-look {
+  display: flex;
+  gap: .4rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.rookie-look button, .rookie-workbench button { pointer-events: auto; }
+.rookie-workbench {
+  width: min(36rem, 100%);
+  display: grid;
+  justify-items: center;
+  gap: .45rem;
+  padding: .5rem;
+  border: 1px solid #7bd9dc77;
+  border-radius: .9rem;
+  background: #0b2137eb;
+}
+.rookie-tools .mission-icon {
+  display: inline-grid;
+  margin-bottom: .22rem;
+  font-size: 1.2rem;
+}
+.rookie-interior header { pointer-events: none; }
+.rookie-interior header button { pointer-events: auto; }
+
+.equipment-activity {
+  inset-block-end: max(.65rem, env(safe-area-inset-bottom));
+  border-color: #79d8df;
+  background: #0c2438f5;
+  box-shadow: 0 .7rem 2rem #06132194;
+}
+.equipment-activity header > button { font-size: .88rem; }
+.equipment-actions { display: grid; gap: .5rem; }
+.equipment-actions:empty { display: none; }
+.equipment-choices { justify-content: flex-start; }
+.equipment-reading { padding: .5rem .65rem; border-radius: .6rem; background: #18384e; }
+.equipment-activity button { min-height: 2.75rem; }
+.equipment-choices button:hover:not(:disabled) { background: #25637c; }
+@media (max-width: 540px), (max-height: 670px) {
+  .equipment-scene { height: clamp(6rem, 22dvh, 11rem); }
+  .equipment-activity { inset-inline: .65rem; width: auto; margin-inline-start: auto; }
+  .rookie-tools .mission-icon { font-size: 1rem; }
+  .rookie-look button, .rookie-workbench button { padding-block: .38rem; }
+}

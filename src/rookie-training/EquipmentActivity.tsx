@@ -6,6 +6,7 @@ export type LessonEquipment = 'solar' | 'oxygenPlant'
 const lessons = {
   solar: {
     title: 'Solar panel inspection',
+    icon: '☀️',
     target: '↓ Inspect the highlighted panel',
     inspect: 'The panel turned away from the Sun. Look at the glowing frame.',
     prompt: 'Pick a direction for the panel. Then press Test.',
@@ -19,6 +20,7 @@ const lessons = {
   },
   oxygenPlant: {
     title: 'Oxygen generator inspection',
+    icon: 'O₂',
     target: '↓ Inspect the glowing power indicator',
     inspect: 'The oxygen machine stopped. Look at its glowing power indicator.',
     prompt: 'Pick what the machine needs to start again. Then press Test.',
@@ -59,7 +61,7 @@ export function EquipmentActivity({ equipment, production, unavailable, onClose,
   return (
     <section className="equipment-activity" aria-label={lesson.title}>
       <header>
-        <h2>{lesson.title}</h2>
+        <h2><span className="mission-icon" aria-hidden="true">{lesson.icon}</span> {lesson.title}</h2>
         <button type="button" onClick={onClose}>Back to Base</button>
       </header>
       <p className="equipment-note" role="status" data-step={step}>
@@ -67,22 +69,24 @@ export function EquipmentActivity({ equipment, production, unavailable, onClose,
       </p>
       <EquipmentScene equipment={equipment} ready={step === 'choose' && choice?.works === true}
         repaired={step === 'done'} onInspect={step === 'inspect' ? () => setStep('choose') : undefined} />
-      {step === 'inspect' && (
-        <button autoFocus className="equipment-target" type="button" onClick={() => setStep('choose')}>{lesson.target}</button>
-      )}
-      {step === 'choose' && <>
-        <div className="equipment-choices" role="group" aria-label="Choose a solution">
-          {lesson.choices.map(({ label }, index) => (
-            <button key={label} type="button" aria-pressed={selected === index} onClick={() => select(index)}>{label}</button>
-          ))}
-        </div>
-        <button type="button" disabled={!choice} onClick={testChoice}>Test</button>
-      </>}
-      {step === 'retry' && <button className="equipment-retry" type="button" onClick={() => {
-        select(undefined)
-        setStep('choose')
-      }}>Try Again</button>}
-      <p>{lesson.reading}: {production === undefined ? 'No reading yet' : `${production.toFixed(2)} ${lesson.unit}`}</p>
+      <div className="equipment-actions">
+        {step === 'inspect' && (
+          <button autoFocus className="equipment-target" type="button" onClick={() => setStep('choose')}>{lesson.target}</button>
+        )}
+        {step === 'choose' && <>
+          <div className="equipment-choices" role="group" aria-label="Choose a solution">
+            {lesson.choices.map(({ label }, index) => (
+              <button key={label} type="button" aria-pressed={selected === index} onClick={() => select(index)}>{label}</button>
+            ))}
+          </div>
+          <button type="button" disabled={!choice} onClick={testChoice}>Test</button>
+        </>}
+        {step === 'retry' && <button className="equipment-retry" type="button" onClick={() => {
+          select(undefined)
+          setStep('choose')
+        }}>Try Again</button>}
+      </div>
+      <p className="equipment-reading">{lesson.reading}: {production === undefined ? 'No reading yet' : `${production.toFixed(2)} ${lesson.unit}`}</p>
       {step === 'done' && <p>Repair complete. Advance one day to see the next production reading.</p>}
     </section>
   )

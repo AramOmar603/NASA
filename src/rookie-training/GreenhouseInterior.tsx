@@ -153,24 +153,28 @@ export function GreenhouseInterior({ guided = false, exploring = false, damaged 
       </div> : <p role="status">{message}</p>}
       <button autoFocus type="button" onClick={onClose}>Back to Base</button>
     </header>
-    <div className="rookie-look" aria-label="Look around">
-      <button type="button" aria-label="Look left" onClick={() => setLook((value) => Math.min(.65, value + .22))}>←</button>
-      <button type="button" aria-label="Look right" onClick={() => setLook((value) => Math.max(-.65, value - .22))}>→</button>
-      <button type="button" onClick={() => { setLook(0); setDepth(depth > 4 ? 3.35 : 4.7) }}>{depth > 4 ? 'Step closer' : 'Step back'}</button>
-    </div>
     {restored && <div className="rookie-water" aria-hidden="true">💧 💧 💧</div>}
-    {exploring ? <footer>
-      <button type="button" onClick={useBed}>🌱 Check plant bed</button>
-      {repairAvailable && <button type="button" onClick={onStartRepair}>Start repair</button>}
-    </footer> : <footer data-pick-tool={inspected && !selected && !restored}>
-      <button type="button" disabled={restored || retry} onClick={useBed}>{inspected && selected ? 'Use tool on plant bed' : '🌱 Check plant bed'}</button>
-      <div className="rookie-tools" aria-label="Tool station">
-        {tools.map(({ id, icon, name, hint }) => <button key={id} type="button" title={hint} aria-label={name}
-          aria-pressed={selected === id} disabled={!inspected || restored || retry} onClick={() => {
-            select(id)
-            tell(guided && id === 'water' ? '💧 Good idea! Water helps thirsty plants. Use it on the marked bed.' : 'Tap the thirsty bed to use your tool.')
-          }}><span aria-hidden="true">{icon}</span><small>{name}</small><small>{hint}</small></button>)}
+    <footer data-pick-tool={!exploring && inspected && !selected && !restored}>
+      <div className="rookie-look" role="group" aria-label="Look around">
+        <button type="button" aria-label="Look left" onClick={() => setLook((value) => Math.min(.65, value + .22))}>←</button>
+        <button type="button" aria-label="Look right" onClick={() => setLook((value) => Math.max(-.65, value - .22))}>→</button>
+        <button type="button" onClick={() => { setLook(0); setDepth(depth > 4 ? 3.35 : 4.7) }}>{depth > 4 ? 'Step closer' : 'Step back'}</button>
       </div>
-    </footer>}
+      <div className="rookie-workbench">
+        {exploring ? <>
+          <button type="button" onClick={useBed}>🌱 Check plant bed</button>
+          {repairAvailable && <button type="button" onClick={onStartRepair}>Start repair</button>}
+        </> : <>
+          <button type="button" disabled={restored || retry} onClick={useBed}>{inspected && selected ? 'Use tool on plant bed' : '🌱 Check plant bed'}</button>
+          <div className="rookie-tools" aria-label="Tool station">
+            {tools.map(({ id, icon, name, hint }) => <button key={id} type="button" title={hint} aria-label={name}
+              aria-pressed={selected === id} disabled={!inspected || restored || retry} onClick={() => {
+                select(id)
+                tell(guided && id === 'water' ? '💧 Good idea! Water helps thirsty plants. Use it on the marked bed.' : 'Tap the thirsty bed to use your tool.')
+              }}><span className="mission-icon" aria-hidden="true">{icon}</span><small>{name}</small><small>{hint}</small></button>)}
+          </div>
+        </>}
+      </div>
+    </footer>
   </section>
 }

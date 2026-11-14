@@ -7,7 +7,7 @@ function createRegolith() {
   const pixels = new Uint8Array(size * size * 4)
   const random = randomSequence(81)
   for (let i = 0; i < size * size; i++) {
-    const gray = Math.floor(142 + random() * 65 + (random() < 0.04 ? -46 : 0))
+    const gray = Math.floor(157 + random() * 37 + (random() < 0.03 ? -28 : 0))
     pixels.set([gray, gray, gray, 255], i * 4)
   }
   const texture = new DataTexture(pixels, size, size, RGBAFormat)
@@ -40,7 +40,7 @@ function createGround() {
     const z = groundCoordinate(position.getZ(i))
     position.setXYZ(i, x, terrainHeight(x, z), z)
     uv.setXY(i, x / TERRAIN_SIZE + 0.5, z / TERRAIN_SIZE + 0.5)
-    const gray = 0.34 + 0.21 * noise(x / 45, z / 45) + 0.11 * noise(x / 7, z / 7)
+    const gray = 0.38 + 0.18 * noise(x / 52, z / 52) + 0.06 * noise(x / 9, z / 9)
     color.setRGB(gray * 1.02, gray, gray * 0.96).toArray(colors, i * 3)
   }
   geometry.computeVertexNormals()
@@ -94,7 +94,7 @@ export function Surface() {
     <>
       <mesh geometry={ground.geometry} receiveShadow castShadow>
         <bufferAttribute attach="geometry-attributes-color" args={[ground.colors, 3]} />
-        <meshStandardMaterial map={texture} bumpMap={texture} bumpScale={0.24} roughness={1} vertexColors />
+        <meshStandardMaterial map={texture} bumpMap={texture} bumpScale={0.12} roughness={1} vertexColors />
       </mesh>
       <primitive object={rocks} />
     </>

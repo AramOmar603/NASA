@@ -5,20 +5,22 @@
   visibility: hidden;
   pointer-events: auto;
   transform: translate(-50%, -100%);
-  border: 1px solid #64e6d8;
-  border-radius: 999px;
-  background: #081c2bea;
+  --marker-accent: #b0edff;
+  border: 1px solid var(--marker-accent);
+  border-radius: .8rem;
+  background: linear-gradient(155deg, #274967, #101d32);
+  box-shadow: 0 .2rem .65rem #0009;
+  transition: scale .15s;
   color: #fff;
   font: 700 1rem system-ui, sans-serif;
   display: grid;
   place-items: center;
-  width: 2.25rem;
-  height: 2.25rem;
+  width: 2.35rem;
+  height: 2.35rem;
   white-space: nowrap;
   cursor: pointer;
 }
-.mf-labels button:is(:hover, :focus-visible, [aria-pressed="true"]) { background: #196074; outline: 2px solid #8bf9ed; z-index: 1; }
-.mf-labels button[data-offline="true"] { border-color: #ff987a; background: #622b24; }
+.mf-labels button:is(:hover, :focus-visible, [aria-pressed="true"]) { background: #196074; outline: 2px solid var(--marker-accent); scale: 1.1; z-index: 1; }
 .mf-lesson { margin-top: .85rem; padding-top: .65rem; border-top: 1px solid #437187; }
 .mf-lesson p { margin-top: .25rem; }
 .mf-notifications {
@@ -163,3 +165,24 @@
 }
 @keyframes outpost-landing-in { from { opacity: 0; } }
 @keyframes outpost-landing-out { to { opacity: 0; } }
+
+.mission-icon {
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.7em;
+  height: 1.7em;
+  border: 1px solid #b0eaff50;
+  border-radius: .55em;
+  background: #091c32d9;
+  color: #e8fdff;
+  vertical-align: middle;
+  line-height: 1;
+}
+.mf-labels button[data-department="BIO-01"] { --marker-accent: #8cf0ab; }
+.mf-labels button:is([data-department="SOL-01"], [data-department="PWR-01"]) { --marker-accent: #ffe195; }
+.mf-labels button:is([data-department="HAB-01"], [data-department="SHD-01"]) { --marker-accent: #d9bfff; }
+.mf-labels button[data-offline="true"] { --marker-accent: #ff987a; background: #622b24; }
+.mf-labels .mission-icon { border: 0; background: transparent; }
+@media (prefers-reduced-motion: reduce) {
+  .mf-labels button { transition: none; }
+}
