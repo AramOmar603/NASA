@@ -138,3 +138,10 @@
   .repair-card-page[data-leaving="true"] { animation: repair-page-out .15s ease-in both; }
   @keyframes repair-page-out { to { opacity: 0; transform: translateY(-.35rem) scale(.98); } }
 }
+
+.commander-ending { border-color: #e8b53d; }
+.commander-stars { color: #825019; font-size: 2.5rem; text-align: center; }
+@media (prefers-reduced-motion: no-preference) {
+  .commander-stars { animation: commander-medal .65s ease-out both; }
+  @keyframes commander-medal { from { opacity: 0; transform: translateY(.6rem) scale(.8); } }
+}

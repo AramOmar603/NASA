@@ -216,3 +216,7 @@
   .mf-notice { animation: mission-card-in .32s ease-out both; }
   @keyframes mission-card-in { from { opacity: 0; transform: translateY(-.55rem) scale(.96); } 70% { transform: translateY(.12rem) scale(1.015); } }
 }
+
+@media (prefers-reduced-motion: no-preference) {
+  .mf-notice.commander-alert[data-triple="true"] { animation-delay: .55s; }
+}
