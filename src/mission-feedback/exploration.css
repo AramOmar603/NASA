@@ -124,3 +124,35 @@
 .visit-actions button { min-height: 2.75rem; }
 .visit-actions button:hover { border-color: #e0fdff; }
 .base-map button:hover { background: #2b5269; }
+
+.department-info {
+  padding: .7rem;
+  border: 1px solid #b7b3ff;
+  border-radius: .9rem;
+  background: linear-gradient(145deg, #24476b, #40386d);
+  color: #fff;
+}
+.department-info-heading { display: flex; flex-wrap: wrap; align-items: center; gap: .35rem .65rem; }
+.department-info h2 { font-size: 1.3rem; font-weight: 850; }
+.department-badge {
+  border-radius: .55rem;
+  padding: .15rem .5rem;
+  color: #15372c;
+  background: #b4f5d6;
+  font-size: .8rem;
+  font-weight: 800;
+}
+.department-badge[data-damaged="true"] { color: #572828; background: #ffdf9f; }
+.department-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .35rem; }
+.department-stats div { padding: .35rem; background: #122a49; border-radius: .5rem; }
+.department-stats dt { font-size: .76rem; line-height: 1.2; color: #d6edff; }
+.department-stats dd { font-weight: 850; color: #fff0ab; }
+.visit-card { max-height: calc(100dvh - 2rem); overflow: auto; }
+.greenhouse-info { width: min(31rem, 100%); }
+.rookie-interior .department-info p { padding: .3rem 0; background: none; border: 0; box-shadow: none; }
+.rookie-interior header:has(.greenhouse-info) { align-items: flex-start; }
+.rookie-interior header:has(.greenhouse-info) > button { flex-shrink: 0; }
+
+@media (max-width: 520px) {
+  .rookie-interior header:has(.greenhouse-info) { flex-direction: column-reverse; align-items: flex-end; }
+}

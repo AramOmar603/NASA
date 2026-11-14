@@ -46,11 +46,12 @@ function PlantBed({ dry, restored, onClick }: { dry: boolean; restored: boolean;
   </group>
 }
 
-export function GreenhouseInterior({ guided = false, exploring = false, damaged = false, repairAvailable = false, onStartRepair, unavailable, onClose, onRepair }: {
+export function GreenhouseInterior({ guided = false, exploring = false, damaged = false, repairAvailable = false, departmentInfo, onStartRepair, unavailable, onClose, onRepair }: {
   guided?: boolean
   exploring?: boolean
   damaged?: boolean
   repairAvailable?: boolean
+  departmentInfo?: React.ReactNode
   onStartRepair?: () => void
   unavailable?: string
   onClose: () => void
@@ -143,7 +144,7 @@ export function GreenhouseInterior({ guided = false, exploring = false, damaged 
       useBed()
     }}>{selected && inspected ? '💧 Use tool here' : '↓ Thirsty plants'}</button>}
     <header>
-      {guided ? <div className="rookie-guide" data-tone={restored ? 'success' : retry ? 'retry' : 'step'}>
+      {departmentInfo ? <div className="greenhouse-info">{departmentInfo}<p role="status">{message}</p></div> : guided ? <div className="rookie-guide" data-tone={restored ? 'success' : retry ? 'retry' : 'step'}>
         <div role="status"><h2>{heading}</h2><p>{cardText}</p></div>
         {retry && <button type="button" onClick={() => {
           select(undefined)

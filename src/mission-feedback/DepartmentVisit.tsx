@@ -1,4 +1,5 @@
-import type { BuildingTelemetry } from '../components/dashboard/BuildingPanel'
+import type { SurvivalSession } from '../components/dashboard/survivalController'
+import { DepartmentInfo } from './DepartmentInfo'
 import { useState } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { GreenhouseInterior } from '../rookie-training/GreenhouseInterior'
@@ -61,11 +62,11 @@ function UtilityRoom({ id, active }: { id: keyof typeof rooms; active: boolean }
   )
 }
 
-export function DepartmentVisit({ id, damaged, repairAvailable, telemetry, onRepair, onBack, onTour }: {
+export function DepartmentVisit({ id, damaged, repairAvailable, session, onRepair, onBack, onTour }: {
   id: DepartmentId
   damaged: boolean
   repairAvailable: boolean
-  telemetry?: BuildingTelemetry
+  session: SurvivalSession
   onRepair: () => void
   onBack: () => void
   onTour?: () => void
@@ -73,7 +74,7 @@ export function DepartmentVisit({ id, damaged, repairAvailable, telemetry, onRep
   const [learned, setLearned] = useState(false)
   const habitat = id === 'HAB-01'
   if (id === 'BIO-01') return (
-    <GreenhouseInterior exploring damaged={damaged} repairAvailable={repairAvailable} onStartRepair={onRepair} onClose={onBack} onRepair={() => false} />
+    <GreenhouseInterior exploring departmentInfo={<DepartmentInfo id={id} session={session} />} damaged={damaged} repairAvailable={repairAvailable} onStartRepair={onRepair} onClose={onBack} onRepair={() => false} />
   )
 
   const equipment = id === 'OXY-01' || id === 'SOL-01'
@@ -90,16 +91,8 @@ export function DepartmentVisit({ id, damaged, repairAvailable, telemetry, onRep
       {room && <div className="visit-room"><UtilityRoom id={id as keyof typeof rooms} active={learned} /></div>}
       <div className="visit-card">
         {habitat && <p className="mission-wordmark">🌙 LAMOON</p>}
-        <h2><span className="mission-icon" aria-hidden="true">{departments[id].icon}</span> {departments[id].name}</h2>
-        <p role="status">{learned ? room?.cue ?? departments[id].lesson
-          : habitat ? 'Welcome home! Tap the console or the glowing exit.'
-            : 'Tap Learn to see what this does.'}</p>
-        {equipment && telemetry && <dl className="visit-readings">
-          <div><dt>Condition</dt><dd>{telemetry.condition ?? 'Unavailable'}</dd></div>
-          <div><dt>{id === 'SOL-01' ? 'Electricity produced last day' : 'Oxygen produced last day'}</dt>
-            <dd>{telemetry.readings?.generation ?? 'Unavailable'}</dd></div>
-          {id === 'SOL-01' && <div><dt>Battery reserve</dt><dd>{telemetry.readings?.battery}</dd></div>}
-        </dl>}
+        <DepartmentInfo id={id} session={session} />
+        {learned && room && <p role="status">{room.cue}</p>}
         <div className="visit-actions">
           {!learned && <button type="button" onClick={() => setLearned(true)}>
             {habitat ? 'Check mission console' : 'Learn how it works'}

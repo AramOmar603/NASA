@@ -1,4 +1,4 @@
-import { useEffect, useEffectEvent, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Canvas, useFrame, useLoader, useThree } from '@react-three/fiber'
 import { SRGBColorSpace, TextureLoader, Vector3 } from 'three'
 import moonMap from './assets/moon-lroc.jpg'
@@ -38,8 +38,7 @@ function MoonSurface() {
   )
 }
 
-export function MoonArrival({ autoApproach = false, onApproach, onArrival }: {
-  autoApproach?: boolean
+export function MoonArrival({ onApproach, onArrival }: {
   onApproach: () => void
   onArrival: () => void
 }) {
@@ -59,13 +58,6 @@ export function MoonArrival({ autoApproach = false, onApproach, onArrival }: {
     else setStartedAt(performance.now())
   }
 
-  const beginAutomaticApproach = useEffectEvent(startApproach)
-  useEffect(() => {
-    if (!autoApproach) return
-    // Hold on the full Moon before starting the existing descent.
-    const timer = window.setTimeout(() => beginAutomaticApproach(), 1000)
-    return () => window.clearTimeout(timer)
-  }, [autoApproach])
 
   return (
     <section className="moon-arrival" data-approaching={approaching} aria-label="Moon approach">
@@ -85,10 +77,10 @@ export function MoonArrival({ autoApproach = false, onApproach, onArrival }: {
       </div>
       <div className="moon-arrival-note">
         <p className="mission-wordmark">🌙 LAMOON</p>
-        <h1 role={autoApproach ? 'status' : undefined}>{approaching ? 'Descending toward the Moon base…' : 'Welcome to the Moon!'}</h1>
+        <h1 role="status">{approaching ? 'Descending toward the Moon base…' : 'Welcome to the Moon!'}</h1>
         {!approaching && <>
           <p>The bright ring marks your Moon base.</p>
-          {!autoApproach && <button autoFocus type="button" onClick={startApproach}>Zoom to the Home Center</button>}
+          <button autoFocus className="go-to-base" type="button" onClick={startApproach}>🚀 GO TO BASE</button>
         </>}
       </div>
     </section>

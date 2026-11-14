@@ -23,7 +23,7 @@ export function App() {
         </div>
       )}
       {!tourOpen && (entry === 'orbit' || entry === 'approach') && (
-        <MoonArrival autoApproach onApproach={() => setEntry('approach')} onArrival={() => setEntry('base')} />
+        <MoonArrival onApproach={() => setEntry('approach')} onArrival={() => setEntry('base')} />
       )}
       {tourOpen && <BaseTour onFinish={() => {
         setEntry('base')
