@@ -20,10 +20,14 @@ import '../styles.css'
 import './preview.css'
 import './mission-layout.css'
 
+const baseOverview = { x: 0, z: 0, cameraOffset: [43, 34, 82] } as const
+const homeApproach = { x: 0, z: 0, distance: 28 } as const
+
 function CameraStart() {
   const { camera, invalidate } = useThree()
   useEffect(() => {
-    camera.position.set(43, 37, 82)
+    camera.position.set(...baseOverview.cameraOffset)
+    camera.position.y += 3
     camera.lookAt(0, 3, 0)
     invalidate()
   }, [camera, invalidate])
@@ -53,11 +57,12 @@ const problemCopy = {
   shielding: ['🛡️ Safety Shelter Needs Help!', 'This room helps keep the crew safe.'],
 } satisfies Record<Equipment, readonly [string, string]>
 
-export function MissionFeedback({ rookie = false, trainingLevel, startAtHabitat = false, spawnInsideHabitat = false, onReplayIntro, onRestart, onComplete }: {
+export function MissionFeedback({ rookie = false, trainingLevel, startAtHabitat = false, spawnInsideHabitat = false, showBaseOverview = true, onReplayIntro, onRestart, onComplete }: {
   rookie?: boolean
   trainingLevel?: TrainingLevel
   startAtHabitat?: boolean
   spawnInsideHabitat?: boolean
+  showBaseOverview?: boolean
   onReplayIntro?: () => void
   onRestart?: () => void
   onComplete?: () => void
@@ -70,7 +75,11 @@ export function MissionFeedback({ rookie = false, trainingLevel, startAtHabitat 
   const pendingVisit = useRef<DepartmentId>(undefined)
   const [navigation, setNavigation] = useState<'map' | 'help' | 'more'>()
   const repairApplied = useRef(false)
-  const [focus, setFocus] = useState<LunarCameraFocus | undefined>(() => startAtHabitat ? { x: 0, z: 0, distance: 28 } : undefined)
+  const [focus, setFocus] = useState<LunarCameraFocus | undefined>(() => spawnInsideHabitat || !showBaseOverview ? homeApproach : baseOverview)
+
+  useEffect(() => {
+    if (showBaseOverview && !spawnInsideHabitat) setFocus(baseOverview)
+  }, [showBaseOverview, spawnInsideHabitat])
 
   const [selected, select] = useState<DepartmentId>()
   const [overview, setOverview] = useState(false)
@@ -159,7 +168,7 @@ export function MissionFeedback({ rookie = false, trainingLevel, startAtHabitat 
   function leaveVisit() {
     setVisit(undefined)
     select(undefined)
-    setFocus({ x: 0, z: 0, distance: 92 })
+    setFocus({ ...baseOverview })
   }
 
   function inspectEquipment(equipment: Equipment) {

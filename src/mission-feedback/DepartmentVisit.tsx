@@ -109,7 +109,7 @@ export function DepartmentVisit({ id, damaged, repairAvailable, telemetry, onRep
           {habitat && onTour && <button className="visit-tour" type="button" onClick={onTour}>
             <span aria-hidden="true">🚀</span> Take the Base Tour
           </button>}
-          <button autoFocus type="button" onClick={onBack}>{habitat ? '🚪 Exit to Moon base' : '↩ Back to Base'}</button>
+          <button autoFocus type="button" onClick={onBack}>{habitat ? '🚪 Explore Moon Base' : '↩ Back to Base'}</button>
         </div>
       </div>
     </section>
