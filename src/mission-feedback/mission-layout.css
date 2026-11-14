@@ -1,0 +1,104 @@
+.mission-status, .mission-dock, .mission-popover, .mission-hint {
+  color: #f5fbff;
+  background: #172c48f5;
+  border: 1px solid #9dc9ec88;
+  border-radius: 1rem;
+  box-shadow: 0 .45rem 1.4rem #050e28aa;
+}
+
+.mission-status {
+  position: absolute;
+  z-index: 10;
+  inset: .65rem .65rem auto;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: .75rem;
+  padding: .35rem .65rem;
+}
+
+.mission-status strong, .mission-wordmark { color: #c9c5ff; font-weight: 900; letter-spacing: .06em; }
+
+.mission-status dl {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  text-align: center;
+  gap: .35rem;
+  line-height: 1.2;
+}
+
+.mission-status dt { font-size: clamp(.68rem, 1.7vw, .85rem); color: #dceaff; }
+.mission-status dd { font-size: .95rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+
+.mission-actions {
+  position: absolute;
+  z-index: 12;
+  bottom: max(.65rem, env(safe-area-inset-bottom));
+  left: 50%;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: calc(100% - 1.3rem);
+  display: grid;
+  justify-items: center;
+  gap: .6rem;
+  pointer-events: none;
+}
+
+.mission-hint { padding: .4rem .8rem; text-align: center; }
+.mission-dock { display: flex; gap: .45rem; padding: .45rem; pointer-events: auto; }
+
+.lamoon-button {
+  min-height: 2.75rem;
+  padding: .4rem .75rem;
+  border: 1px solid #b3d8ff99;
+  border-radius: .75rem;
+  background: #32517a;
+  color: #fff;
+  font-weight: 800;
+  cursor: pointer;
+}
+.lamoon-button:hover, .lamoon-button[aria-expanded="true"] { background: #4c5c98; }
+.lamoon-button:active { translate: 0 1px; }
+.lamoon-button:focus-visible, .mission-popover summary:focus-visible { outline: 3px solid #ffe394; outline-offset: 2px; }
+.lamoon-button:disabled { opacity: .58; cursor: default; }
+.dock-primary { background: #ffe180; color: #302244; border-color: #fff3b3; }
+.dock-primary:hover:not(:disabled) { background: #fff1ad; }
+
+.mission-popover {
+  position: absolute;
+  z-index: 13;
+  right: .65rem;
+  bottom: calc(max(.65rem, env(safe-area-inset-bottom)) + 4.25rem);
+  width: min(30rem, calc(100% - 1.3rem));
+  max-height: calc(100dvh - 12rem);
+  overflow: auto;
+  padding: .85rem;
+  display: grid;
+  gap: .65rem;
+}
+.mission-building-card { width: min(23rem, calc(100% - 1.3rem)); border-color: #bfa5ff; }
+.mission-card-heading { display: flex; justify-content: space-between; align-items: center; gap: .6rem; }
+.mission-card-heading h2 { font-size: 1.3rem; font-weight: 850; }
+.mission-condition {
+  justify-self: start;
+  padding: .2rem .55rem;
+  border-radius: .5rem;
+  background: #b9ffd8;
+  color: #12382b;
+  font-weight: 850;
+}
+.mission-condition[data-attention="true"] { background: #ffe4a0; color: #442222; }
+.mission-extra-actions, .mission-department-list { display: flex; flex-wrap: wrap; gap: .45rem; }
+.mission-popover details { border-top: 1px solid #a3c7eb66; padding-top: .45rem; }
+.mission-popover summary { cursor: pointer; font-weight: 750; }
+.mission-popover :is(ol, ul) { margin: .5rem 0; }
+.mission-popover ol { list-style: decimal; padding-inline-start: 1.6rem; }
+
+@media (max-width: 600px) {
+  .mission-status { grid-template-columns: 1fr auto; gap: .25rem .5rem; }
+  .mission-status dl { grid-area: 2 / 1 / 3 / -1; }
+  .mission-status .lamoon-button { min-height: 2rem; padding-block: .15rem; }
+  .mission-status dd { font-size: .82rem; }
+  .mission-dock { gap: .3rem; }
+  .mission-dock .lamoon-button { padding-inline: .45rem; font-size: .9rem; }
+}

@@ -41,7 +41,7 @@ export function WelcomeScreen({ onExplore, onSkip, onLevelTwo }: {
       </div>
       <section className="launch-card" aria-labelledby="welcome-title">
         <p className="launch-level">Level 1 · Rookie Astronaut</p>
-        <h1 id="welcome-title">LUNARIS</h1>
+        <h1 id="welcome-title">LAMOON</h1>
         <p>Keep four astronauts safe for seven Moon days.</p>
         <div className="launch-actions">
           <button className="launch-primary" type="button" onClick={onExplore}>🚀 EXPLORE THE MOON BASE!</button>

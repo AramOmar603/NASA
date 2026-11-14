@@ -1,18 +1,10 @@
-.base-navigation, .base-navigation-panel, .visit-card {
+.visit-card {
   position: absolute;
   z-index: 12;
   color: #edfaff;
   font-family: system-ui, sans-serif;
 }
-.base-navigation {
-  top: 9rem;
-  right: 1rem;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: .35rem;
-}
-.base-navigation button, .base-navigation-panel button, .visit-card button {
+.visit-card button {
   padding: .55rem .75rem;
   border: 1px solid #76c9d3;
   border-radius: .65rem;
@@ -21,22 +13,10 @@
   font-weight: 750;
   cursor: pointer;
 }
-.base-navigation button:focus-visible, .base-navigation-panel button:focus-visible, .visit-card button:focus-visible {
+.visit-card button:focus-visible {
   outline: 3px solid #ffe18a;
   outline-offset: 3px;
 }
-.base-navigation-panel {
-  top: 12rem;
-  right: 1rem;
-  width: min(30rem, calc(100% - 2rem));
-  max-height: calc(100dvh - 13rem);
-  overflow: auto;
-  background: #10283a;
-  border: 1px solid #7ce4db;
-  border-radius: 1rem;
-  padding: .75rem;
-}
-.base-navigation-panel h2 { font-size: 1.35rem; font-weight: 800; }
 .base-map {
   position: relative;
   height: 19rem;
@@ -81,8 +61,6 @@
 .visit-actions button:last-child { background: #87ffe5; color: #10283a; }
 @keyframes visit-in { from { opacity: 0; } }
 @media (max-width: 44rem) {
-  .base-navigation { top: 11rem; right: .65rem; }
-  .base-navigation-panel { top: 14rem; max-height: calc(100dvh - 15rem); }
   .base-map button { min-width: 2.35rem; }
   .base-map small { font-size: .6rem; }
 }

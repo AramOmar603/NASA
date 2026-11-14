@@ -17,7 +17,7 @@ export function GameHUD({ state, day, showAllResources, missionDays = 30, alerts
 
   return (
     <header className="lg-hud" aria-label="Mission HUD">
-      <div className="lg-wordmark"><span aria-hidden="true">◈</span> LUNARIS</div>
+      <div className="lg-wordmark"><span aria-hidden="true">◈</span> LAMOON</div>
       <dl className="lg-stats">
         <div><dt>Mission day</dt><dd>{day}<small> / {missionDays}</small></dd></div>
         <div><dt>Oxygen</dt><dd>{state.resources.oxygen?.toFixed(2) ?? '—'} <small>kg</small></dd></div>

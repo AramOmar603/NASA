@@ -20,7 +20,7 @@ function Preview() {
 
   return <main>
     <header>
-      <h1>LUNARIS · Shackleton Outpost</h1>
+      <h1>LAMOON · Shackleton Outpost</h1>
       <p>Drag to orbit, scroll to zoom, or select a structure.</p>
       <p><output>{building ? building.id + ' · ' + building.kind.replaceAll('-', ' ') : 'Select a building'}</output></p>
     </header>

@@ -17,7 +17,7 @@ export function EquipmentScene({ equipment, ready, repaired, onInspect }: {
           {solar ? '☀️ → ▧' : '⚡ → 🫧'}
         </div>}>
         <color attach="background" args={['#12273b']} />
-        <ambientLight intensity={1.4} />
+        <hemisphereLight args={['#e1f2ff', '#9faec0', 1.55]} />
         <directionalLight position={[4, 6, 3]} intensity={2.5} />
         <mesh position={[0, -1.2, 0]}>
           <boxGeometry args={[7, .2, 5]} />
@@ -37,7 +37,7 @@ export function EquipmentScene({ equipment, ready, repaired, onInspect }: {
               {[-1, 0, 1].map((x) => [-.39, .39].map((y) => (
                 <mesh key={`${x},${y}`} position={[x, y, .12]}>
                   <boxGeometry args={[.92, .68, .05]} />
-                  <meshStandardMaterial color="#23588c" metalness={.5} roughness={.3} />
+                  <meshStandardMaterial color="#3772ae" metalness={.24} roughness={.3} />
                 </mesh>
               )))}
             </group>
@@ -56,7 +56,7 @@ export function EquipmentScene({ equipment, ready, repaired, onInspect }: {
             ))}
             <mesh position={[0, .15, .72]}>
               <boxGeometry args={[1.28, .75, .1]} />
-              <meshStandardMaterial color="#1d4357" />
+              <meshStandardMaterial color="#31667d" />
             </mesh>
             <mesh position={[0, .15, .79]}>
               <circleGeometry args={[.23, 24]} />

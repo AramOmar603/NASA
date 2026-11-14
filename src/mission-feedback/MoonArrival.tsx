@@ -72,6 +72,7 @@ export function MoonArrival({ onApproach, onArrival }: { onApproach: () => void;
         </Canvas>
       </div>
       <div className="moon-arrival-note">
+        <p className="mission-wordmark">🌙 LAMOON</p>
         <h1>{approaching ? 'Descending toward the Moon base…' : 'Welcome to the Moon!'}</h1>
         {!approaching && <>
           <p>The bright ring marks your Moon base.</p>

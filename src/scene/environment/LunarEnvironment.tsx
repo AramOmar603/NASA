@@ -102,7 +102,10 @@ export function LunarEnvironment({ children, className, focus, interactive = tru
         shadows={{ type: PCFShadowMap }}
         fallback={fallback ?? <div />}
       >
-        <ambientLight intensity={0.63} color="#e1e8ff" />
+        {/* A low, shadow-free fill keeps camera-facing equipment readable. */}
+        <ambientLight intensity={0.68} color="#edf2ff" />
+        <hemisphereLight args={['#d5e7ff', '#a59d91', 0.72]} />
+        <directionalLight position={[38, 52, 85]} color="#e6efff" intensity={0.95} />
         <directionalLight
           castShadow
           color="#fff3df"
