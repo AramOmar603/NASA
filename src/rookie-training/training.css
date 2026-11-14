@@ -164,3 +164,12 @@
 .repair-card:is([data-lesson="greenhouse"], [data-lesson="greenhouseMaintenance"]) button:focus-visible {
   outline-color: #235b3d;
 }
+
+@media (min-width: 900px) {
+  .repair-card[data-lesson] {
+    inset-block-start: 56%;
+    inset-block-end: auto;
+    transform: translateY(-50%);
+    max-height: 78dvh;
+  }
+}

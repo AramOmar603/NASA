@@ -15,9 +15,30 @@ type Lesson = {
   science?: { explanation: string; url: string }
 }
 
+const departmentIntros = {
+  greenhouse: ['Why do we need a space garden?', 'The greenhouse grows plants that help feed our crew. Plants need water and light to grow.'],
+  air: ['Why do we need oxygen?', 'Astronauts need oxygen to breathe. This machine helps make it for the crew.'],
+  solar: ['Why do we need solar panels?', 'Solar panels turn sunlight into electricity. Our Moon base uses it to run its machines.'],
+  water: ['Why do we recycle water?', 'Water is precious on the Moon. The recycler cleans used water so the crew can use it again.'],
+  rover: ['Why do we need a rover?', 'The rover carries astronauts and tools across the Moon so the crew can explore far from home.'],
+  shelter: ['Why do we need a safety shelter?', 'Space weather can send harmful particles toward the Moon. The shelter helps protect the crew.'],
+  temperature: ['Why keep the Home Center comfortable?', 'Astronauts and equipment need safe temperatures. The cooling system carries extra heat away.'],
+  signal: ['Why do we talk to Mission Control?', 'The crew sends updates and asks for help. A relay helps carry messages between the Moon and Earth.'],
+} as const
+
+const introFor: Record<RepairLessonId, keyof typeof departmentIntros> = {
+  greenhouse: 'greenhouse', greenhouseMaintenance: 'greenhouse',
+  oxygenPlant: 'air', finalAir: 'air',
+  solar: 'solar', powerConnection: 'solar', powerRelay: 'solar', finalPower: 'solar',
+  recycler: 'water', waterFixed: 'water', recyclerMaintenance: 'water', waterPump: 'water', finalWater: 'water',
+  roverFixed: 'rover',
+  shielding: 'shelter', shelterPanel: 'shelter',
+  temperature: 'temperature', signal: 'signal',
+}
+
 const water: Lesson = {
   icon: '💧', problem: 'The water stopped!', detail: 'Used water reaches the highlighted filter and stops there.',
-  question: 'How can we get water through the recycler again?',
+  question: 'What is stopping the water?',
   choices: [
     { label: '🧰 Replace the blocked filter' },
     { label: '💦 Send in more used water', why: 'More water still can’t pass through the blockage.' },
@@ -33,7 +54,7 @@ const water: Lesson = {
 export const repairLessons: Record<RepairLessonId, Lesson> = {
   temperature: {
     icon: '🌡️', problem: 'Temperature Trouble!', detail: 'The Home Center’s training display shows that its cooling loop has stopped.',
-    question: 'What should we check to help control the habitat temperature?',
+    question: 'What helps cool the cabin?',
     choices: [
       { label: '🌡️ Check the cooling-loop pump' },
       { label: '💡 Turn up the cabin lights', why: 'Lights do not move heat out of the cabin.' },
@@ -44,7 +65,7 @@ export const repairLessons: Record<RepairLessonId, Lesson> = {
   },
   signal: {
     icon: '📡', problem: 'Signal Lost!', detail: 'The training console shows power but has lost its link to the relay.',
-    question: 'What should we check to restore our connection?',
+    question: 'How can we send messages again?',
     choices: [
       { label: '🔊 Turn up the speakers', why: 'Louder speakers do not restore a radio connection.' },
       { label: '📡 Reconnect to the relay', },
@@ -55,7 +76,7 @@ export const repairLessons: Record<RepairLessonId, Lesson> = {
   },
   finalPower: {
     icon: '⚡', problem: 'The array’s protection tripped!', detail: 'The array is aligned, but its protection disconnected the output after a fault.',
-    question: 'What should we check before bringing the array back online?',
+    question: 'Which part protects the array?',
     choices: [
       { label: '☀️ Tilt the array', why: 'The cells already face the Sun. Check why the output disconnected.' },
       { label: '⚡ Check the protective circuit' },
@@ -66,7 +87,7 @@ export const repairLessons: Record<RepairLessonId, Lesson> = {
   },
   finalAir: {
     icon: '🫧', problem: 'The oxygen machine has lost its water feed!', detail: 'The machine’s power light is on, but water isn’t reaching its intake in this exercise.',
-    question: 'What should we investigate to make oxygen again?',
+    question: 'Where should we check for water?',
     choices: [
       { label: '🫧 Check the generator’s water intake' },
       { label: '💡 Turn up the room lights', why: 'Room lights do not feed water to the generator.' },
@@ -77,7 +98,7 @@ export const repairLessons: Record<RepairLessonId, Lesson> = {
   },
   finalWater: {
     icon: '💧', problem: 'The recycler’s valve is sending water the wrong way!', detail: 'The pump has power, but the marked routing valve diverts used water away from treatment.',
-    question: 'How should we route the used water?',
+    question: 'Where should used water go?',
     choices: [
       { label: '🪣 Send it straight to the crew tank', why: 'Used water needs treatment and quality checks first.' },
       { label: '🧰 Replace the working filter', why: 'The water never reaches the filter while the route is blocked.' },
@@ -88,7 +109,7 @@ export const repairLessons: Record<RepairLessonId, Lesson> = {
   },
   shelterPanel: {
     icon: '🛡️', problem: 'Space Weather Alert!', detail: 'A solar particle storm is approaching. The yellow light marks a damaged shelter panel.',
-    question: 'What should we check to help protect our astronauts?',
+    question: 'How can we protect the crew?',
     choices: [
       { label: '🧱 Restore the damaged shielding panel' },
       { label: '🌱 Water the greenhouse plants', why: 'Water helps the plants. The crew still needs the shelter panel.' },
@@ -99,7 +120,7 @@ export const repairLessons: Record<RepairLessonId, Lesson> = {
   },
   powerConnection: {
     icon: '🔋', problem: 'Our Moon base is losing power!', detail: 'Solar energy isn’t reaching the base. The battery is supplying the crew from its reserve.',
-    question: 'What should we investigate first?',
+    question: 'Where should we check for lost power?',
     choices: [
       { label: '🔌 Check the solar power connection' },
       { label: '🌱 Inspect the greenhouse lights', why: 'The lights use electricity. They can’t reconnect the supply.' },
@@ -110,7 +131,7 @@ export const repairLessons: Record<RepairLessonId, Lesson> = {
   },
   powerRelay: {
     icon: '⚡', problem: 'The power switch is stuck open!', detail: 'The solar cells are facing the Sun. A fault in their output switch stopped energy from reaching the base.',
-    question: 'How can we restore the path for electricity?',
+    question: 'What reconnects the array?',
     choices: [
       { label: '☀️ Turn the already aligned array', why: 'The cells are already facing the Sun. Turning them won’t close the broken path.' },
       { label: '🔌 Restore the output switch' },
@@ -121,7 +142,7 @@ export const repairLessons: Record<RepairLessonId, Lesson> = {
   },
   waterPump: {
     icon: '💧', problem: 'The water pump stopped!', detail: 'The filter is clear. The highlighted pump can’t move used water into the recycler.',
-    question: 'How can we get the used water moving again?',
+    question: 'What gets the water moving?',
     choices: [
       { label: '🪣 Empty the clean-water tank', why: 'That makes space, but it doesn’t move water through the recycler.' },
       { label: '🧰 Replace the clear filter', why: 'The filter is clear. The pump is the part that moves water.' },
@@ -132,7 +153,7 @@ export const repairLessons: Record<RepairLessonId, Lesson> = {
   },
   greenhouse: {
     icon: '🌱', problem: 'Our plants aren’t getting enough water!', detail: 'The highlighted watering line has stopped and the leaves are drooping.',
-    question: 'What should we do to help the plants?',
+    question: 'What do our plants need?',
     choices: [
       { label: '☀️ Add more light', why: 'Light helps plants grow, but their roots are still dry.' },
       { label: '💧 Restore the water flow' },
@@ -143,7 +164,7 @@ export const repairLessons: Record<RepairLessonId, Lesson> = {
   greenhouseMaintenance: {
     icon: '🌱', problem: 'The greenhouse has a new fault!',
     detail: 'The watering system needs maintenance after new damage.',
-    question: 'What should we check first to get water back to the roots?',
+    question: 'What takes water to the roots?',
     choices: [
       { label: '💡 Check the grow lights', why: 'The lights do not move water to the roots.' },
       { label: '🧰 Check the irrigation line' },
@@ -153,7 +174,7 @@ export const repairLessons: Record<RepairLessonId, Lesson> = {
   },
   solar: {
     icon: '☀️', problem: 'The solar panel is out of line!', detail: 'The highlighted panel is tilted away from the sunlight.',
-    question: 'Which direction will help the panel collect more sunlight?',
+    question: 'Which way should the panel face?',
     choices: [
       { label: '🌑 Face it into shadow', why: 'Shade blocks the light the panel needs.' },
       { label: '⬇️ Turn it toward the ground', why: 'Facing the ground keeps direct sunlight off the cells.' },
@@ -163,7 +184,7 @@ export const repairLessons: Record<RepairLessonId, Lesson> = {
   },
   oxygenPlant: {
     icon: '🫧', problem: 'The oxygen machine stopped!', detail: 'The blinking red gauge shows a power fault.',
-    question: 'What will help the machine make oxygen again?',
+    question: 'What powers the oxygen machine?',
     choices: [
       { label: '⚡ Restore its electrical supply' },
       { label: '💧 Send more water', why: 'The machine needs water, but it still needs electricity to split it.' },
@@ -175,7 +196,7 @@ export const repairLessons: Record<RepairLessonId, Lesson> = {
   waterFixed: {
     ...water,
     detail: 'The filter is blocked. One kit is set aside, and the crew needs clean water before the rover can go exploring.',
-    question: 'How should we use the reserved kit to get the crew clean water?',
+    question: 'Which fix helps the crew get clean water?',
     choices: [
       water.choices[0],
       water.choices[1],
@@ -186,11 +207,11 @@ export const repairLessons: Record<RepairLessonId, Lesson> = {
     ...water,
     problem: 'The recycler has a new fault!',
     detail: 'Your Day 9 training is complete. Check this new equipment fault to get the recycler working again.',
-    question: 'What should we do about the new recycler fault?',
+    question: 'Which part needs attention?',
   },
   shielding: {
     icon: '🛡️', problem: 'The shelter has a weak spot!', detail: 'The highlighted patch needs inspection before the crew can rely on it.',
-    question: 'What would restore the shelter’s protection?',
+    question: 'What fixes the weak spot?',
     choices: [
       { label: '💡 Turn on more lights', why: 'Light helps us see the patch, but doesn’t replace shielding.' },
       { label: '🧱 Restore the shielding panel' },
@@ -200,7 +221,7 @@ export const repairLessons: Record<RepairLessonId, Lesson> = {
   },
   roverFixed: {
     icon: '🚙', problem: 'The Moon Explorer’s wheel is stuck!', detail: 'Dust got past the highlighted cover near the axle.',
-    question: 'How can we free the wheel and protect its axle?',
+    question: 'How can we free the wheel?',
     choices: [
       { label: '🧽 Wipe only the wheel rim', why: 'The rim looks cleaner, but dust still blocks the axle.' },
       { label: '🔋 Swap the battery', why: 'A different battery doesn’t remove dust trapped near the axle.' },
@@ -222,18 +243,19 @@ export function RepairActivity({ id, onTest, onClose, onContinue }: {
   onContinue: () => void
 }) {
   const lesson = repairLessons[id]
-  const [step, setStep] = useState<'problem' | 'choices' | 'retry' | 'success'>('problem')
+  const [introTitle, introDetail] = departmentIntros[introFor[id]]
+  const [step, setStep] = useState<'intro' | 'problem' | 'choices' | 'retry' | 'success'>('intro')
   const [choice, select] = useState<number>()
   const reducedMotion = useReducedMotion()
-  const [leaving, setLeaving] = useState(false)
+  const [nextStep, setNextStep] = useState<'problem' | 'choices'>()
   useEffect(() => {
-    if (!leaving) return
+    if (!nextStep) return
     const timer = window.setTimeout(() => {
-      setLeaving(false)
-      setStep('choices')
+      setStep(nextStep)
+      setNextStep(undefined)
     }, 150)
     return () => window.clearTimeout(timer)
-  }, [leaving])
+  }, [nextStep])
   const [feedback, setFeedback] = useState('')
 
   function testSolution() {
@@ -251,10 +273,17 @@ export function RepairActivity({ id, onTest, onClose, onContinue }: {
 
   return <section className="repair-card" data-lesson={id} data-step={step} aria-label="Repair activity">
     <button className="repair-close" type="button" aria-label="Close repair" onClick={onClose}>×</button>
-    <div key={step} className="repair-card-page" data-leaving={leaving}>
+    <div key={step} className="repair-card-page" data-leaving={Boolean(nextStep)}>
       <span className="repair-card-icon" aria-hidden="true">{step === 'success' ? '🎉' : step === 'retry' ? '🤔' : lesson.icon}</span>
-      <h2>{step === 'problem' ? lesson.problem : step === 'choices' ? lesson.question : step === 'retry' ? 'Good try!' : 'Great job, Commander!'}</h2>
-      {step === 'problem' && <><p>{lesson.detail}</p><button autoFocus type="button" disabled={leaving} onClick={() => reducedMotion ? setStep('choices') : setLeaving(true)}>Next →</button></>}
+      <h2>{step === 'intro' ? introTitle : step === 'problem' ? lesson.problem : step === 'choices' ? lesson.question : step === 'retry' ? 'Good try!' : 'Great job, Commander!'}</h2>
+      {(step === 'intro' || step === 'problem') && <>
+        <p>{step === 'intro' ? introDetail : lesson.detail}</p>
+        <button autoFocus type="button" disabled={Boolean(nextStep)} onClick={() => {
+          const destination = step === 'intro' ? 'problem' : 'choices'
+          if (reducedMotion) setStep(destination)
+          else setNextStep(destination)
+        }}>Next →</button>
+      </>}
       {step === 'choices' && <>
         <div className="repair-choices" role="group" aria-label="Choose a solution">
           {lesson.choices.map(({ label }, index) => <button key={label} type="button" autoFocus={index === 0}
