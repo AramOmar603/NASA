@@ -18,39 +18,10 @@
 .rookie-interior footer { bottom: 1rem; flex-direction: column; }
 .rookie-interior button { background: #14536a; border: 2px solid #a4e8eb; border-radius: .8rem; padding: .55rem .75rem; color: white; font-weight: 700; cursor: pointer; }
 .rookie-interior button:focus-visible, .rookie-interior button[aria-pressed=true] { outline: 3px solid #ffe082; }
-.rookie-tools { display: flex; gap: .5rem; }
-.rookie-tools small { font-size: .75rem; }
-.rookie-tools button:nth-child(2) { background: #574386; }
-.rookie-tools button:nth-child(3) { background: #805333; }
-.rookie-water { position: absolute; left: 26%; top: 46%; pointer-events: none; font-size: 2rem; animation: rookie-flow 1s ease-out both; }
-@keyframes rookie-flow { from { transform: translateY(-1.5rem); } to { transform: translateY(1.5rem); opacity: 0; } }
-@media (prefers-reduced-motion: reduce) { .rookie-water { animation: none; } }
-
 .rookie-view { touch-action: none; cursor: grab; }
 .rookie-view:active { cursor: grabbing; }
 .rookie-interior { font-family: Nunito, system-ui, sans-serif; }
 .rookie-interior header p { border: 1px solid #79e5d4; box-shadow: 0 .3rem 1.2rem #0007; }
-.rookie-interior .rookie-bed-marker {
-  position: absolute;
-  transform: translate(-50%, -115%);
-  background: #ffd46c;
-  color: #272035;
-  border-color: #fff0ab;
-  white-space: nowrap;
-  box-shadow: 0 0 1.25rem #ffbc6399;
-}
-.rookie-tools { justify-content: center; width: min(34rem, 100%); }
-.rookie-tools button { flex: 1; min-width: 0; background: linear-gradient(160deg,#176e8b,#16435f); }
-.rookie-tools button:nth-child(2) { background: linear-gradient(160deg,#6749a0,#443570); }
-.rookie-tools button:nth-child(3) { background: linear-gradient(160deg,#8e593e,#643a33); }
-.rookie-tools small { display: block; line-height: 1.25; }
-.rookie-tools small:last-child { font-weight: 500; color: #e4f8ff; }
-.rookie-tools button:disabled { opacity: .65; cursor: default; }
-.rookie-interior footer[data-pick-tool=true] .rookie-tools { filter: drop-shadow(0 0 .55rem #79e5d478); }
-@media (max-width: 500px) {
-  .rookie-interior :is(header, footer) { inset-inline: .5rem; }
-  .rookie-tools button { padding-inline: .3rem; }
-}
 
 .rookie-welcome {
   display: grid;
@@ -81,62 +52,6 @@
 .rookie-welcome button:focus-visible { outline: 3px solid #ffe082; outline-offset: 4px; }
 
 .rookie-start-actions { display: flex; flex-wrap: wrap; gap: .65rem; }
-.rookie-guided header { align-items: flex-start; }
-.rookie-guided .rookie-guide {
-  width: min(32rem, 100%);
-  padding: clamp(.65rem, 2vw, 1.25rem);
-  border: 3px solid #95ede3;
-  border-radius: 1rem;
-  background: #102c43;
-  box-shadow: 0 .25rem 1.5rem #70e8d35c;
-}
-.rookie-guided .rookie-guide h2 { font-size: clamp(1.12rem, 3vw, 1.8rem); font-weight: 850; }
-.rookie-guided .rookie-guide p {
-  padding: 0;
-  margin-top: .3rem;
-  border: 0;
-  background: transparent;
-  box-shadow: none;
-  font-size: clamp(.92rem, 2vw, 1.16rem);
-}
-.rookie-guided .rookie-guide button {
-  margin-top: .7rem;
-  min-height: 2.75rem;
-  background: #ffd884;
-  color: #292035;
-  border-color: #fff0bb;
-}
-.rookie-guided header > button { flex-shrink: 0; }
-@media (max-width: 500px) {
-  .rookie-guided header { flex-wrap: wrap; }
-  .rookie-guided header > button { margin-left: auto; }
-}
-
-.equipment-activity {
-  position: absolute;
-  z-index: 20;
-  inset: auto 1rem 1rem auto;
-  width: min(29rem, calc(100% - 2rem));
-  max-height: 70dvh;
-  overflow: auto;
-  display: grid;
-  gap: .8rem;
-  padding: 1rem;
-  border: 2px solid #81ead5;
-  border-radius: 1rem;
-  background: #10283a;
-  color: #edfaff;
-}
-.equipment-activity header, .equipment-choices { display: flex; gap: .5rem; align-items: center; flex-wrap: wrap; justify-content: space-between; }
-.equipment-activity h2 { font-size: 1.35rem; font-weight: 800; }
-.equipment-activity button { padding: .65rem 1rem; border: 2px solid #87d8eb; border-radius: .65rem; background: #174962; font-weight: 750; cursor: pointer; }
-.equipment-activity button:focus-visible { outline: 3px solid #fff0a1; outline-offset: 3px; }
-.equipment-activity .equipment-target { padding: 1rem; border: 2px solid #ffd884; border-radius: .75rem; background: #253d53; font-size: 1.25rem; text-align: center; }
-.equipment-note { padding: .85rem; border-radius: .75rem; background: #194b63; font-size: 1.14rem; font-weight: 750; }
-.equipment-note[data-step="retry"] { background: #623c46; }
-.equipment-note[data-step="done"] { background: #18513d; }
-.equipment-activity .equipment-retry { background: #ffd884; color: #292035; border-color: #fff0bb; }
-
 .equipment-scene {
   height: clamp(8rem, 28dvh, 15rem);
   overflow: hidden;
@@ -145,10 +60,6 @@
   background: #12273b;
 }
 .equipment-scene-fallback { display: grid; place-items: center; height: 100%; font-size: clamp(2rem, 8vw, 4rem); }
-.equipment-activity { max-height: calc(100dvh - 2rem); }
-.equipment-choices button[aria-pressed="true"] { border-color: #ffe18d; background: #295a68; }
-.equipment-activity button:disabled { opacity: .55; cursor: default; }
-
 .rookie-interior footer {
   align-items: center;
   gap: .45rem;
@@ -172,91 +83,58 @@
   border-radius: .9rem;
   background: #0b2137eb;
 }
-.rookie-tools .mission-icon {
-  display: inline-grid;
-  margin-bottom: .22rem;
-  font-size: 1.2rem;
-}
 .rookie-interior header { pointer-events: none; }
 .rookie-interior header button { pointer-events: auto; }
 
-.equipment-activity {
-  inset-block-end: max(.65rem, env(safe-area-inset-bottom));
-  border-color: #79d8df;
-  background: #0c2438f5;
-  box-shadow: 0 .7rem 2rem #06132194;
-}
-.equipment-activity header > button { font-size: .88rem; }
-.equipment-actions { display: grid; gap: .5rem; }
-.equipment-actions:empty { display: none; }
-.equipment-choices { justify-content: flex-start; }
-.equipment-reading { padding: .5rem .65rem; border-radius: .6rem; background: #18384e; }
-.equipment-activity button { min-height: 2.75rem; }
-.equipment-choices button:hover:not(:disabled) { background: #25637c; }
-@media (max-width: 540px), (max-height: 670px) {
-  .equipment-scene { height: clamp(6rem, 22dvh, 11rem); }
-  .equipment-activity { inset-inline: .65rem; width: auto; margin-inline-start: auto; }
-  .rookie-tools .mission-icon { font-size: 1rem; }
-  .rookie-look button, .rookie-workbench button { padding-block: .38rem; }
-}
-
-.breakdown-diagram { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .45rem; }
-.breakdown-diagram li { display: grid; place-items: center; border-radius: .65rem; background: #1b4768; padding: .55rem; text-align: center; }
-.breakdown-diagram li[data-highlight="true"] { background: #ffe4a0; color: #3d2945; font-weight: 850; }
-.breakdown-activity summary { cursor: pointer; font-weight: 750; }
-.breakdown-activity a { color: #9dffdf; text-decoration: underline; }
-.breakdown-activity { z-index: 27; }
-
-/* Repair lessons use the same light cards and color cues as mission alerts. */
-.equipment-activity, .rookie-interior .rookie-guide, .rookie-workbench {
+.repair-card {
+  --repair-accent: #ffbe6c;
+  position: fixed;
+  z-index: 35;
+  inset: auto max(.75rem, env(safe-area-inset-right)) max(.75rem, env(safe-area-inset-bottom)) auto;
+  width: min(27rem, calc(100% - 1.5rem));
+  max-height: min(78dvh, 34rem);
+  overflow: auto;
+  padding: 1rem;
+  border: 3px solid var(--repair-accent);
+  border-radius: 1.4rem;
   background: #fffdf6;
-  color: #262039;
-  border: 3px solid #f4c650;
-  border-radius: 1.25rem;
-  box-shadow: 0 .65rem 1.6rem #23153644;
+  color: #282039;
+  box-shadow: 0 .75rem 2rem #21183450;
 }
-.equipment-activity h2, .rookie-guide h2 { font-size: clamp(1.2rem, 3vw, 1.65rem); }
-.equipment-note, .rookie-interior .rookie-guide p {
-  background: #fff1b8;
-  color: #322344;
-  border-radius: .75rem;
-  border: 0;
-  padding: .65rem;
-  box-shadow: none;
-}
-.equipment-note[data-step="retry"], .rookie-interior .rookie-guide[data-tone="retry"] p { background: #efe0ff; }
-.equipment-note[data-step="done"], .rookie-interior .rookie-guide[data-tone="success"] p { background: #d6f8c9; }
-.rookie-interior .rookie-guide[data-tone="retry"] { background: #fffdf6; border-color: #b889e0; }
-.rookie-interior .rookie-guide[data-tone="success"] { background: #fffdf6; border-color: #75c675; }
-.equipment-activity button, .equipment-activity .equipment-target, .rookie-interior .rookie-guide button,
-.rookie-interior .rookie-tools button, .rookie-interior .rookie-workbench > button {
-  background: #ffe990;
-  border-color: #d2a025;
-  color: #262039;
+.repair-card[data-step="choices"] { --repair-accent: #b693f2; }
+.repair-card[data-step="retry"] { --repair-accent: #ed9b8d; }
+.repair-card[data-step="success"] { --repair-accent: #79cf8c; }
+.repair-card-page { display: grid; gap: .6rem; }
+.repair-card-icon { font-size: 2rem; line-height: 1; }
+.repair-card h2 { font-size: clamp(1.22rem, 3vw, 1.65rem); line-height: 1.15; font-weight: 850; }
+.repair-card p { font-size: 1rem; }
+.repair-card button {
+  padding: .55rem .8rem;
   min-height: 2.75rem;
+  background: #ffdc78;
+  color: #282039;
+  border: 2px solid #d5a43c;
+  border-radius: .75rem;
+  font-weight: 800;
+  cursor: pointer;
 }
-.rookie-interior .rookie-tools button:nth-child(2) { background: #ebd8ff; border-color: #ae84d5; }
-.rookie-interior .rookie-tools button:nth-child(3) { background: #ffd9ce; border-color: #df8b77; }
-.rookie-interior .rookie-tools small:last-child { color: #3c3046; }
-.equipment-choices button[aria-pressed="true"], .equipment-choices button:hover:not(:disabled) {
-  background: #d6f8c9;
-  border-color: #639b51;
+.repair-card .repair-close { position: absolute; top: .5rem; right: .5rem; background: #f6ede4; border-color: transparent; }
+.repair-choices { display: grid; gap: .35rem; }
+.repair-choices button { text-align: start; background: #f3e5ff; border-color: #caa9ed; }
+.repair-choices button:nth-child(2) { background: #e1f2ff; border-color: #a5cde8; }
+.repair-choices button:nth-child(3) { background: #ffe4da; border-color: #e6aa98; }
+.repair-choices button[aria-pressed="true"] { border-color: #47326b; box-shadow: inset 0 0 0 1px #47326b; }
+.repair-card button:focus-visible, .repair-card summary:focus-visible { outline: 3px solid #67499a; outline-offset: 2px; }
+.repair-card details { padding: .45rem; background: #e1f2ff; border-radius: .65rem; }
+.repair-card a { color: #453189; text-decoration: underline; }
+@media (max-width: 630px) {
+  .repair-card { max-height: 53dvh; }
 }
-.equipment-activity .equipment-retry { background: #efe0ff; border-color: #ae84d5; }
-.equipment-reading, .breakdown-activity details { background: #def2fc; color: #24334f; border-radius: .75rem; padding: .6rem; }
-.breakdown-activity a { color: #41327b; }
-.breakdown-diagram li { background: #f0e6ff; }
-.breakdown-diagram li[data-highlight="true"] { background: #ffdbcf; }
-.equipment-activity .mission-icon { background: #fff1b8; color: #262039; font-size: 1.35em; }
-
 @media (prefers-reduced-motion: no-preference) {
-  .equipment-note[data-step="done"], .rookie-guide[data-tone="success"] { animation: repair-cheer .35s ease-out both; }
-  @keyframes repair-cheer { from { transform: scale(.96); } 65% { transform: scale(1.025); } }
+  .repair-card-page { animation: repair-page-in .24s ease-out both; }
+  @keyframes repair-page-in { from { opacity: 0; transform: translateY(.55rem) scale(.98); } }
 }
-
-.rookie-interior .rookie-guide { width: min(30rem, 100%); padding: .7rem; }
-.rookie-interior header:has(.rookie-guide) { align-items: flex-start; }
-.rookie-interior header:has(.rookie-guide) > button { flex-shrink: 0; }
-@media (max-width: 500px) {
-  .rookie-interior header:has(.rookie-guide) { flex-direction: column-reverse; align-items: flex-end; }
+@media (prefers-reduced-motion: no-preference) {
+  .repair-card-page[data-leaving="true"] { animation: repair-page-out .15s ease-in both; }
+  @keyframes repair-page-out { to { opacity: 0; transform: translateY(-.35rem) scale(.98); } }
 }

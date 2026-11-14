@@ -1,5 +1,9 @@
 import { Canvas } from '@react-three/fiber'
-import type { LessonEquipment } from './EquipmentActivity'
+import { useRef } from 'react'
+import type { Group } from 'three'
+import { PanelAlignment, RepairFlow, RepairSignal } from './RepairEffects'
+
+type LessonEquipment = 'solar' | 'oxygenPlant'
 
 export function EquipmentScene({ equipment, ready, repaired, onInspect }: {
   equipment: LessonEquipment
@@ -7,12 +11,13 @@ export function EquipmentScene({ equipment, ready, repaired, onInspect }: {
   repaired: boolean
   onInspect?: () => void
 }) {
+  const panel = useRef<Group>(null)
   const solar = equipment === 'solar'
-  const signal = repaired ? '#70ffc8' : ready ? '#8edcff' : '#ffce72'
+  const signal = repaired ? '#70ffc8' : ready ? '#8edcff' : '#ff654b'
 
   return (
     <div className="equipment-scene" aria-hidden="true">
-      <Canvas camera={{ position: [4, 3, 6], fov: 42 }} frameloop="demand"
+      <Canvas camera={{ position: [4, 3, 6], fov: 42 }}
         fallback={<div className="equipment-scene-fallback" style={{ color: signal }}>
           {solar ? '☀️ → ▧' : '⚡ → 🫧'}
         </div>}>
@@ -29,7 +34,8 @@ export function EquipmentScene({ equipment, ready, repaired, onInspect }: {
               <cylinderGeometry args={[.22, .34, 1.1, 16]} />
               <meshStandardMaterial color="#adbcc9" />
             </mesh>
-            <group rotation={[ready || repaired ? -.55 : .55, 0, 0]} onClick={onInspect}>
+            <PanelAlignment broken={!repaired} panel={panel} />
+            <group ref={panel} onClick={onInspect}>
               <mesh>
                 <boxGeometry args={[3.1, 1.65, .2]} />
                 <meshStandardMaterial color={signal} emissive={signal} emissiveIntensity={.25} />
@@ -40,7 +46,9 @@ export function EquipmentScene({ equipment, ready, repaired, onInspect }: {
                   <meshStandardMaterial color="#3772ae" metalness={.24} roughness={.3} />
                 </mesh>
               )))}
+              <group position={[0, .15, .15]}><RepairSignal broken={!repaired} /></group>
             </group>
+            <group position={[0, -.85, .5]}><RepairFlow broken={!repaired} color="#ffeb73" /></group>
           </>
         ) : (
           <group onClick={onInspect}>
@@ -62,6 +70,8 @@ export function EquipmentScene({ equipment, ready, repaired, onInspect }: {
               <circleGeometry args={[.23, 24]} />
               <meshBasicMaterial color={signal} />
             </mesh>
+            <group position={[0, .15, .82]}><RepairSignal broken={!repaired} /></group>
+            <group position={[0, -.35, .76]}><RepairFlow broken={!repaired} /></group>
           </group>
         )}
       </Canvas>

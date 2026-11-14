@@ -1,6 +1,7 @@
 import type { SurvivalSession } from '../components/dashboard/survivalController'
 import { DepartmentInfo } from './DepartmentInfo'
 import { useState } from 'react'
+import { RepairFlow, RepairSignal } from '../rookie-training/RepairEffects'
 import { Canvas } from '@react-three/fiber'
 import { GreenhouseInterior } from '../rookie-training/GreenhouseInterior'
 import { EquipmentScene } from '../rookie-training/EquipmentScene'
@@ -15,10 +16,10 @@ const rooms = {
   'SHD-01': { color: '#ffb681', cue: 'Thick walls help protect the crew during space storms.' },
 } as const
 
-function UtilityRoom({ id, active, showFilter }: { id: keyof typeof rooms; active: boolean; showFilter: boolean }) {
+function UtilityRoom({ id, active, showFilter, damaged }: { id: keyof typeof rooms; active: boolean; showFilter: boolean; damaged: boolean }) {
   const { color } = rooms[id]
   return (
-    <Canvas camera={{ position: [3.5, 2.4, 5.8], fov: 50 }} frameloop="demand"
+    <Canvas camera={{ position: [3.5, 2.4, 5.8], fov: 50 }}
       fallback={<div className="visit-scene-fallback">{departments[id].icon}</div>}>
       <color attach="background" args={['#182741']} />
       <ambientLight intensity={1.7} />
@@ -41,6 +42,8 @@ function UtilityRoom({ id, active, showFilter }: { id: keyof typeof rooms; activ
           <cylinderGeometry args={[.17, .17, 2.6, 16]} />
           <meshStandardMaterial color={color} emissive={color} emissiveIntensity={active ? .75 : .15} />
         </mesh>
+        <group position={[0, .86, -.15]}><RepairFlow broken={damaged} /></group>
+        <group position={[0, .86, -.04]}><RepairSignal broken={damaged} /></group>
         {showFilter && <mesh position={[0, .85, -.37]} rotation={[0, 0, Math.PI / 2]}>
           <cylinderGeometry args={[.27, .27, .62, 16]} />
           <meshStandardMaterial color={active ? '#70ffc8' : '#ffcc67'} emissive={active ? '#267b58' : '#af641d'} emissiveIntensity={.45} />
@@ -58,8 +61,9 @@ function UtilityRoom({ id, active, showFilter }: { id: keyof typeof rooms; activ
           <mesh><boxGeometry args={[3.9, 2.15, 1]} /><meshStandardMaterial color="#938396" /></mesh>
           <mesh position={[0, 0, .53]}><boxGeometry args={[2.4, 1.75, .1]} /><meshStandardMaterial color="#333e58" /></mesh>
           <mesh position={[.7, .05, .63]}>
-            <circleGeometry args={[.13, 24]} /><meshBasicMaterial color={active ? '#86f3c3' : color} />
+            <circleGeometry args={[.13, 24]} /><meshBasicMaterial color={!damaged ? '#86f3c3' : color} />
           </mesh>
+          <group position={[.7, .05, .69]}><RepairSignal broken={damaged} /></group>
         </group>
       )}
     </Canvas>
@@ -79,7 +83,7 @@ export function DepartmentVisit({ id, damaged, repairAvailable, session, inspect
   const [learned, setLearned] = useState(false)
   const habitat = id === 'HAB-01'
   if (id === 'BIO-01') return (
-    <GreenhouseInterior exploring departmentInfo={<DepartmentInfo id={id} session={session} />} damaged={damaged} repairAvailable={repairAvailable} onStartRepair={onRepair} onClose={onBack} onRepair={() => false} />
+    <GreenhouseInterior departmentInfo={<DepartmentInfo id={id} session={session} />} damaged={damaged} inspectionOnly={inspectionOnly} onClose={onBack} onStartRepair={repairAvailable ? onRepair : undefined} />
   )
 
   const equipment = id === 'OXY-01' || id === 'SOL-01'
@@ -93,7 +97,7 @@ export function DepartmentVisit({ id, damaged, repairAvailable, session, inspect
             ready={learned} repaired={!damaged} onInspect={() => setLearned(true)} />
         </div>
       )}
-      {room && <div className="visit-room"><UtilityRoom id={id as keyof typeof rooms} active={inspectionOnly ? !damaged : learned} showFilter={inspectionOnly} /></div>}
+      {room && <div className="visit-room"><UtilityRoom id={id as keyof typeof rooms} active={inspectionOnly ? !damaged : learned} showFilter={inspectionOnly} damaged={damaged} /></div>}
       {!inspectionOnly && <div className="visit-card">
         {habitat && <p className="mission-wordmark">🌙 LAMOON</p>}
         <DepartmentInfo id={id} session={session} />
