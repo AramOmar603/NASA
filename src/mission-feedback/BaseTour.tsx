@@ -101,7 +101,7 @@ export function BaseTour({ onFinish }: { onFinish: () => void }) {
         style={{ '--tour-accent': card.color } as CSSProperties} aria-labelledby="tour-title">
         <div role="status">
           <p className="base-tour-progress">Base tour · {step + 1} / {finalStep + 1}</p>
-          <h1 id="tour-title"><span>{card.icon}</span> {card.title}</h1>
+          <h1 id="tour-title"><span className="mission-icon" aria-hidden="true">{card.icon}</span> {card.title}</h1>
           <p>{card.note}</p>
         </div>
         <nav aria-label="Base tour controls">

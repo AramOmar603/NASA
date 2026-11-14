@@ -180,7 +180,7 @@ export function MissionFeedback({ rookie = false, trainingLevel, startAtHabitat 
             {outpost.map(({ id, position }) => <button key={id} type="button"
               style={{ left: `${50 + position.x * 1.28}%`, top: `${48 + position.y * 1.45}%` }}
               aria-label={`Explore ${departments[id].name}`} onClick={() => explore(id)}>
-              {departments[id].icon}<small>{departments[id].name}</small>
+              <span className="mission-icon" aria-hidden="true">{departments[id].icon}</span><small>{departments[id].name}</small>
             </button>)}
           </div>
         </> : <p>Pick a place on the Base Map to explore. Use Return Home to find your crew.</p>}

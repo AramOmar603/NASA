@@ -2,7 +2,7 @@ import { useEffect, useRef, type ReactNode } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { PCFShadowMap, Vector3 } from 'three'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
-import { Sky } from './Sky'
+import { Sky, sunlightPosition } from './Sky'
 import { Surface } from './Surface'
 
 export type LunarCameraFocus = Readonly<{ x: number; z: number; distance?: number; onArrival?: () => void }>
@@ -102,12 +102,12 @@ export function LunarEnvironment({ children, className, focus, interactive = tru
         shadows={{ type: PCFShadowMap }}
         fallback={fallback ?? <div />}
       >
-        <ambientLight intensity={0.44} color="#d2dcff" />
+        <ambientLight intensity={0.63} color="#e1e8ff" />
         <directionalLight
           castShadow
           color="#fff3df"
-          intensity={3.4}
-          position={[-210, 127, 148]}
+          intensity={2.9}
+          position={sunlightPosition}
           shadow-mapSize={[2048, 2048]}
           shadow-camera-left={-210}
           shadow-camera-right={210}

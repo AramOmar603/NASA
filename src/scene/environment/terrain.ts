@@ -49,11 +49,11 @@ export function terrainHeight(x: number, z: number) {
   const angle = Math.atan2(z, x)
   const ridgeCenter = 535 + 65 * Math.sin(angle * 5) + 29 * Math.cos(angle * 11)
   const ridge = Math.exp(-(((range - ridgeCenter) / 125) ** 2))
-  const peaks = Math.abs(2 * noise(x / 90, z / 90) - 1)
-  let height = (noise(x / 110, z / 110) - 0.5) * 22
-    + (noise(x / 35, z / 35) - 0.5) * 8
-    + (noise(x / 10, z / 10) - 0.5) * 2.6
-    + ridge * (13 + 92 * peaks + 27 * noise(x / 42, z / 42))
+  const peaks = noise(x / 135, z / 135)
+  let height = (noise(x / 110, z / 110) - 0.5) * 16
+    + (noise(x / 35, z / 35) - 0.5) * 5
+    + (noise(x / 10, z / 10) - 0.5) * 1.5
+    + ridge * (12 + 57 * peaks + 11 * noise(x / 65, z / 65))
 
   for (const [cx, cz, radius] of craters) {
     const dx = x - cx
@@ -62,7 +62,7 @@ export function terrainHeight(x: number, z: number) {
     const r = Math.hypot(dx, dz) / radius + (noise(x / 19, z / 19) - 0.5) * 0.09
     if (r > 1.7) continue
     const bowl = (1 - fade((r - 0.17) / 0.84)) * radius * 0.20
-    const rim = Math.exp(-(((r - 1) / 0.14) ** 2)) * radius * 0.077
+    const rim = Math.exp(-(((r - 1) / 0.18) ** 2)) * radius * 0.058
     const ejecta = (1 - fade((r - 1) / 0.7)) * fade((r - 0.75) / 0.28) * radius * 0.023
     height += rim + ejecta - bowl
   }

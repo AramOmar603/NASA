@@ -88,7 +88,7 @@ export function DepartmentVisit({ id, damaged, repairAvailable, telemetry, onRep
       )}
       {room && <div className="visit-room"><UtilityRoom id={id as keyof typeof rooms} active={learned} /></div>}
       <div className="visit-card">
-        <h2>{departments[id].icon} {departments[id].name}</h2>
+        <h2><span className="mission-icon" aria-hidden="true">{departments[id].icon}</span> {departments[id].name}</h2>
         <p role="status">{learned ? room?.cue ?? departments[id].lesson
           : habitat ? 'Welcome home! Tap the console or the glowing exit.'
             : 'Tap Learn to see what this does.'}</p>

@@ -140,3 +140,9 @@
 @media (max-width: 44rem) {
   .department-visit[data-home="true"] .visit-card { inset-inline: .65rem; width: auto; max-width: none; }
 }
+
+.visit-card { box-shadow: 0 .65rem 2rem #07142280; }
+.visit-actions { padding-top: .65rem; border-top: 1px solid #79c5d25c; }
+.visit-actions button { min-height: 2.75rem; }
+.visit-actions button:hover { border-color: #e0fdff; }
+.base-map button:hover { background: #2b5269; }

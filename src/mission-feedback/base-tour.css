@@ -26,7 +26,7 @@
 .base-tour-card[data-leaving="true"] { animation: tour-note-out .18s ease-in both; }
 .base-tour-progress { font-size: .82rem; font-weight: 800; }
 .base-tour-card h1 { margin-block: .3rem; font-size: clamp(1.4rem, 4vw, 2rem); font-weight: 850; line-height: 1.15; }
-.base-tour-card h1 span { display: inline-block; border-radius: .55rem; background: var(--tour-accent); padding: .18rem .35rem; }
+.base-tour-card h1 .mission-icon { border-color: #22374a35; background: var(--tour-accent); color: #17283a; }
 .base-tour-card p { line-height: 1.4; }
 .base-tour-card nav { display: flex; flex-wrap: wrap; gap: .45rem; margin-top: .9rem; }
 .base-tour-card button { min-height: 2.75rem; padding: .45rem .8rem; border: 1px solid #768fa6; border-radius: .65rem; font-weight: 750; cursor: pointer; }
