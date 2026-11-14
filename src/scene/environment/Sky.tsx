@@ -2,6 +2,7 @@ import { Suspense, useEffect, useMemo } from 'react'
 import { useLoader } from '@react-three/fiber'
 import { AdditiveBlending, CanvasTexture, SRGBColorSpace, TextureLoader, Vector3 } from 'three'
 import { randomSequence } from './terrain'
+import cloudMap from './assets/earth-clouds.png'
 import earthMap from './assets/earth.jpg'
 
 // The Sun and the scene's directional light share the same bearing.
@@ -61,6 +62,7 @@ const earthVertex = `
 
 const earthFragment = `
   uniform sampler2D earthMap;
+  uniform sampler2D cloudMap;
   uniform vec3 sunDirection;
   varying vec2 textureUv;
   varying vec3 surfaceNormal;
@@ -70,7 +72,8 @@ const earthFragment = `
     vec3 sunlight = (viewMatrix * vec4(sunDirection, 0.0)).xyz;
     float incidence = dot(normal, sunlight);
     float daylight = smoothstep(-0.12, 0.78, incidence);
-    vec3 surface = texture2D(earthMap, textureUv).rgb;
+    float clouds = texture2D(cloudMap, textureUv).a;
+    vec3 surface = mix(texture2D(earthMap, textureUv).rgb, vec3(0.92, 0.96, 1.0), clouds * 0.5);
     // Keep oceans and continents readable in the shadow while retaining the terminator.
     vec3 fill = vec3(0.31, 0.36, 0.44) * (1.0 - daylight);
     gl_FragColor = vec4(surface * (fill + daylight * 1.16), 1.0);
@@ -93,11 +96,11 @@ const atmosphereFragment = `
 `
 
 function Earth() {
-  const texture = useLoader(TextureLoader, earthMap)
+  const [texture, clouds] = useLoader(TextureLoader, [earthMap, cloudMap])
   const uniforms = useMemo(() => {
     texture.colorSpace = SRGBColorSpace
-    return { earthMap: { value: texture }, sunDirection: { value: earthSunDirection } }
-  }, [texture])
+    return { earthMap: { value: texture }, cloudMap: { value: clouds }, sunDirection: { value: earthSunDirection } }
+  }, [texture, clouds])
   return (
     <group position={earthPosition}>
       <mesh rotation={[0.14, 1.9, -0.26]}>
