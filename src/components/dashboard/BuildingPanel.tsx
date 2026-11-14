@@ -30,7 +30,7 @@ interface PanelDefinition {
 }
 
 const panels = {
-  habitat: { name: 'Habitat', symbol: '⌂', metrics: [['crewHealth', 'Crew health'], ['lifeSupport', 'Life support'], ['livingConditions', 'Living conditions']] },
+  habitat: { name: 'Home Center', symbol: '⌂', metrics: [['crewHealth', 'Crew health'], ['lifeSupport', 'Life support'], ['livingConditions', 'Living conditions']] },
   'solar-array': { name: 'Solar array', symbol: '☉', metrics: [['generation', 'Electricity generation'], ['battery', 'Battery level']], allocation: 'power', repair: true },
   greenhouse: { name: 'Greenhouse', symbol: '✳', metrics: [['production', 'Food production'], ['crops', 'Crop status']], reserve: { id: 'food', unit: 'rations' }, allocation: 'water' },
   'water-recycler': { name: 'Water recycler', symbol: '≈', metrics: [['efficiency', 'Recycling efficiency'], ['condition', 'System condition']], reserve: { id: 'water', unit: 'L' } },

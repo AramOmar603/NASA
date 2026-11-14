@@ -8,7 +8,7 @@ import { HabitatInterior } from './HabitatArrival'
 import './base-tour.css'
 
 const buildingStops = [
-  { id: 'HAB-01', icon: '🏠', title: 'Habitat', note: 'This is where astronauts live!', color: '#71efe3', side: 'top-left' },
+  { id: 'HAB-01', icon: '🏠', title: 'Home Center', note: 'This is where astronauts live!', color: '#71efe3', side: 'top-left' },
   { id: 'OXY-01', icon: 'O₂', title: 'Oxygen Generator', note: 'This machine makes oxygen to breathe!', color: '#93cbff', side: 'right' },
   { id: 'SOL-01', icon: '☀️', title: 'Solar Panels', note: 'Sunlight helps power our base!', color: '#ffe083', side: 'top-right' },
   { id: 'WTR-01', icon: '💧', title: 'Water Recycler', note: 'We recycle water so we don’t waste it!', color: '#84eaf6', side: 'left' },

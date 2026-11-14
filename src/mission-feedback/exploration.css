@@ -87,3 +87,25 @@
   .base-map small { font-size: .6rem; }
 }
 @media (prefers-reduced-motion: reduce) { .department-visit { animation: none; } }
+
+.visit-approach {
+  position: absolute;
+  z-index: 24;
+  inset: auto 1rem 1rem;
+  width: fit-content;
+  margin-inline: auto;
+  padding: .65rem 1rem;
+  border: 1px solid #8fe5dc;
+  border-radius: .75rem;
+  background: #10283af5;
+  color: #effcff;
+  font-weight: 750;
+  pointer-events: none;
+}
+.visit-readings {
+  display: grid;
+  gap: .25rem;
+  margin-bottom: .75rem;
+}
+.visit-readings div { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .25rem .75rem; }
+.visit-readings dd { margin: 0; font-weight: 750; }

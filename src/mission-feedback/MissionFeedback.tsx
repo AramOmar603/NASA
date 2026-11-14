@@ -61,6 +61,8 @@ export function MissionFeedback({ rookie = false, trainingLevel, startAtHabitat 
   const [session, setSession] = useState(() => level ? createRookieSession(level) : createSurvivalSession())
   const [training, setTraining] = useState<Equipment>()
   const [visit, setVisit] = useState<DepartmentId | undefined>(spawnInsideHabitat ? 'HAB-01' : undefined)
+  const [approaching, setApproaching] = useState<DepartmentId>()
+  const pendingVisit = useRef<DepartmentId>(undefined)
   const [navigation, setNavigation] = useState<'map' | 'help'>()
   const repairApplied = useRef(false)
   const [focus, setFocus] = useState<LunarCameraFocus | undefined>(() => startAtHabitat ? { x: 0, z: 0, distance: 28 } : undefined)
@@ -101,12 +103,33 @@ export function MissionFeedback({ rookie = false, trainingLevel, startAtHabitat 
       || (level === 2 && (equipment === 'solar' || equipment === 'oxygenPlant'))
   }
 
+  function arrive(id: DepartmentId) {
+    if (pendingVisit.current !== id) return
+    pendingVisit.current = undefined
+    setVisit(id)
+    setApproaching(undefined)
+  }
+
+  // The timer also lets players enter when WebGL is unavailable.
+  useEffect(() => {
+    if (!approaching) return
+    const timer = window.setTimeout(() => arrive(approaching), window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 1400)
+    return () => window.clearTimeout(timer)
+  }, [approaching])
+
   function explore(id: DepartmentId) {
+    if (pendingVisit.current) return
+    pendingVisit.current = id
     const { position } = outpost.find((building) => building.id === id)!
     select(id)
-    setFocus({ x: position.x, z: position.y, distance: 26 })
     setNavigation(undefined)
-    setVisit(id)
+    setApproaching(id)
+    setFocus({ x: position.x, z: position.y, distance: 26, onArrival: () => arrive(id) })
+  }
+
+  function leaveVisit() {
+    setVisit(undefined)
+    setFocus({ x: 0, z: 0, distance: 92 })
   }
 
   function inspectEquipment(equipment: Equipment) {
@@ -134,15 +157,15 @@ export function MissionFeedback({ rookie = false, trainingLevel, startAtHabitat 
     state.condition[visitingEquipment] < 1 && state.resources.spareKits > 0
 
   return <main className="lg-survival mf-mission">
-    <div inert={Boolean(visit || training)}>
+    <div inert={Boolean(approaching || visit || training)}>
       <div className="mf-world">
         <LunarEnvironment className="lg-survival-world" focus={focus}>
           <CameraStart />
-          <LunarBase selectedBuildingId={selected} onBuildingSelect={(id) => select(id as DepartmentId)}
+          <LunarBase selectedBuildingId={selected} onBuildingSelect={(id) => { if (Object.hasOwn(departments, id)) explore(id as DepartmentId) }}
             onGroundSelect={() => select(undefined)} />
           <LabelPositions buttons={buttons} />
         </LunarEnvironment>
-        <DepartmentLabels buttons={buttons} selected={selected} offline={offline} onSelect={select} />
+        <DepartmentLabels buttons={buttons} selected={selected} offline={offline} onSelect={explore} />
       </div>
       <nav className="base-navigation" aria-label="Base navigation">
         <button type="button" onClick={() => explore('HAB-01')}>🏠 Return Home</button>
@@ -166,7 +189,7 @@ export function MissionFeedback({ rookie = false, trainingLevel, startAtHabitat 
         showAllResources={Boolean(level)} overviewOpen={overview} onOverviewToggle={() => setOverview(!overview)} />
       <div className="lg-survival-controls">
         {startAtHabitat && state.tick === 0 && <p className="habitat-first-step">
-          <strong>Start here · Habitat</strong><br />
+          <strong>Start here · Home Center</strong><br />
           This is home for your crew. Press <strong>Advance one day</strong> to begin.
         </p>}
         {level && <h1>{level === 2 ? 'First Emergency' : 'Rookie Astronaut'}</h1>}
@@ -177,7 +200,7 @@ export function MissionFeedback({ rookie = false, trainingLevel, startAtHabitat 
         <details>
           <summary>Departments</summary>
           <ul>{outpost.map(({ id }) => <li key={id}>
-            <button className="lg-button" type="button" onClick={() => select(id)}>{departments[id].name}</button>
+            <button className="lg-button" type="button" onClick={() => explore(id)}>{departments[id].name}</button>
           </li>)}</ul>
           <p>Life support receives power first. Production readings describe the last completed day.</p>
         </details>
@@ -228,8 +251,9 @@ export function MissionFeedback({ rookie = false, trainingLevel, startAtHabitat 
         {pending.length > 2 && <p className="mf-notice">{pending.length - 2} more to check</p>}
       </section>
     </div>
+    {approaching && <p className="visit-approach" role="status">Approaching {facilityTitles[approaching]}…</p>}
     {visit && !training && <DepartmentVisit key={visit} id={visit} damaged={problems.some(({ equipment }) => equipment === visitingEquipment)} repairAvailable={canRepairVisit}
-      onBack={() => setVisit(undefined)} onRepair={() => {
+      telemetry={telemetry[visit]} onTour={onReplayIntro} onBack={leaveVisit} onRepair={() => {
         if (visitingEquipment) repair(visitingEquipment)
       }} />}
     {level === 1 && training === 'greenhouse' && canPlay && <GreenhouseInterior

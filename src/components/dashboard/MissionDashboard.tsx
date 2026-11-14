@@ -150,7 +150,7 @@ export function MissionDashboard({
             <div className="flex flex-wrap gap-2">
               {state.buildings.map((item) => <button key={item.id} type="button" aria-pressed={item.id === selectedBuildingId}
                 disabled={!onBuildingSelect} onClick={() => onBuildingSelect?.(item.id)}>
-                {item.kind} · {item.id}
+                {item.kind.toLowerCase() === 'habitat' ? 'Home Center' : item.kind} · {item.id}
               </button>)}
             </div>
             {building && <dl className="md-building">

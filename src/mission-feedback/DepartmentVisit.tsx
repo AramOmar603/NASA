@@ -1,3 +1,4 @@
+import type { BuildingTelemetry } from '../components/dashboard/BuildingPanel'
 import { useState } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { GreenhouseInterior } from '../rookie-training/GreenhouseInterior'
@@ -14,7 +15,7 @@ const rooms = {
 } as const
 
 export const facilityTitles: Record<DepartmentId, string> = {
-  'HAB-01': 'Crew Habitat', 'OXY-01': 'Oxygen Generator', 'SOL-01': 'Solar Panels',
+  'HAB-01': 'Home Center', 'OXY-01': 'Oxygen System', 'SOL-01': 'Solar Panels',
   'WTR-01': 'Water Recycler', 'BIO-01': 'Greenhouse', 'PWR-01': 'Battery Station',
   'SHD-01': 'Radiation Shelter', 'ROV-01': 'Lunar Rover',
 }
@@ -65,12 +66,14 @@ function UtilityRoom({ id, active }: { id: keyof typeof rooms; active: boolean }
   )
 }
 
-export function DepartmentVisit({ id, damaged, repairAvailable, onRepair, onBack }: {
+export function DepartmentVisit({ id, damaged, repairAvailable, telemetry, onRepair, onBack, onTour }: {
   id: DepartmentId
   damaged: boolean
   repairAvailable: boolean
+  telemetry?: BuildingTelemetry
   onRepair: () => void
   onBack: () => void
+  onTour?: () => void
 }) {
   const [learned, setLearned] = useState(false)
   const habitat = id === 'HAB-01'
@@ -78,11 +81,12 @@ export function DepartmentVisit({ id, damaged, repairAvailable, onRepair, onBack
     <GreenhouseInterior exploring damaged={damaged} repairAvailable={repairAvailable} onStartRepair={onRepair} onClose={onBack} onRepair={() => false} />
   )
 
+  const equipment = id === 'OXY-01' || id === 'SOL-01'
   const room = id === 'WTR-01' || id === 'PWR-01' || id === 'SHD-01' ? rooms[id] : undefined
   return (
     <section className={id === 'ROV-01' ? 'department-visit visit-exterior' : 'department-visit'} aria-label={facilityTitles[id]}>
       {habitat && <HabitatInterior checked={learned} onExit={onBack} onCheck={() => setLearned(true)} />}
-      {(id === 'OXY-01' || id === 'SOL-01') && (
+      {equipment && (
         <div className="visit-equipment">
           <EquipmentScene equipment={id === 'SOL-01' ? 'solar' : 'oxygenPlant'}
             ready={learned} repaired={!damaged} onInspect={() => setLearned(true)} />
@@ -94,12 +98,19 @@ export function DepartmentVisit({ id, damaged, repairAvailable, onRepair, onBack
         <p role="status">{learned ? room?.cue ?? departments[id].lesson
           : habitat ? 'Welcome home! Check the mission console or head outside.'
             : 'Take a closer look, then tap Learn how it works.'}</p>
+        {equipment && telemetry && <dl className="visit-readings">
+          <div><dt>Condition</dt><dd>{telemetry.condition ?? 'Unavailable'}</dd></div>
+          <div><dt>{id === 'SOL-01' ? 'Electricity produced last day' : 'Oxygen produced last day'}</dt>
+            <dd>{telemetry.readings?.generation ?? 'Unavailable'}</dd></div>
+          {id === 'SOL-01' && <div><dt>Battery reserve</dt><dd>{telemetry.readings?.battery}</dd></div>}
+        </dl>}
         <div className="visit-actions">
           {!learned && <button type="button" onClick={() => setLearned(true)}>
             {habitat ? 'Check mission console' : 'Learn how it works'}
           </button>}
           {damaged && !repairAvailable && <p>Repair is unavailable right now.</p>}
           {repairAvailable && <button type="button" onClick={onRepair}>Start repair</button>}
+          {habitat && onTour && <button type="button" onClick={onTour}>Take the base tour</button>}
           <button autoFocus type="button" onClick={onBack}>{habitat ? '🚪 Exit to Moon base' : '↩ Back to Base'}</button>
         </div>
       </div>

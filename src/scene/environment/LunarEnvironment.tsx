@@ -5,7 +5,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 import { Sky } from './Sky'
 import { Surface } from './Surface'
 
-export type LunarCameraFocus = Readonly<{ x: number; z: number; distance?: number }>
+export type LunarCameraFocus = Readonly<{ x: number; z: number; distance?: number; onArrival?: () => void }>
 
 function CameraControls({ focus }: { focus?: LunarCameraFocus }) {
   const controls = useRef<OrbitControls>(null)
@@ -72,8 +72,10 @@ function CameraControls({ focus }: { focus?: LunarCameraFocus }) {
       step.multiplyScalar(blend)
       orbit.target.add(step)
       camera.position.add(step).addScaledVector(zoom.normalize(), remainingZoom * blend)
-      if (finished) destination.current = null
-      else invalidate()
+      if (finished) {
+        destination.current = null
+        focus?.onArrival?.()
+      } else invalidate()
     }
     orbit.update()
   })

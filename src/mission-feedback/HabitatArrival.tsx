@@ -10,13 +10,13 @@ export function HabitatArrival({ active, onBegin }: { active: boolean; onBegin: 
   }, [active, checked])
 
   return (
-    <section className="habitat-arrival" inert={!active} aria-label="Inside the Habitat">
+    <section className="habitat-arrival" inert={!active} aria-label="Inside the Home Center">
       <HabitatInterior checked={checked} onCheck={() => setChecked(true)} />
       <div className="habitat-arrival-note">
         <h1>Welcome home, astronaut!</h1>
         <p role="status">{checked
           ? 'This is your crew’s home. Head outside and advance one day to begin.'
-          : 'You’re inside the Habitat. Check the glowing mission console to get started.'}</p>
+          : 'You’re inside the Home Center. Check the glowing mission console to get started.'}</p>
         {checked
           ? <button key="outside" ref={action} type="button" onClick={onBegin}>Explore the Moon base</button>
           : <button key="console" ref={action} type="button" onClick={() => setChecked(true)}>Check mission console</button>}
