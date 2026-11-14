@@ -15,7 +15,7 @@ export function App() {
     return <>
       {entry === 'base' && (
         <div hidden={tourOpen}>
-          <MissionFeedback key={attempt} trainingLevel={1} startAtHabitat
+          <MissionFeedback key={attempt} trainingLevel={1} startAtHabitat spawnInsideHabitat
             onReplayIntro={() => setTourOpen(true)}
             onRestart={() => setAttempt((previous) => previous + 1)} />
         </div>
