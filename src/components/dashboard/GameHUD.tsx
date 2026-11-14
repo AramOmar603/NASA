@@ -1,9 +1,12 @@
+import { OxygenReserve } from './OxygenReserve'
 import type { GameViewProps } from '../../types'
 import type { MissionDashboardProps } from './MissionDashboard'
 import './game-interface.css'
 
 export interface GameHUDProps extends GameViewProps {
+  readonly oxygenCapacity?: number
   readonly day: number
+  readonly showAllResources?: boolean
   readonly missionDays?: number
   readonly alerts?: MissionDashboardProps['alerts']
   readonly overviewOpen: boolean
@@ -11,16 +14,20 @@ export interface GameHUDProps extends GameViewProps {
   readonly onOpenEmergency?: () => void
 }
 
-export function GameHUD({ state, day, missionDays = 30, alerts, overviewOpen, onOverviewToggle, onOpenEmergency }: GameHUDProps) {
+export function GameHUD({ state, oxygenCapacity, day, showAllResources, missionDays = 30, alerts, overviewOpen, onOverviewToggle, onOpenEmergency }: GameHUDProps) {
   const critical = alerts?.filter(({ severity }) => severity === 'emergency') ?? []
 
   return (
     <header className="lg-hud" aria-label="Mission HUD">
-      <div className="lg-wordmark"><span aria-hidden="true">◈</span> LUNARIS</div>
+      <div className="lg-wordmark"><span aria-hidden="true">◈</span> LAMOON</div>
       <dl className="lg-stats">
         <div><dt>Mission day</dt><dd>{day}<small> / {missionDays}</small></dd></div>
-        <div><dt>Oxygen</dt><dd>{state.resources.oxygen?.toFixed(2) ?? '—'} <small>kg</small></dd></div>
+        <div><dt>🫧 Oxygen Left</dt><dd><OxygenReserve stored={state.resources.oxygen} capacity={oxygenCapacity} compact /></dd></div>
         <div><dt>Power</dt><dd>{state.resources.power?.toFixed(2) ?? '—'} <small>kWh</small></dd></div>
+        {showAllResources && <>
+          <div><dt>Water</dt><dd>{state.resources.water?.toFixed(2) ?? '—'} <small>L</small></dd></div>
+          <div><dt>Food</dt><dd>{state.resources.food?.toFixed(2) ?? '—'} <small>kg</small></dd></div>
+        </>}
       </dl>
       <button type="button" className="lg-button" aria-expanded={overviewOpen} onClick={onOverviewToggle}>
         {overviewOpen ? 'Close overview' : 'Mission overview'}

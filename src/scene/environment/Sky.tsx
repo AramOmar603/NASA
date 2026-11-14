@@ -1,6 +1,12 @@
-import { useEffect, useMemo } from 'react'
-import { CanvasTexture, SRGBColorSpace } from 'three'
-import { noise, randomSequence } from './terrain'
+import { Suspense, useEffect, useMemo } from 'react'
+import { useLoader } from '@react-three/fiber'
+import { AdditiveBlending, CanvasTexture, SRGBColorSpace, TextureLoader, Vector3 } from 'three'
+import { randomSequence } from './terrain'
+import cloudMap from './assets/earth-clouds.png'
+import earthMap from './assets/earth.jpg'
+
+// The Sun and the scene's directional light share the same bearing.
+export const sunlightPosition = [52, 23, -226] as const
 
 function createStars() {
   const random = randomSequence(22)
@@ -18,49 +24,105 @@ function createStars() {
   return { positions, colors }
 }
 
-function createEarthTexture() {
+function createSunGlow() {
   const canvas = document.createElement('canvas')
-  canvas.width = 384
-  canvas.height = 192
+  canvas.width = canvas.height = 128
   const context = canvas.getContext('2d')!
-  const image = context.createImageData(canvas.width, canvas.height)
-  for (let y = 0; y < canvas.height; y++) {
-    const latitude = (y / canvas.height - 0.5) * Math.PI
-    for (let x = 0; x < canvas.width; x++) {
-      const longitude = x / canvas.width * Math.PI * 2
-      const px = Math.cos(longitude) * Math.cos(latitude)
-      const pz = Math.sin(longitude) * Math.cos(latitude)
-      const py = Math.sin(latitude)
-      const continents = noise(px * 3 + py * 1.15 + 8, pz * 3 + py * 2.1 + 4)
-        + noise(px * 11 + py * 6, pz * 11 + py * 3) * 0.27
-      const cloud = noise(px * 10 + py * 9, pz * 10 - py * 7) * 0.67
-        + noise(px * 32 - py * 17, pz * 32 + py * 12) * 0.33
-      const ice = Math.abs(py) > 0.925 + 0.06 * noise(px * 30, pz * 30)
-      const land = continents > 0.72
-      const color = ice ? [218, 230, 236] : land
-        ? [95 + 52 * continents, 119 + 33 * continents, 68 + 26 * continents]
-        : [17, 55 + 36 * continents, 113 + 70 * continents]
-      const cover = Math.max(0, Math.min(0.92, (cloud - 0.52) * 3.4))
-      const offset = (x + y * canvas.width) * 4
-      for (let channel = 0; channel < 3; channel++) {
-        image.data[offset + channel] = color[channel] * (1 - cover) + 242 * cover
-      }
-      image.data[offset + 3] = 255
-    }
-  }
-  context.putImageData(image, 0, 0)
+  const glow = context.createRadialGradient(64, 64, 0, 64, 64, 64)
+  glow.addColorStop(0, '#fff8d8')
+  glow.addColorStop(0.17, '#fff0b0')
+  glow.addColorStop(0.27, '#ffc45570')
+  glow.addColorStop(0.52, '#e388241c')
+  glow.addColorStop(1, '#e3882400')
+  context.fillStyle = glow
+  context.fillRect(0, 0, 128, 128)
   const texture = new CanvasTexture(canvas)
   texture.colorSpace = SRGBColorSpace
   return texture
 }
 
+const sunPosition = sunlightPosition.map((coordinate) => coordinate * 8) as [number, number, number]
+
+const earthPosition = [-520, 255, -1640] as const
+// Use the Sun's bearing from Earth, rather than the light aimed at the outpost.
+const earthSunDirection = new Vector3(...sunPosition).sub(new Vector3(...earthPosition)).normalize()
+
+const earthVertex = `
+  varying vec2 textureUv;
+  varying vec3 surfaceNormal;
+  varying vec3 viewDirection;
+  void main() {
+    vec4 viewPosition = modelViewMatrix * vec4(position, 1.0);
+    textureUv = uv;
+    surfaceNormal = normalMatrix * normal;
+    viewDirection = -viewPosition.xyz;
+    gl_Position = projectionMatrix * viewPosition;
+  }
+`
+
+const earthFragment = `
+  uniform sampler2D earthMap;
+  uniform sampler2D cloudMap;
+  uniform vec3 sunDirection;
+  varying vec2 textureUv;
+  varying vec3 surfaceNormal;
+
+  void main() {
+    vec3 normal = normalize(surfaceNormal);
+    vec3 sunlight = (viewMatrix * vec4(sunDirection, 0.0)).xyz;
+    float incidence = dot(normal, sunlight);
+    float daylight = smoothstep(-0.12, 0.78, incidence);
+    float clouds = texture2D(cloudMap, textureUv).a;
+    vec3 surface = mix(texture2D(earthMap, textureUv).rgb, vec3(0.92, 0.96, 1.0), clouds * 0.5);
+    // Keep oceans and continents readable in the shadow while retaining the terminator.
+    vec3 fill = vec3(0.31, 0.36, 0.44) * (1.0 - daylight);
+    gl_FragColor = vec4(surface * (fill + daylight * 1.16), 1.0);
+    #include <colorspace_fragment>
+  }
+`
+
+const atmosphereFragment = `
+  uniform vec3 sunDirection;
+  varying vec3 surfaceNormal;
+  varying vec3 viewDirection;
+  void main() {
+    vec3 normal = normalize(surfaceNormal);
+    vec3 sunlight = (viewMatrix * vec4(sunDirection, 0.0)).xyz;
+    float facing = max(dot(normal, normalize(viewDirection)), 0.0);
+    float rim = pow(1.0 - facing, 5.0);
+    float daylight = smoothstep(-0.2, 0.65, dot(normal, sunlight));
+    gl_FragColor = vec4(0.24, 0.58, 1.0, rim * mix(0.14, 0.52, daylight));
+  }
+`
+
+function Earth() {
+  const [texture, clouds] = useLoader(TextureLoader, [earthMap, cloudMap])
+  const uniforms = useMemo(() => {
+    texture.colorSpace = SRGBColorSpace
+    return { earthMap: { value: texture }, cloudMap: { value: clouds }, sunDirection: { value: earthSunDirection } }
+  }, [texture, clouds])
+  return (
+    <group position={earthPosition}>
+      <mesh rotation={[0.14, 1.9, -0.26]}>
+        <sphereGeometry args={[46, 48, 32]} />
+        <shaderMaterial uniforms={uniforms} vertexShader={earthVertex} fragmentShader={earthFragment} />
+      </mesh>
+      <mesh>
+        <sphereGeometry args={[47.2, 48, 32]} />
+        <shaderMaterial uniforms={uniforms} vertexShader={earthVertex} fragmentShader={atmosphereFragment}
+          transparent depthWrite={false} blending={AdditiveBlending} />
+      </mesh>
+    </group>
+  )
+}
+
 export function Sky() {
   const stars = useMemo(createStars, [])
-  const earth = useMemo(createEarthTexture, [])
-  useEffect(() => () => earth.dispose(), [earth])
+  const glow = useMemo(createSunGlow, [])
+  useEffect(() => () => glow.dispose(), [glow])
   return (
     <>
-      <color attach="background" args={['#020306']} />
+      <color attach="background" args={['#010205']} />
       <points>
         <bufferGeometry>
           <bufferAttribute attach="attributes-position" args={[stars.positions, 3]} />
@@ -68,10 +130,10 @@ export function Sky() {
         </bufferGeometry>
         <pointsMaterial size={1.25} sizeAttenuation={false} vertexColors toneMapped={false} />
       </points>
-      <mesh position={[-570, 270, -1760]} rotation={[0.16, 0.6, -0.26]}>
-        <sphereGeometry args={[40, 48, 32]} />
-        <meshStandardMaterial map={earth} roughness={0.85} />
-      </mesh>
+      <sprite position={sunPosition} scale={[154, 154, 1]}>
+        <spriteMaterial map={glow} transparent depthWrite={false} blending={AdditiveBlending} toneMapped={false} />
+      </sprite>
+      <Suspense fallback={null}><Earth /></Suspense>
     </>
   )
 }

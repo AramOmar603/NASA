@@ -1,0 +1,158 @@
+.visit-card {
+  position: absolute;
+  z-index: 12;
+  color: #edfaff;
+  font-family: system-ui, sans-serif;
+}
+.visit-card button {
+  padding: .55rem .75rem;
+  border: 1px solid #76c9d3;
+  border-radius: .65rem;
+  background: #17384e;
+  color: #edfaff;
+  font-weight: 750;
+  cursor: pointer;
+}
+.visit-card button:focus-visible {
+  outline: 3px solid #ffe18a;
+  outline-offset: 3px;
+}
+.base-map {
+  position: relative;
+  height: 19rem;
+  margin-top: .5rem;
+  border-radius: .7rem;
+  background: repeating-linear-gradient(0deg, transparent 0 24px, #a0e8f42b 25px 26px), #203950;
+}
+.base-map button {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  min-width: 2.75rem;
+  max-width: 26%;
+  padding: .25rem;
+  line-height: 1.05;
+}
+.base-map small { display: block; margin-top: .25rem; font-size: .68rem; }
+.department-visit {
+  position: fixed;
+  inset: 0;
+  z-index: 25;
+  background: #182741;
+  color: #effcff;
+  animation: visit-in .4s ease-out both;
+}
+.department-visit.visit-exterior { background: transparent; pointer-events: none; }
+.visit-room, .visit-equipment { position: absolute; inset: 0; }
+.visit-equipment .equipment-scene { height: 100%; border: 0; }
+.visit-scene-fallback { display: grid; height: 100%; place-items: center; font-size: 5rem; }
+.visit-card {
+  pointer-events: auto;
+  inset: auto 1rem max(1rem, env(safe-area-inset-bottom));
+  width: min(32rem, calc(100% - 2rem));
+  margin-inline: auto;
+  padding: 1rem;
+  border: 2px solid #8fe5dc;
+  border-radius: 1.1rem;
+  background: #10283af5;
+}
+.visit-card h2 { font-size: clamp(1.3rem, 4vw, 1.8rem); font-weight: 850; }
+.visit-card p { margin-block: .35rem .75rem; }
+.visit-actions { display: flex; flex-wrap: wrap; gap: .45rem; }
+.visit-actions button:last-child { background: #87ffe5; color: #10283a; }
+@keyframes visit-in { from { opacity: 0; } }
+@media (max-width: 44rem) {
+  .base-map button { min-width: 2.35rem; }
+  .base-map small { font-size: .6rem; }
+}
+@media (prefers-reduced-motion: reduce) { .department-visit { animation: none; } }
+
+.visit-approach {
+  position: absolute;
+  z-index: 24;
+  inset: auto 1rem 1rem;
+  width: fit-content;
+  margin-inline: auto;
+  padding: .65rem 1rem;
+  border: 1px solid #8fe5dc;
+  border-radius: .75rem;
+  background: #10283af5;
+  color: #effcff;
+  font-weight: 750;
+  pointer-events: none;
+}
+.visit-readings {
+  display: grid;
+  gap: .25rem;
+  margin-bottom: .75rem;
+}
+.visit-readings div { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .25rem .75rem; }
+.visit-readings dd { margin: 0; font-weight: 750; }
+
+.department-visit[data-home="true"] .visit-card {
+  inset-inline: 1rem auto;
+  max-width: 24rem;
+  border-color: #c9b1ff;
+  background: #212345f5;
+  box-shadow: 0 .65rem 2rem #10152a88;
+}
+.department-visit[data-home="true"] .visit-card h2 { color: #eee3ff; }
+.visit-actions .visit-tour {
+  min-height: 2.75rem;
+  padding: .4rem .7rem;
+  border: 2px solid #9afaf5;
+  border-radius: 1rem;
+  background: linear-gradient(125deg, #a9f8ee, #bcadff);
+  color: #172239;
+  font-size: 1rem;
+  font-weight: 850;
+  text-align: center;
+  box-shadow: 0 0 1rem #72e9ff70;
+}
+.visit-actions .visit-tour:hover { background: linear-gradient(125deg, #c1fff7, #d0c2ff); }
+@media (prefers-reduced-motion: no-preference) {
+  .visit-actions .visit-tour { animation: home-tour-glow 2.6s ease-in-out 2; }
+}
+@keyframes home-tour-glow {
+  50% { box-shadow: 0 0 1.45rem #9afaf5b0; }
+}
+@media (max-width: 44rem) {
+  .department-visit[data-home="true"] .visit-card { inset-inline: .65rem; width: auto; max-width: none; }
+}
+
+.visit-card { box-shadow: 0 .65rem 2rem #07142280; }
+.visit-actions { padding-top: .65rem; border-top: 1px solid #79c5d25c; }
+.visit-actions button { min-height: 2.75rem; }
+.visit-actions button:hover { border-color: #e0fdff; }
+.base-map button:hover { background: #2b5269; }
+
+.department-info {
+  padding: .7rem;
+  border: 1px solid #b7b3ff;
+  border-radius: .9rem;
+  background: linear-gradient(145deg, #24476b, #40386d);
+  color: #fff;
+}
+.department-info-heading { display: flex; flex-wrap: wrap; align-items: center; gap: .35rem .65rem; }
+.department-info h2 { font-size: 1.3rem; font-weight: 850; }
+.department-badge {
+  border-radius: .55rem;
+  padding: .15rem .5rem;
+  color: #15372c;
+  background: #b4f5d6;
+  font-size: .8rem;
+  font-weight: 800;
+}
+.department-badge[data-damaged="true"] { color: #572828; background: #ffdf9f; }
+.department-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .35rem; }
+.department-stats div { padding: .35rem; background: #122a49; border-radius: .5rem; }
+.department-stats dt { font-size: .76rem; line-height: 1.2; color: #d6edff; }
+.department-stats dd { font-weight: 850; color: #fff0ab; }
+.visit-card { max-height: calc(100dvh - 2rem); overflow: auto; }
+.greenhouse-info { width: min(31rem, 100%); }
+.rookie-interior .department-info p { padding: .3rem 0; background: none; border: 0; box-shadow: none; }
+.rookie-interior header:has(.greenhouse-info) { align-items: flex-start; }
+.rookie-interior header:has(.greenhouse-info) > button { flex-shrink: 0; }
+
+@media (max-width: 520px) {
+  .rookie-interior header:has(.greenhouse-info) { flex-direction: column-reverse; align-items: flex-end; }
+}

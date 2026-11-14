@@ -92,10 +92,10 @@ function DashboardPreview() {
           ))}
         </div>
       </div>
-      <GameHUD state={state} day={day} alerts={alerts} overviewOpen={overviewOpen}
+      <GameHUD oxygenCapacity={resources.oxygen?.capacity} state={state} day={day} alerts={alerts} overviewOpen={overviewOpen}
         onOverviewToggle={() => setOverviewOpen((visible) => !visible)}
         onOpenEmergency={alerts.length ? () => setEmergencyOpen(true) : undefined} />
-      <BuildingPanel state={state} selectedBuildingId={selectedBuildingId} telemetry={buildings}
+      <BuildingPanel oxygenCapacity={resources.oxygen?.capacity} state={state} selectedBuildingId={selectedBuildingId} telemetry={buildings}
         onAction={outcome ? undefined : handleBuildingAction} onClose={() => setSelectedBuildingId(undefined)} />
       <MissionEventDialog event={emergencyOpen ? mockEvent : undefined} onDismiss={() => setEmergencyOpen(false)}
         onDecision={(id) => {

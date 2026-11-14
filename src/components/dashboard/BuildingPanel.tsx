@@ -1,3 +1,5 @@
+import { OxygenReserve } from './OxygenReserve'
+import type { ReactNode } from 'react'
 import { useEffect, useId, useRef } from 'react'
 import type { Building, BuildingId, BuildingKind, GameViewProps } from '../../types'
 import './game-interface.css'
@@ -29,12 +31,12 @@ interface PanelDefinition {
 }
 
 const panels = {
-  habitat: { name: 'Habitat', symbol: '⌂', metrics: [['crewHealth', 'Crew health'], ['lifeSupport', 'Life support'], ['livingConditions', 'Living conditions']] },
+  habitat: { name: 'Home Center', symbol: '⌂', metrics: [['crewHealth', 'Crew health'], ['lifeSupport', 'Life support'], ['livingConditions', 'Living conditions']] },
   'solar-array': { name: 'Solar array', symbol: '☉', metrics: [['generation', 'Electricity generation'], ['battery', 'Battery level']], allocation: 'power', repair: true },
   greenhouse: { name: 'Greenhouse', symbol: '✳', metrics: [['production', 'Food production'], ['crops', 'Crop status']], reserve: { id: 'food', unit: 'rations' }, allocation: 'water' },
   'water-recycler': { name: 'Water recycler', symbol: '≈', metrics: [['efficiency', 'Recycling efficiency'], ['condition', 'System condition']], reserve: { id: 'water', unit: 'L' } },
   'oxygen-production': { name: 'Oxygen production', symbol: 'O₂', metrics: [['generation', 'Oxygen generation'], ['equipment', 'Equipment status']], reserve: { id: 'oxygen', unit: 'kg' } },
-  'radiation-shelter': { name: 'Radiation shelter', symbol: '☢', metrics: [['radiationRisk', 'Radiation risk'], ['readiness', 'Shelter readiness'], ['protection', 'Crew protection']] },
+  'radiation-shelter': { name: 'Safety Shelter', symbol: '🛡', metrics: [['radiationRisk', 'Space exposure'], ['readiness', 'Shelter readiness'], ['protection', 'Crew protection']] },
 } satisfies Record<string, PanelDefinition>
 
 export type BuildingPanelKind = keyof typeof panels
@@ -53,10 +55,12 @@ export interface BuildingPanelProps extends GameViewProps {
   readonly telemetry?: Readonly<Partial<Record<BuildingId, BuildingTelemetry>>>
   readonly onAction?: (action: BuildingAction) => void
   readonly onClose: () => void
+  readonly oxygenCapacity?: number
   readonly foodUnit?: string
+  readonly children?: ReactNode
 }
 
-export function BuildingPanel({ state, buildings = state.buildings, selectedBuildingId, telemetry, onAction, onClose, foodUnit = 'rations' }: BuildingPanelProps) {
+export function BuildingPanel({ state, buildings = state.buildings, selectedBuildingId, telemetry, onAction, onClose, foodUnit = 'rations', oxygenCapacity, children }: BuildingPanelProps) {
   const heading = useId()
   const close = useRef<HTMLButtonElement>(null)
   const building = buildings.find(({ id }) => id === selectedBuildingId)
@@ -99,7 +103,7 @@ export function BuildingPanel({ state, buildings = state.buildings, selectedBuil
           {panel.metrics.map(([key, label]) => (
             <div key={key}><dt>{label}</dt><dd>{data?.readings?.[key] ?? 'Unavailable'}</dd></div>
           ))}
-          {panel.reserve && <div><dt>Base {panel.reserve.id} reserves</dt><dd>{reserve === undefined ? 'Unavailable' : `${Number(reserve.toFixed(2))} ${panel.reserve.id === 'food' ? foodUnit : panel.reserve.unit}`}</dd></div>}
+          {panel.reserve && <div><dt>{panel.reserve.id === 'oxygen' ? 'Oxygen Left' : `Base ${panel.reserve.id} reserves`}</dt><dd>{panel.reserve.id === 'oxygen' ? <OxygenReserve stored={reserve} capacity={oxygenCapacity} compact /> : reserve === undefined ? 'Unavailable' : `${Number(reserve.toFixed(2))} ${panel.reserve.id === 'food' ? foodUnit : panel.reserve.unit}`}</dd></div>}
           {data?.condition && <div><dt>Equipment condition</dt><dd>{data.condition}</dd></div>}
         </dl>
         {allocation && typeof percent === 'number' && onAction && (
@@ -113,6 +117,7 @@ export function BuildingPanel({ state, buildings = state.buildings, selectedBuil
           <button type="button" className="lg-button" disabled={!data.canRepair} onClick={() => onAction({ type: 'repair', buildingId: id })}>Repair {panel.name.toLowerCase()}</button>
         )}
         {data?.repairUnavailableReason && <p>{data.repairUnavailableReason}</p>}
+        {children}
       </div>
     </aside>
   )

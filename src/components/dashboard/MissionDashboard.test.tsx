@@ -17,7 +17,7 @@ describe('MissionDashboard', () => {
     />)
 
     expect(html).toContain('40% complete')
-    expect(html).toContain('value="0"')
+    expect(html).toContain('aria-valuenow="0"')
     expect(html).toContain('+0 kg/day')
     expect(html).toContain('aria-pressed="true"')
     expect(html).toContain('3, 8')

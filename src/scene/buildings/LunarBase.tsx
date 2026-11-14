@@ -11,6 +11,7 @@ export interface LunarBaseProps {
   readonly position?: readonly [number, number, number]
   readonly scale?: number
   readonly selectedBuildingId?: BuildingId
+  readonly showMarkers?: boolean
   readonly onBuildingSelect?: (id: BuildingId) => void
   readonly onGroundSelect?: (position: GridPosition) => void
 }
@@ -30,8 +31,8 @@ function ModelMeshes({ model, children }: { model: Model; children?: ReactNode }
   </group>
 }
 
-function Facility({ building, selected, onSelect }: {
-  building: Building; selected: boolean; onSelect?: (id: BuildingId) => void
+function Facility({ building, selected, showMarker, onSelect }: {
+  building: Building; selected: boolean; showMarker: boolean; onSelect?: (id: BuildingId) => void
 }) {
   const model = useMemo(() => makeBuilding(building.kind), [building.kind])
   return <group name={building.id} position={[building.position.x, 0, building.position.y]}
@@ -41,10 +42,10 @@ function Facility({ building, selected, onSelect }: {
       onSelect(building.id)
     } : undefined}>
     <ModelMeshes model={model}>
-      <mesh position={[0, 8.25, 0]} rotation={[0, 0, Math.PI / 4]} raycast={() => {}}>
+      {showMarker && <mesh position={[0, 8.25, 0]} rotation={[0, 0, Math.PI / 4]} raycast={() => {}}>
         <octahedronGeometry args={[selected ? 0.48 : 0.26]} />
         <meshBasicMaterial color={selected ? '#ffc16a' : '#72e8dd'} toneMapped={false} />
-      </mesh>
+      </mesh>}
     </ModelMeshes>
   </group>
 }
@@ -58,7 +59,7 @@ function Corridor({ x, z, length, axis }: (typeof corridors)[number]) {
 
 export function LunarBase({
   buildings, position = [0, BASE_ELEVATION, 0], scale = 1,
-  selectedBuildingId, onBuildingSelect, onGroundSelect,
+  selectedBuildingId, showMarkers = true, onBuildingSelect, onGroundSelect,
 }: LunarBaseProps) {
   const ground = useRef<Group>(null)
 
@@ -77,7 +78,7 @@ export function LunarBase({
     </group>}
     <group position={[...position]} scale={scale}>
       {(buildings ?? outpost).map((building) => <Facility key={building.id} building={building}
-        selected={building.id === selectedBuildingId} onSelect={onBuildingSelect} />)}
+        selected={building.id === selectedBuildingId} showMarker={showMarkers} onSelect={onBuildingSelect} />)}
       {buildings === undefined && corridors.map((corridor) => <Corridor key={corridor.length} {...corridor} />)}
     </group>
   </group>

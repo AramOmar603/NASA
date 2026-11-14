@@ -54,8 +54,8 @@ export function buildingTelemetry(building: Building, { state, config, flows }: 
       readings = { generation: rate(flows?.oxygen.production, 'kg'), equipment: status }
       break
     case 'radiation-shelter':
-      readings = { radiationRisk: `${reading(dose)} mSv maximum cumulative dose`, readiness: status,
-        protection: `${reading((status === 'Operational' ? state.condition.shielding * config.shieldingFraction : 0) * 100)}% passive shielding` }
+      readings = { radiationRisk: `${reading(dose)} mSv · highest crew exposure`, readiness: status,
+        protection: `${reading((status === 'Operational' ? state.condition.shielding * config.shieldingFraction : 0) * 100)}% protection` }
       break
   }
   return {
@@ -109,7 +109,7 @@ export function SurvivalMission({ buildings, renderWorld, seed, config }: Surviv
   return (
     <main className="lg-survival">
       {renderWorld?.({ selectedBuildingId, onBuildingSelect: select, onGroundSelect: () => select(undefined) })}
-      <GameHUD state={viewState} day={state.tick} missionDays={session.config.missionDays}
+      <GameHUD oxygenCapacity={session.config.oxygenCapacityKg} state={viewState} day={state.tick} missionDays={session.config.missionDays}
         alerts={alerts.filter(({ severity }) => severity === 'emergency').slice(-3)} overviewOpen={overviewOpen} onOverviewToggle={() => setOverviewOpen(!overviewOpen)} />
       <div className="lg-survival-controls">
         <button type="button" className="lg-button" onClick={advance} disabled={!active}>Advance one day</button>
@@ -131,7 +131,7 @@ export function SurvivalMission({ buildings, renderWorld, seed, config }: Surviv
           <ol>{events.slice(-12).reverse().map((event, index) => <li key={events.length - index}>{describeSurvivalEvent(event)}</li>)}</ol>
         </details>
       </div>
-      <BuildingPanel state={viewState} selectedBuildingId={selectedBuildingId} telemetry={telemetry} foodUnit="kg"
+      <BuildingPanel oxygenCapacity={session.config.oxygenCapacityKg} state={viewState} selectedBuildingId={selectedBuildingId} telemetry={telemetry} foodUnit="kg"
         onClose={() => select(undefined)}
         onAction={(action) => {
           if (action.type !== 'repair') return

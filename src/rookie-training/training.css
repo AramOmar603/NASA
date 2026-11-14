@@ -1,0 +1,175 @@
+.rookie-result {
+  position: absolute;
+  z-index: 12;
+  background: #10283a;
+  color: #f1fbff;
+  border: 2px solid #7df5dc;
+  border-radius: 1rem;
+  padding: 1rem;
+  box-shadow: 0 10px 35px #0008;
+}
+.rookie-result { top: 45%; left: 50%; transform: translate(-50%, -50%); width: min(32rem, calc(100% - 2rem)); text-align: center; }
+
+.rookie-interior { position: fixed; inset: 0; z-index: 30; background: #172d44; color: #fff; }
+.rookie-view { position: absolute; inset: 0; }
+.rookie-interior :is(header, footer) { position: absolute; inset-inline: 1rem; display: flex; gap: .65rem; align-items: center; }
+.rookie-interior header { top: 1rem; justify-content: space-between; }
+.rookie-interior .greenhouse-info > p { background: #fffdf5; color: #183327; border-radius: .7rem; padding: .6rem; font-weight: 800; }
+.rookie-interior footer { bottom: 1rem; flex-direction: column; }
+.rookie-interior button { background: #14536a; border: 2px solid #a4e8eb; border-radius: .8rem; padding: .55rem .75rem; color: white; font-weight: 700; cursor: pointer; }
+.rookie-interior button:focus-visible, .rookie-interior button[aria-pressed=true] { outline: 3px solid #ffe082; }
+.rookie-view { touch-action: none; cursor: grab; }
+.rookie-view:active { cursor: grabbing; }
+.rookie-interior { font-family: Nunito, system-ui, sans-serif; }
+.rookie-interior .greenhouse-info > p { border: 1px solid #65a880; box-shadow: 0 .3rem 1.2rem #0007; }
+
+.rookie-welcome {
+  display: grid;
+  place-items: center;
+  min-height: 100dvh;
+  padding: 1rem;
+  background: radial-gradient(ellipse at 50% 100%, #25465b, #080f1b 70%);
+  color: #edfaff;
+}
+.rookie-welcome section {
+  width: min(100%, 33rem);
+  padding: clamp(1.25rem, 5vw, 3rem);
+  border: 1px solid #54758b;
+  border-radius: 1.25rem;
+  background: #10283a;
+}
+.rookie-welcome h1 { font-size: clamp(2rem, 9vw, 4.5rem); font-weight: 800; letter-spacing: .08em; }
+.rookie-welcome ul { list-style: disc; padding-inline-start: 1.25rem; margin-block: 1rem; }
+.rookie-welcome li { margin-block: .35rem; }
+.rookie-welcome button {
+  padding: .75rem 1.25rem;
+  border-radius: .65rem;
+  background: #81ead5;
+  color: #10283a;
+  font-weight: 800;
+  cursor: pointer;
+}
+.rookie-welcome button:focus-visible { outline: 3px solid #ffe082; outline-offset: 4px; }
+
+.rookie-start-actions { display: flex; flex-wrap: wrap; gap: .65rem; }
+.equipment-scene {
+  height: clamp(8rem, 28dvh, 15rem);
+  overflow: hidden;
+  border: 1px solid #719ab5;
+  border-radius: .8rem;
+  background: #12273b;
+}
+.equipment-scene-fallback { display: grid; place-items: center; height: 100%; font-size: clamp(2rem, 8vw, 4rem); }
+.rookie-interior footer {
+  align-items: center;
+  gap: .45rem;
+  bottom: max(.55rem, env(safe-area-inset-bottom));
+  pointer-events: none;
+}
+.rookie-interior .rookie-look {
+  display: flex;
+  gap: .4rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.rookie-look button, .rookie-workbench button { pointer-events: auto; }
+.rookie-workbench {
+  width: min(36rem, 100%);
+  display: grid;
+  justify-items: center;
+  gap: .45rem;
+  padding: .5rem;
+  border: 1px solid #7bd9dc77;
+  border-radius: .9rem;
+  background: #0b2137eb;
+}
+.rookie-interior header { pointer-events: none; }
+.rookie-interior header button { pointer-events: auto; }
+
+.repair-card {
+  --repair-accent: #ffbe6c;
+  position: fixed;
+  z-index: 35;
+  inset: auto max(.75rem, env(safe-area-inset-right)) max(.75rem, env(safe-area-inset-bottom)) auto;
+  width: min(27rem, calc(100% - 1.5rem));
+  max-height: min(78dvh, 34rem);
+  overflow: auto;
+  padding: 1rem;
+  border: 3px solid var(--repair-accent);
+  border-radius: 1.4rem;
+  background: #fffdf6;
+  color: #282039;
+  box-shadow: 0 .75rem 2rem #21183450;
+}
+.repair-card[data-step="choices"] { --repair-accent: #b693f2; }
+.repair-card[data-step="retry"] { --repair-accent: #ed9b8d; }
+.repair-card[data-step="success"] { --repair-accent: #79cf8c; }
+.repair-card-page { display: grid; gap: .6rem; }
+.repair-card-icon { font-size: 2rem; line-height: 1; }
+.repair-card h2 { font-size: clamp(1.22rem, 3vw, 1.65rem); line-height: 1.15; font-weight: 850; }
+.repair-card p { font-size: 1rem; }
+.repair-card button {
+  padding: .55rem .8rem;
+  min-height: 2.75rem;
+  background: #ffdc78;
+  color: #282039;
+  border: 2px solid #d5a43c;
+  border-radius: .75rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+.repair-card .repair-close { position: absolute; top: .5rem; right: .5rem; background: #f6ede4; border-color: transparent; }
+.repair-choices { display: grid; gap: .35rem; }
+.repair-choices button { text-align: start; background: #f3e5ff; border-color: #caa9ed; }
+.repair-choices button:nth-child(2) { background: #e1f2ff; border-color: #a5cde8; }
+.repair-choices button:nth-child(3) { background: #ffe4da; border-color: #e6aa98; }
+.repair-choices button[aria-pressed="true"] { border-color: #47326b; box-shadow: inset 0 0 0 1px #47326b; }
+.repair-card button:focus-visible, .repair-card summary:focus-visible { outline: 3px solid #67499a; outline-offset: 2px; }
+.repair-card details { padding: .45rem; background: #e1f2ff; border-radius: .65rem; }
+.repair-card a { color: #453189; text-decoration: underline; }
+@media (max-width: 630px) {
+  .repair-card { max-height: 53dvh; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .repair-card-page { animation: repair-page-in .24s ease-out both; }
+  @keyframes repair-page-in { from { opacity: 0; transform: translateY(.55rem) scale(.98); } }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .repair-card-page[data-leaving="true"] { animation: repair-page-out .15s ease-in both; }
+  @keyframes repair-page-out { to { opacity: 0; transform: translateY(-.35rem) scale(.98); } }
+}
+
+.commander-ending { border-color: #e8b53d; }
+.commander-stars { color: #825019; font-size: 2.5rem; text-align: center; }
+@media (prefers-reduced-motion: no-preference) {
+  .commander-stars { animation: commander-medal .65s ease-out both; }
+  @keyframes commander-medal { from { opacity: 0; transform: translateY(.6rem) scale(.8); } }
+}
+
+.repair-card:is([data-lesson="greenhouse"], [data-lesson="greenhouseMaintenance"]) {
+  --repair-accent: #39956a;
+  background: #fffdf5;
+  color: #183327;
+}
+.repair-card:is([data-lesson="greenhouse"], [data-lesson="greenhouseMaintenance"]) button {
+  background: #d4f3dd;
+  border-color: #448862;
+  color: #183327;
+}
+.repair-card:is([data-lesson="greenhouse"], [data-lesson="greenhouseMaintenance"]) button[aria-pressed="true"] {
+  background: #afdfbd;
+  border-color: #235b3d;
+  box-shadow: inset 0 0 0 1px #235b3d;
+}
+.repair-card:is([data-lesson="greenhouse"], [data-lesson="greenhouseMaintenance"]) button:focus-visible {
+  outline-color: #235b3d;
+}
+
+@media (min-width: 900px) {
+  .repair-card[data-lesson] {
+    inset-block-start: 56%;
+    inset-block-end: auto;
+    transform: translateY(-50%);
+    max-height: 78dvh;
+  }
+}

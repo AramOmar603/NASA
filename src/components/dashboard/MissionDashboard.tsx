@@ -1,3 +1,4 @@
+import { OxygenReserve } from './OxygenReserve'
 import { useId } from 'react'
 import type { BuildingId, GameAction, GameViewProps, ResourceId } from '../../types'
 import './mission-dashboard.css'
@@ -66,7 +67,7 @@ export function MissionDashboard({
       <header className="md-header flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <span className="md-mark" aria-hidden="true">◈</span>
-          <div><h1 id={titleId}>LUNARIS</h1><p>Junior Astronaut Mission Trainer</p></div>
+          <div><h1 id={titleId}>LAMOON</h1><p>Junior Astronaut Mission Trainer</p></div>
         </div>
         {preview && <span className="md-badge">Preview · Mock data</span>}
       </header>
@@ -92,7 +93,7 @@ export function MissionDashboard({
           <p>{outcome.summary}</p>
         </section>}
 
-        <section aria-label="Life support and radiation">
+        <section aria-label="Life support and crew safety">
           <h2 className="md-section-title">Life support</h2>
           <div className="md-resources">
             {missionResources.map(({ id, name, symbol, unit: defaultUnit, color }) => {
@@ -101,9 +102,11 @@ export function MissionDashboard({
               const telemetry = resources?.[id]
               return <article key={id} className="md-panel md-resource" style={{ accentColor: color }}>
                 <span className="md-resource-icon" style={{ color }} aria-hidden="true">{symbol}</span>
-                <h3>{name}</h3>
-                <p className="md-reading">{balance === undefined ? '—' : Number(balance.toFixed(2))} <small>{unit}</small></p>
-                <Battery value={balance} capacity={telemetry?.capacity} label={`${name} capacity`} />
+                <h3>{id === 'oxygen' ? 'Oxygen Left' : name}</h3>
+                {id === 'oxygen' ? <OxygenReserve stored={balance} capacity={telemetry?.capacity} /> : <>
+                  <p className="md-reading">{balance === undefined ? '—' : Number(balance.toFixed(2))} <small>{unit}</small></p>
+                  <Battery value={balance} capacity={telemetry?.capacity} label={`${name} capacity`} />
+                </>}
                 <dl className="md-flow">
                   <div><dt>Production</dt><dd>{telemetry?.production === undefined ? '—' : `+${Number(telemetry.production.toFixed(2))} ${unit}/day`}</dd></div>
                   <div><dt>Consumption</dt><dd>{telemetry?.consumption === undefined ? '—' : `−${Number(telemetry.consumption.toFixed(2))} ${unit}/day`}</dd></div>
@@ -112,11 +115,11 @@ export function MissionDashboard({
             })}
             <article className="md-panel md-resource" style={{ accentColor: '#d6a6fd' }}>
               <span className="md-resource-icon text-violet-300" aria-hidden="true">☢</span>
-              <h3>Radiation safety</h3>
+              <h3>Crew safety</h3>
               <p className="md-reading">{radiation ? Number(radiation.dose.toFixed(2)) : '—'} <small>mSv</small></p>
-              {radiation?.limit !== undefined && <Battery value={radiation.dose} capacity={radiation?.limit} label="Radiation dose relative to safety limit" />}
+              {radiation?.limit !== undefined && <Battery value={radiation.dose} capacity={radiation?.limit} label="Space exposure compared with the safety limit" />}
               <p className={radiationLimitReached ? 'md-danger' : 'md-muted'}>
-                {radiation?.limit !== undefined ? radiationLimitReached ? 'Safety limit reached' : `Below ${radiation.limit} mSv limit` : radiation ? 'Highest cumulative crew dose' : 'Telemetry unavailable'}
+                {radiation?.limit !== undefined ? radiationLimitReached ? 'Safety limit reached' : `Below ${radiation.limit} mSv limit` : radiation ? 'Most space exposure any crew member has received' : 'Telemetry unavailable'}
               </p>
             </article>
           </div>
@@ -150,7 +153,7 @@ export function MissionDashboard({
             <div className="flex flex-wrap gap-2">
               {state.buildings.map((item) => <button key={item.id} type="button" aria-pressed={item.id === selectedBuildingId}
                 disabled={!onBuildingSelect} onClick={() => onBuildingSelect?.(item.id)}>
-                {item.kind} · {item.id}
+                {item.kind.toLowerCase() === 'habitat' ? 'Home Center' : item.kind.toLowerCase().replaceAll(' ', '-') === 'radiation-shelter' ? 'Safety Shelter' : item.kind} · {item.id}
               </button>)}
             </div>
             {building && <dl className="md-building">
