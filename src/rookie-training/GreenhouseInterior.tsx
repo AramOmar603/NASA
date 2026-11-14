@@ -38,9 +38,10 @@ function PlantBed({ dry, restored, onClick }: { dry: boolean; restored: boolean;
   </group>
 }
 
-export function GreenhouseInterior({ damaged, departmentInfo, inspectionOnly, onClose, onStartRepair }: {
+export function GreenhouseInterior({ damaged, departmentInfo, assignment, inspectionOnly, onClose, onStartRepair }: {
   damaged: boolean
   departmentInfo: React.ReactNode
+  assignment?: React.ReactNode
   inspectionOnly: boolean
   onClose: () => void
   onStartRepair?: () => void
@@ -95,7 +96,7 @@ export function GreenhouseInterior({ damaged, departmentInfo, inspectionOnly, on
       </Canvas>
     </div>
     {!inspectionOnly && <>
-      <header><div className="greenhouse-info">{departmentInfo}<p role="status">{message}</p></div>
+      <header><div className="greenhouse-info">{assignment ?? departmentInfo}<p role="status">{message}</p></div>
         <button autoFocus type="button" onClick={onClose}>Back to Base</button>
       </header>
       <footer>

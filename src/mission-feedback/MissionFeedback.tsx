@@ -1,3 +1,6 @@
+import { FieldAssignment } from './FieldAssignment'
+import { fieldAssignment, travelToNextActivity } from './fieldAssignments'
+import { levels } from '../levels'
 import { CommanderPlanning } from '../rookie-training/CommanderPlanning'
 import { advanceCommander, commanderPending, finale, finalFaults, finishCommanderObjective, type CommanderObjective, type CommanderProgress } from '../rookie-training/commander'
 import { advanceDisaster, disasterFaults, disasterPriority, disasterRepairBlock, fixDisasterFault, pendingDisasterFaults, type DisasterFault, type DisasterProgress } from '../rookie-training/disaster'
@@ -55,7 +58,7 @@ const problemCopy = {
   shielding: ['🛡️ Safety Shelter Needs Help!', 'This room helps keep the crew safe.'],
 } satisfies Record<Equipment, readonly [string, string]>
 
-export function MissionFeedback({ rookie = false, trainingLevel, startAtHabitat = false, spawnInsideHabitat = false, showBaseOverview = true, onReplayIntro, onRestart, onComplete, onHome }: {
+export function MissionFeedback({ rookie = false, trainingLevel, startAtHabitat = false, spawnInsideHabitat = false, showBaseOverview = true, onReplayIntro, onRestart, onComplete, onHome, onNextLevel }: {
   rookie?: boolean
   trainingLevel?: TrainingLevel
   startAtHabitat?: boolean
@@ -63,11 +66,13 @@ export function MissionFeedback({ rookie = false, trainingLevel, startAtHabitat 
   showBaseOverview?: boolean
   onReplayIntro?: () => void
   onRestart?: () => void
+  onNextLevel?: () => void
   onHome?: () => void
   onComplete?: () => void
 }) {
   const level = trainingLevel ?? (rookie ? 1 : undefined)
   const [session, setSession] = useState(() => level ? createRookieSession(level) : createSurvivalSession())
+  const [fieldReports, setFieldReports] = useState<readonly number[]>([])
   const [commanderCompleted, setCommanderCompleted] = useState<CommanderProgress>([])
   const [commanderLesson, setCommanderLesson] = useState<Exclude<CommanderObjective, 'planning'>>()
   const [commanderIntro, setCommanderIntro] = useState(level === 5)
@@ -92,10 +97,12 @@ export function MissionFeedback({ rookie = false, trainingLevel, startAtHabitat 
   const [selected, select] = useState<DepartmentId>()
   const [overview, setOverview] = useState(false)
   const [postponed, postpone] = useState<ReadonlySet<number>>(() => new Set())
+  const [dayReport, setDayReport] = useState('')
   const [message, setMessage] = useState('')
   const [problems, setProblems] = useState<EquipmentProblem[]>([])
   const buttons = useLabelButtons()
   const { state, config, flows, events } = session
+  const assignment = level && !fieldReports.includes(state.tick) ? fieldAssignment(level, state.tick) : undefined
   const view = { ...dashboardState(state), buildings: outpost }
   const failures = problems.filter(({ offline }) => offline)
   const needsAttention = new Set(problems.map(({ equipment }) => facilityFor(equipment).id))
@@ -133,12 +140,30 @@ export function MissionFeedback({ rookie = false, trainingLevel, startAtHabitat 
 
   if (state.outcome === 'failure') alerts.push({ id: 'mission-failed', severity: 'emergency', message: 'Mission failed.' })
 
-  function advance() {
+  function advance(toActivity = false) {
     if (!canPlay || blockReason) return
-    const next = level === 5 ? advanceCommander(session, commanderCompleted) : level === 4 ? advanceDisaster(session, disasterCompleted) : level === 3 ? advanceBreakdown(session, breakdown) : level ? advanceRookie(session, level) : reduceSurvivalSession(session, { type: 'advanceTick' })
+    const step = (current: typeof session) => level === 5 ? advanceCommander(current, commanderCompleted)
+      : level === 4 ? advanceDisaster(current, disasterCompleted)
+        : level === 3 ? advanceBreakdown(current, breakdown)
+          : level ? advanceRookie(current, level) : reduceSurvivalSession(current, { type: 'advanceTick' })
+    // Stop before any required lesson can be bypassed, including objectives with no engine event.
+    const stopAt = (day: number) => level === 5 ? commanderPending(day, commanderCompleted).length > 0
+      : level === 4 ? pendingDisasterFaults(day, disasterCompleted).length > 0
+        : level === 3 && Boolean(breakdownBlock(day, breakdown))
+    const next = level && toActivity && !pending.length ? travelToNextActivity(level, session, step, stopAt) : step(session)
     setProblems(updateProblems(problems, session, next))
     setSession(next)
     if (level === 5 && next.state.tick === 26 && next.state.outcome === 'active') setFocus({ ...baseOverview })
+    const before = state.resources
+    const after = next.state.resources
+    const changes = [
+      ['O₂', after.oxygenKg - before.oxygenKg, 'kg'],
+      ['💧', after.waterL - before.waterL, 'L'],
+      ['🌱', after.foodKg - before.foodKg, 'kg'],
+      ['⚡', after.batteryKWh - before.batteryKWh, 'kWh'],
+    ] as const
+    setDayReport(changes.filter(([, amount]) => Math.abs(amount) >= .05)
+      .map(([icon, amount, unit]) => `${icon} ${amount > 0 ? '+' : ''}${amount.toFixed(1)} ${unit}`).join(' · '))
     setMessage('')
     if (level && next.state.outcome === 'success') onComplete?.()
   }
@@ -177,13 +202,13 @@ export function MissionFeedback({ rookie = false, trainingLevel, startAtHabitat 
   }, [approaching])
 
   function explore(id: DepartmentId) {
-    if (pendingVisit.current) return
+    if (pendingVisit.current || !canPlay) return
     pendingVisit.current = id
     const { position } = outpost.find((building) => building.id === id)!
     select(id)
     setNavigation(undefined)
     setApproaching(id)
-    setFocus({ x: position.x, z: position.y, distance: id === 'ROV-01' && roverPending ? 18 : 26, onArrival: () => arrive(id) })
+    setFocus({ x: position.x, z: position.y, distance: id === 'ROV-01' || id === 'SOL-01' || id === 'OXY-01' ? 18 : 26, onArrival: () => arrive(id) })
   }
 
   function testBreakdown() {
@@ -293,7 +318,7 @@ export function MissionFeedback({ rookie = false, trainingLevel, startAtHabitat 
   }
 
   return <main className="lg-survival mf-mission">
-    <div inert={Boolean(approaching || visit || disasterIntro || commanderIntro || planningOpen)}>
+    <div inert={Boolean(approaching || visit || disasterIntro || commanderIntro || planningOpen || outcome)}>
       <div className="mf-world">
         <LunarEnvironment className="lg-survival-world" focus={focus}>
           <CameraStart />
@@ -305,7 +330,7 @@ export function MissionFeedback({ rookie = false, trainingLevel, startAtHabitat 
             </group>}
           <LabelPositions buttons={buttons} />
         </LunarEnvironment>
-        <DepartmentLabels buttons={buttons} selected={selected} offline={offline} attention={needsAttention} onSelect={explore} />
+        <DepartmentLabels buttons={buttons} selected={selected} offline={offline} attention={needsAttention} goal={assignment?.building} onSelect={explore} />
       </div>
       <header className="mission-status" aria-label="Mission status">
         <strong><span aria-hidden="true">🌙</span> LAMOON</strong>
@@ -321,11 +346,17 @@ export function MissionFeedback({ rookie = false, trainingLevel, startAtHabitat 
       </header>
 
       <div className="mission-actions">
+        {canPlay && dayReport && <p className="mission-hint day-report" role="status">{dayReport}</p>}
         {blockReason && canPlay && <p className="mission-hint" role="status">{blockReason}</p>}
-        {startAtHabitat && state.tick === 0 && !navigation && !selected &&
-          <p className="mission-hint">Ready, astronaut? Tap <strong>Next Day</strong> to start.</p>}
+        {canPlay && level && state.tick === 0 && !navigation && !selected &&
+          <p className="mission-hint">Keep all four astronauts safe for {config.missionDays} days.</p>}
+        {canPlay && assignment && !blockReason && <p className="mission-hint">
+          ⭐ {assignment.title} <button className="lamoon-button" type="button" onClick={() => explore(assignment.building)}>Go there</button>
+        </p>}
         <nav className="mission-dock" aria-label="Base navigation">
-          <button className="lamoon-button dock-primary" type="button" disabled={!canPlay || Boolean(blockReason)} onClick={advance}>▶ Next Day</button>
+          <button className="lamoon-button dock-primary" type="button" disabled={!canPlay || Boolean(blockReason)} onClick={() => advance()}>▶ Next Day</button>
+          {level && <button className="lamoon-button" type="button" disabled={!canPlay || Boolean(blockReason)}
+            onClick={() => advance(true)}>⏩ Next activity</button>}
           <button className="lamoon-button" type="button" onClick={() => explore('HAB-01')}>🏠 Home</button>
           <button className="lamoon-button" type="button" aria-expanded={navigation === 'map'}
             onClick={() => setNavigation(navigation === 'map' ? undefined : 'map')}>🗺️ Map</button>
@@ -382,7 +413,7 @@ export function MissionFeedback({ rookie = false, trainingLevel, startAtHabitat 
       </section>}
 
       <section className="mf-notifications" aria-label="Mission notifications">
-        <div role="status">{message && <article className="mf-notice" data-tone={message.endsWith(' fixed.') ? 'success' : 'hint'}>
+        <div role="status">{message && <article className="mf-notice" data-tone={message.endsWith(' fixed.') || message.startsWith('⭐') || message.startsWith('🌱 Harvest logged') ? 'success' : 'hint'}>
           {message.endsWith(' fixed.') && <strong>✅ Great job!</strong>}
           <p>{message}</p>
           {level && message === 'Greenhouse fixed.' && <p>Plants need water at their roots.</p>}
@@ -450,6 +481,13 @@ export function MissionFeedback({ rookie = false, trainingLevel, startAtHabitat 
     </div>
     {approaching && <p className="visit-approach" role="status">Approaching {departments[approaching].name}…</p>}
     {visit && <DepartmentVisit key={visit} id={visit}
+      assignment={canPlay && assignment?.building === visit ? <FieldAssignment task={assignment} session={session} onComplete={() => {
+        setFieldReports(previous => previous.includes(state.tick) ? previous : [...previous, state.tick])
+        leaveVisit()
+        const harvest = visit === 'BIO-01' && flows?.food.production
+        setMessage(harvest ? `🌱 Harvest logged! The greenhouse grew ${harvest.toFixed(1)} kg yesterday.`
+          : '⭐ Field report complete! Your crew has the reading.')
+      }} /> : undefined}
       damaged={visitDamaged}
       repairAvailable={canRepairVisit} repairBlockedReason={visitRepairBlock} session={session} disasterFault={disasterLesson} commanderLesson={commanderLesson} commanderResolved={commanderLesson !== undefined && commanderCompleted.includes(commanderLesson)} inspectionOnly={Boolean(repairId)}
       onTour={onReplayIntro} onBack={leaveVisit} onRepair={() => {
@@ -492,43 +530,26 @@ export function MissionFeedback({ rookie = false, trainingLevel, startAtHabitat 
         : maintenance ? repair(maintenance) : { complete: false }}
       onClose={closeRepair}
       onContinue={commanderLesson && finale.some(id => id === commanderLesson) ? leaveVisit : disasterLesson === 'powerRelay' || disasterLesson === 'waterPump' ? leaveVisit : closeRepair} />}
-    {level === 5 && outcome?.status === 'success' && <section className="repair-card commander-ending" aria-label="Ultimate Commander medal">
+    {level && outcome && <section className="repair-card mission-ending" aria-label="Mission result">
       <div className="repair-card-page">
-        <div className="commander-stars" aria-hidden="true">✦ 🏅 ✦</div>
-        <h2>🏆 ULTIMATE COMMANDER!</h2>
-        <p><strong>YOU DID IT, COMMANDER!</strong></p>
-        <p>You protected your astronauts, solved emergencies, and completed the ultimate Moon mission!</p>
-        <p>{state.tick} simulated days survived · {state.crew.filter(member => member.health > 0).length} astronauts protected · {commanderCompleted.length} / 6 objectives complete</p>
-        <p>You grew food, kept air and water flowing, protected the crew, and led repairs through a triple emergency.</p>
-        <p>Your crew is ready for the next adventure!</p>
-        <button autoFocus type="button" onClick={onHome}>Back to Home</button>
+        <div className="commander-stars" aria-hidden="true">{outcome.status === 'success' ? '✦ 🏅 ✦' : '🌙'}</div>
+        <h2>{outcome.status === 'success' ? level === 5 ? '🏆 ULTIMATE COMMANDER!' : '🚀 Mission Complete!' : 'Mission ended'}</h2>
+        <p>{outcome.status === 'success' ? 'Amazing work, Astronaut!' : 'Try checking the crew’s supplies and fixing life support first.'}</p>
+        <ul className="mission-result-stats">
+          <li>📅 {state.tick} / {config.missionDays} days</li>
+          <li>👩‍🚀 {state.crew.filter(member => member.health > 0).length} / {state.crew.length} crew safe</li>
+          <li>⭐ {fieldReports.length} field reports</li>
+          {level === 5 && <li>🧰 {commanderCompleted.length} / 6 objectives complete</li>}
+        </ul>
+        <div className="field-choices">
+          {outcome.status === 'success' && level < levels.length && onNextLevel && <button autoFocus type="button" onClick={onNextLevel}>Next Level →</button>}
+          {outcome.status === 'failure' && <button autoFocus type="button" onClick={onRestart}>Try Again</button>}
+          {onHome && <button type="button" onClick={onHome}>🏠 Home</button>}
+        </div>
       </div>
     </section>}
-    {level && outcome && !(level === 5 && outcome.status === 'success') && <section className="rookie-result" aria-label="Mission result">
-      <h2>LAMOON · {outcome.status === 'success' ? level === 4 ? '🏆 LEVEL 4 COMPLETE!' : level === 3 ? '🌙 LEVEL 3 COMPLETE!' : 'MISSION COMPLETE!' : 'Mission Failed — Try Again!'}</h2>
-      <p>{outcome.status === 'success' ? `You kept the base going for ${state.tick} days.` : 'The base could no longer keep the whole crew safe. On your next try, check supplies and repair crew essentials first.'}</p>
-      <p>{state.crew.filter(({ health }) => health > 0).length} of {state.crew.length} astronauts survived.</p>
-      {outcome.status === 'success' && level === 4 && <>
-        <p><strong>Outstanding work, Commander! You protected our Moon base through its toughest emergencies!</strong></p>
-        <p>Emergency faults resolved: {disasterCompleted.length} / 4.</p>
-        <p>You restored shielding, traced electrical faults, repaired a water pump, and prioritized limited supplies.</p>
-      </>}
-      {outcome.status === 'success' && level === 3 && <>
-        <p><strong>Great job, Commander! You kept your Moon crew safe!</strong></p>
-        <p>Training challenges completed: {Object.values(breakdown).filter(Boolean).length} / 3.</p>
-        <p>You learned to protect wheels from Moon dust, recover water, and fix crew essentials first.</p>
-      </>}
-      {outcome.status === 'success' && level === 2 && <>
-        <p><strong>Level 2 — First Emergency Completed!</strong></p>
-        <p>Solar panels turn sunlight into electricity. The oxygen generator uses electricity to make air for the crew.</p>
-      </>}
-      {outcome.status === 'success' && level === 1 && <p>{events.some((event) => event.type === 'equipmentRepaired' && event.equipment === 'greenhouse')
-        ? 'You found the irrigation leak and tested a repair. Plants need water at their roots.'
-        : 'You tracked the supplies that keep astronauts alive.'}</p>}
-      <button className="lg-button" type="button" onClick={onRestart}>{level >= 3 && outcome.status === 'failure' ? 'Retry Level' : 'Restart mission'}</button>
-    </section>}
     <MissionOverview open={overview} onClose={() => setOverview(false)} state={view} day={state.tick}
-      missionDays={config.missionDays} foodUnit="kg" onAction={advance} advanceBlockedReason={blockReason} alerts={alerts} outcome={outcome}
+      missionDays={config.missionDays} foodUnit="kg" onAction={() => advance()} advanceBlockedReason={blockReason} alerts={alerts} outcome={outcome}
       crew={state.crew.map(({ health, doseMilliSv }, index) => ({
         id: String(index), name: 'Crew ' + (index + 1), health: Number(health.toFixed(1)),
         status: health > 0 ? 'Surviving' : 'Deceased', role: doseMilliSv.toFixed(2) + ' mSv cumulative',

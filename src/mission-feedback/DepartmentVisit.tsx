@@ -82,7 +82,7 @@ function UtilityRoom({ id, active, showFilter, damaged, disasterFault, commander
   )
 }
 
-export function DepartmentVisit({ id, damaged, repairAvailable, repairBlockedReason, session, disasterFault, commanderLesson, commanderResolved, inspectionOnly = false, onRepair, onBack, onTour }: {
+export function DepartmentVisit({ id, damaged, repairAvailable, repairBlockedReason, session, disasterFault, commanderLesson, commanderResolved, assignment, inspectionOnly = false, onRepair, onBack, onTour }: {
   id: DepartmentId
   damaged: boolean
   repairAvailable: boolean
@@ -91,6 +91,7 @@ export function DepartmentVisit({ id, damaged, repairAvailable, repairBlockedRea
   disasterFault?: DisasterFault
   commanderLesson?: Exclude<CommanderObjective, 'planning'>
   commanderResolved?: boolean
+  assignment?: React.ReactNode
   inspectionOnly?: boolean
   onRepair: () => void
   onBack: () => void
@@ -99,7 +100,7 @@ export function DepartmentVisit({ id, damaged, repairAvailable, repairBlockedRea
   const [learned, setLearned] = useState(false)
   const habitat = id === 'HAB-01'
   if (id === 'BIO-01') return (
-    <GreenhouseInterior departmentInfo={<DepartmentInfo id={id} session={session} greenhouseFault={damaged} />} damaged={damaged} inspectionOnly={inspectionOnly} onClose={onBack} onStartRepair={repairAvailable ? onRepair : undefined} />
+    <GreenhouseInterior assignment={assignment} departmentInfo={<DepartmentInfo id={id} session={session} greenhouseFault={damaged} />} damaged={damaged} inspectionOnly={inspectionOnly} onClose={onBack} onStartRepair={repairAvailable ? onRepair : undefined} />
   )
 
   const equipment = id === 'OXY-01' || id === 'SOL-01'
@@ -116,7 +117,7 @@ export function DepartmentVisit({ id, damaged, repairAvailable, repairBlockedRea
       {room && <div className="visit-room"><UtilityRoom id={id as keyof typeof rooms} active={inspectionOnly ? !damaged : learned} showFilter={inspectionOnly} damaged={damaged} disasterFault={disasterFault} commanderValve={commanderLesson === 'finalWater'} /></div>}
       {!inspectionOnly && <div className="visit-card">
         {habitat && <p className="mission-wordmark">🌙 LAMOON</p>}
-        <DepartmentInfo id={id} session={session} />
+        {assignment ?? <DepartmentInfo id={id} session={session} />}
         {learned && room && <p role="status">{room.cue}</p>}
         <div className="visit-actions">
           {!learned && <button type="button" onClick={() => setLearned(true)}>

@@ -13,7 +13,7 @@ export function departmentReadings(id: DepartmentId, { state, flows, config }: S
     case 'HAB-01': return [['Crew safe', crew], ['Oxygen stored', reading(resources.oxygenKg, 'kg')], ['Life support power', power(powerDeliveredKWh.lifeSupport)]]
     case 'BIO-01': return [['Food grown last day', reading(flows?.food.production, 'kg')], ['Food stored', reading(resources.foodKg, 'kg')], ['Greenhouse power', power(powerDeliveredKWh.greenhouse)]]
     case 'OXY-01': return [['Oxygen made last day', reading(flows?.oxygen.production, 'kg')], ['Oxygen stored', reading(resources.oxygenKg, 'kg')], ['Generator power', power(powerDeliveredKWh.oxygenPlant)]]
-    case 'SOL-01': return [['Power made last day', reading(flows?.power.production, 'kWh')], ['Battery reserve', reading(resources.batteryKWh, 'kWh')], ['Power used last day', reading(flows?.power.consumption, 'kWh')]]
+    case 'SOL-01': return [['Power made last day', reading(flows?.power.production, 'kWh')], ['Battery reserve', reading(resources.batteryKWh, 'kWh')], ['Array condition', `${Math.round(state.condition.solar * 100)}%`]]
     case 'WTR-01': return [['Water cleaned last day', reading(flows?.water.production, 'L')], ['Water stored', reading(resources.waterL, 'L')], ['Recycler power', power(powerDeliveredKWh.recycler)]]
     case 'PWR-01': return [['Battery reserve', reading(resources.batteryKWh, 'kWh')], ['Battery capacity', reading(config.batteryCapacityKWh, 'kWh')], ['Power used last day', reading(flows?.power.consumption, 'kWh')]]
     case 'SHD-01': return [['Highest crew exposure', reading(dose, 'mSv')], ['Crew safe', crew], ['Shelter condition', `${Math.round(state.condition.shielding * 100)}%`]]

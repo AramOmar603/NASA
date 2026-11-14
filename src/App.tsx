@@ -17,11 +17,29 @@ export function App() {
   })
   const [attempt, setAttempt] = useState(0)
 
+  function launchMission(next: TrainingLevel) {
+    setTourOpen(false)
+    setStartInsideHome(true)
+    setEntry('orbit')
+    setLevel(next)
+    setAttempt(previous => previous + 1)
+  }
+
+  function goHome() {
+    setTourOpen(false)
+    setAttempt(0)
+    setEntry('orbit')
+    setLevel(1)
+  }
+
+  const nextLevel = level < 5 ? () => launchMission((level + 1) as TrainingLevel) : undefined
+
   if (attempt > 0 && level === 1) {
     return <>
       {(entry === 'approach' || entry === 'base') && (
         <div hidden={tourOpen} inert={entry === 'approach'}>
           <MissionFeedback key={attempt} trainingLevel={1} startAtHabitat spawnInsideHabitat={startInsideHome || attempt > 1}
+            onHome={goHome} onNextLevel={nextLevel}
             onReplayIntro={() => setTourOpen(true)}
             onRestart={() => setAttempt((previous) => previous + 1)} />
         </div>
@@ -45,7 +63,7 @@ export function App() {
               setCommanderWon(true)
               try { window.localStorage.setItem('lamoon-ultimate-commander', 'complete') } catch { /* Keep the medal in this session. */ }
             } : undefined}
-            onHome={() => { setAttempt(0); setEntry('orbit'); setLevel(1) }}
+            onHome={goHome} onNextLevel={nextLevel}
             onRestart={() => setAttempt((previous) => previous + 1)} />
         </div>
       )}
@@ -59,10 +77,10 @@ export function App() {
   }
 
   return <WelcomeScreen
-    onExplore={() => { setStartInsideHome(false); setAttempt(1) }}
+    onExplore={() => launchMission(1)}
     onSkip={() => { setEntry('base'); setAttempt(1) }}
-    onLevelTwo={() => { setLevel(2); setAttempt(1) }}
-    onLevelThree={() => { setLevel(3); setAttempt(1) }}
-    onLevelFour={() => { setLevel(4); setAttempt(1) }}
-    commanderWon={commanderWon} onLevelFive={() => { setLevel(5); setAttempt(1) }} />
+    onLevelTwo={() => launchMission(2)}
+    onLevelThree={() => launchMission(3)}
+    onLevelFour={() => launchMission(4)}
+    commanderWon={commanderWon} onLevelFive={() => launchMission(5)} />
 }
