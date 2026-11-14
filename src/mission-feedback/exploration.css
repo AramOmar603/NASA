@@ -118,7 +118,25 @@
   box-shadow: 0 .65rem 2rem #10152a88;
 }
 .department-visit[data-home="true"] .visit-card h2 { color: #eee3ff; }
-.visit-actions .visit-tour { border-color: transparent; background: transparent; text-decoration: underline; }
+.visit-actions .visit-tour {
+  min-height: 2.75rem;
+  padding: .4rem .7rem;
+  border: 2px solid #9afaf5;
+  border-radius: 1rem;
+  background: linear-gradient(125deg, #a9f8ee, #bcadff);
+  color: #172239;
+  font-size: 1rem;
+  font-weight: 850;
+  text-align: center;
+  box-shadow: 0 0 1rem #72e9ff70;
+}
+.visit-actions .visit-tour:hover { background: linear-gradient(125deg, #c1fff7, #d0c2ff); }
+@media (prefers-reduced-motion: no-preference) {
+  .visit-actions .visit-tour { animation: home-tour-glow 2.6s ease-in-out 2; }
+}
+@keyframes home-tour-glow {
+  50% { box-shadow: 0 0 1.45rem #9afaf5b0; }
+}
 @media (max-width: 44rem) {
   .department-visit[data-home="true"] .visit-card { inset-inline: .65rem; width: auto; max-width: none; }
 }

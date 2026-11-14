@@ -104,7 +104,9 @@ export function DepartmentVisit({ id, damaged, repairAvailable, telemetry, onRep
           </button>}
           {damaged && !repairAvailable && <p>Repair is unavailable right now.</p>}
           {repairAvailable && <button type="button" onClick={onRepair}>Start repair</button>}
-          {habitat && onTour && <button className="visit-tour" type="button" onClick={onTour}>Take the base tour</button>}
+          {habitat && onTour && <button className="visit-tour" type="button" onClick={onTour}>
+            <span aria-hidden="true">🚀</span> Take the Base Tour
+          </button>}
           <button autoFocus type="button" onClick={onBack}>{habitat ? '🚪 Exit to Moon base' : '↩ Back to Base'}</button>
         </div>
       </div>

@@ -2,7 +2,6 @@
   position: fixed;
   inset: 0;
   overflow: hidden;
-  background: radial-gradient(ellipse at center, #29465b, #0b1728 75%);
   color: #17283a;
 }
 .base-tour-world { position: absolute; inset: 0; color: #effcff; }
@@ -49,17 +48,8 @@
 @keyframes tour-scene-in { from { opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .base-tour-reveal { animation: none; } }
 
-/* Reserve space for the note so it cannot cover a tour stop. */
-.base-tour { --tour-note-width: min(34vw, 25rem); }
-.base-tour .base-tour-world { inset: 0 0 0 calc(var(--tour-note-width) + 2rem); }
-.base-tour:is([data-side="right"], [data-side="top-right"]) .base-tour-world {
-  inset: 0 calc(var(--tour-note-width) + 2rem) 0 0;
-}
-.base-tour-card { width: var(--tour-note-width); }
-.base-tour-card[data-side="top-center"] { inset: 1rem auto auto 1rem; margin-inline: 0; }
 .base-tour-card .base-tour-primary { min-height: 3.1rem; padding-inline: 1.1rem; }
 @media (max-width: 42rem) {
-  .base-tour .base-tour-world { inset: 0 0 43dvh; }
   .base-tour-card:is([data-side]) { inset: auto .65rem max(.65rem, env(safe-area-inset-bottom)); }
 }
 
