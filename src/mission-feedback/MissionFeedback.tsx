@@ -47,9 +47,11 @@ const problemCopy = {
   shielding: ['🛡️ Shield Problem!', 'Astronauts need protection.'],
 } satisfies Record<Equipment, readonly [string, string]>
 
-export function MissionFeedback({ rookie = false, trainingLevel, onRestart, onComplete }: {
+export function MissionFeedback({ rookie = false, trainingLevel, startAtHabitat = false, onReplayIntro, onRestart, onComplete }: {
   rookie?: boolean
   trainingLevel?: TrainingLevel
+  startAtHabitat?: boolean
+  onReplayIntro?: () => void
   onRestart?: () => void
   onComplete?: () => void
 }) {
@@ -57,9 +59,9 @@ export function MissionFeedback({ rookie = false, trainingLevel, onRestart, onCo
   const [session, setSession] = useState(() => level ? createRookieSession(level) : createSurvivalSession())
   const [training, setTraining] = useState<Equipment>()
   const repairApplied = useRef(false)
-  const [focus, setFocus] = useState<LunarCameraFocus>()
+  const [focus, setFocus] = useState<LunarCameraFocus | undefined>(() => startAtHabitat ? { x: 0, z: 0, distance: 28 } : undefined)
 
-  const [selected, select] = useState<DepartmentId>()
+  const [selected, select] = useState<DepartmentId | undefined>(startAtHabitat ? 'HAB-01' : undefined)
   const [overview, setOverview] = useState(false)
   const [postponed, postpone] = useState<ReadonlySet<number>>(() => new Set())
   const [message, setMessage] = useState('')
@@ -134,8 +136,13 @@ export function MissionFeedback({ rookie = false, trainingLevel, onRestart, onCo
       <GameHUD state={view} day={state.tick} missionDays={config.missionDays} alerts={alerts}
         showAllResources={Boolean(level)} overviewOpen={overview} onOverviewToggle={() => setOverview(!overview)} />
       <div className="lg-survival-controls">
+        {startAtHabitat && state.tick === 0 && <p className="habitat-first-step">
+          <strong>Start here · Habitat</strong><br />
+          This is home for your crew. Press <strong>Advance one day</strong> to begin.
+        </p>}
         {level && <h1>{level === 2 ? 'First Emergency' : 'Rookie Astronaut'}</h1>}
         <button className="lg-button" type="button" disabled={!canPlay} onClick={advance}>Advance one day</button>
+        {onReplayIntro && <button className="lg-button" type="button" onClick={onReplayIntro}>Replay base tour</button>}
         <p>Spare kits {state.resources.spareKits}</p>
         {outcome && <p role="status">{outcome.summary}</p>}
         <details>
