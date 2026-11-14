@@ -15,12 +15,15 @@ export function App() {
 
   if (attempt > 0 && level === 1) {
     return <>
-      {entry === 'base' && (
-        <div hidden={tourOpen}>
-          <MissionFeedback key={attempt} trainingLevel={1} startAtHabitat spawnInsideHabitat={startInsideHome}
+      {(entry === 'approach' || entry === 'base') && (
+        <div hidden={tourOpen} inert={entry === 'approach'}>
+          <MissionFeedback key={attempt} trainingLevel={1} startAtHabitat spawnInsideHabitat={startInsideHome || attempt > 1}
             onReplayIntro={() => setTourOpen(true)}
             onRestart={() => setAttempt((previous) => previous + 1)} />
         </div>
+      )}
+      {!tourOpen && (entry === 'orbit' || entry === 'approach') && (
+        <MoonArrival autoApproach onApproach={() => setEntry('approach')} onArrival={() => setEntry('base')} />
       )}
       {tourOpen && <BaseTour onFinish={() => {
         setEntry('base')
@@ -47,8 +50,7 @@ export function App() {
   }
 
   return <WelcomeScreen
-    onExplore={() => { setStartInsideHome(false); setEntry('base'); setAttempt(1) }}
-    onTour={() => { setTourOpen(true); setAttempt(1) }}
+    onExplore={() => { setStartInsideHome(false); setAttempt(1) }}
     onSkip={() => { setEntry('base'); setAttempt(1) }}
     onLevelTwo={() => { setLevel(2); setAttempt(1) }} />
 }
