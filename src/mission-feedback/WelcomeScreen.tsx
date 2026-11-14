@@ -26,10 +26,11 @@ function WelcomeCamera() {
   return null
 }
 
-export function WelcomeScreen({ onExplore, onSkip, onLevelTwo }: {
+export function WelcomeScreen({ onExplore, onSkip, onLevelTwo, onLevelThree }: {
   onExplore: () => void
   onSkip: () => void
   onLevelTwo: () => void
+  onLevelThree: () => void
 }) {
   return (
     <main className="launch-welcome">
@@ -47,6 +48,7 @@ export function WelcomeScreen({ onExplore, onSkip, onLevelTwo }: {
           <button className="launch-primary" type="button" onClick={onExplore}>🚀 EXPLORE THE MOON BASE!</button>
           <button type="button" onClick={onSkip}>Skip Tour &amp; Start Playing</button>
           <button type="button" onClick={onLevelTwo}>Level 2 · First Emergency</button>
+          <button type="button" onClick={onLevelThree}>Level 3 · Mission Breakdown</button>
         </div>
       </section>
     </main>
