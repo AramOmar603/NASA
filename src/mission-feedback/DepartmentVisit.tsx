@@ -15,7 +15,7 @@ const rooms = {
   'SHD-01': { color: '#ffb681', cue: 'Thick walls help protect the crew during space storms.' },
 } as const
 
-function UtilityRoom({ id, active }: { id: keyof typeof rooms; active: boolean }) {
+function UtilityRoom({ id, active, showFilter }: { id: keyof typeof rooms; active: boolean; showFilter: boolean }) {
   const { color } = rooms[id]
   return (
     <Canvas camera={{ position: [3.5, 2.4, 5.8], fov: 50 }} frameloop="demand"
@@ -41,6 +41,10 @@ function UtilityRoom({ id, active }: { id: keyof typeof rooms; active: boolean }
           <cylinderGeometry args={[.17, .17, 2.6, 16]} />
           <meshStandardMaterial color={color} emissive={color} emissiveIntensity={active ? .75 : .15} />
         </mesh>
+        {showFilter && <mesh position={[0, .85, -.37]} rotation={[0, 0, Math.PI / 2]}>
+          <cylinderGeometry args={[.27, .27, .62, 16]} />
+          <meshStandardMaterial color={active ? '#70ffc8' : '#ffcc67'} emissive={active ? '#267b58' : '#af641d'} emissiveIntensity={.45} />
+        </mesh>}
       </> : id === 'PWR-01' ? (
         <group position={[0, .85, -1]}>
           <mesh><boxGeometry args={[3.5, 1.65, 1.2]} /><meshStandardMaterial color="#495983" /></mesh>
@@ -62,11 +66,12 @@ function UtilityRoom({ id, active }: { id: keyof typeof rooms; active: boolean }
   )
 }
 
-export function DepartmentVisit({ id, damaged, repairAvailable, session, onRepair, onBack, onTour }: {
+export function DepartmentVisit({ id, damaged, repairAvailable, session, inspectionOnly = false, onRepair, onBack, onTour }: {
   id: DepartmentId
   damaged: boolean
   repairAvailable: boolean
   session: SurvivalSession
+  inspectionOnly?: boolean
   onRepair: () => void
   onBack: () => void
   onTour?: () => void
@@ -88,8 +93,8 @@ export function DepartmentVisit({ id, damaged, repairAvailable, session, onRepai
             ready={learned} repaired={!damaged} onInspect={() => setLearned(true)} />
         </div>
       )}
-      {room && <div className="visit-room"><UtilityRoom id={id as keyof typeof rooms} active={learned} /></div>}
-      <div className="visit-card">
+      {room && <div className="visit-room"><UtilityRoom id={id as keyof typeof rooms} active={inspectionOnly ? !damaged : learned} showFilter={inspectionOnly} /></div>}
+      {!inspectionOnly && <div className="visit-card">
         {habitat && <p className="mission-wordmark">🌙 LAMOON</p>}
         <DepartmentInfo id={id} session={session} />
         {learned && room && <p role="status">{room.cue}</p>}
@@ -104,7 +109,7 @@ export function DepartmentVisit({ id, damaged, repairAvailable, session, onRepai
           </button>}
           <button autoFocus type="button" onClick={onBack}>{habitat ? '🚪 Explore Moon Base' : '↩ Back to Base'}</button>
         </div>
-      </div>
+      </div>}
     </section>
   )
 }

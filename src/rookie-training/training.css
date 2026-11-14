@@ -201,3 +201,10 @@
   .rookie-tools .mission-icon { font-size: 1rem; }
   .rookie-look button, .rookie-workbench button { padding-block: .38rem; }
 }
+
+.breakdown-diagram { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .45rem; }
+.breakdown-diagram li { display: grid; place-items: center; border-radius: .65rem; background: #1b4768; padding: .55rem; text-align: center; }
+.breakdown-diagram li[data-highlight="true"] { background: #ffe4a0; color: #3d2945; font-weight: 850; }
+.breakdown-activity summary { cursor: pointer; font-weight: 750; }
+.breakdown-activity a { color: #9dffdf; text-decoration: underline; }
+.breakdown-activity { z-index: 27; }
