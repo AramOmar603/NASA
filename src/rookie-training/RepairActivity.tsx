@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useReducedMotion } from './RepairEffects'
 import type { Equipment } from '../engine/survival'
 
-export type RepairLessonId = Equipment | 'roverFixed' | 'priorityLearned' | 'waterFixed'
+export type RepairLessonId = Equipment | 'roverFixed' | 'waterFixed' | 'recyclerMaintenance'
 type Lesson = {
   icon: string
   problem: string
@@ -60,7 +60,22 @@ export const repairLessons: Record<RepairLessonId, Lesson> = {
     success: 'The machine has power to make oxygen again!',
   },
   recycler: water,
-  waterFixed: water,
+  waterFixed: {
+    ...water,
+    detail: 'The filter is blocked. One kit is set aside, and the crew needs clean water before the rover can go exploring.',
+    question: 'How should we use the reserved kit to get the crew clean water?',
+    choices: [
+      water.choices[0],
+      water.choices[1],
+      { label: '🚙 Save the kit for the rover', why: 'Exploration can wait. The crew needs clean water every day.' },
+    ],
+  },
+  recyclerMaintenance: {
+    ...water,
+    problem: 'The recycler has a new fault!',
+    detail: 'Your Day 9 training is complete. Check this new equipment fault to get the recycler working again.',
+    question: 'What should we do about the new recycler fault?',
+  },
   shielding: {
     icon: '🛡️', problem: 'The shelter has a weak spot!', detail: 'The highlighted patch needs inspection before the crew can rely on it.',
     question: 'What would restore the shelter’s protection?',
@@ -85,16 +100,7 @@ export const repairLessons: Record<RepairLessonId, Lesson> = {
       url: 'https://ntrs.nasa.gov/citations/20250005201',
     },
   },
-  priorityLearned: {
-    icon: '🧰', problem: 'One kit is set aside!', detail: 'The crew needs clean water before its next day on the Moon.',
-    question: 'Which job should get the reserved kit?',
-    choices: [
-      { label: '💧 Fix the water recycler first' },
-      { label: '🚙 Save it for exploration', why: 'Exploration can wait. The crew needs clean water every day.' },
-    ],
-    success: 'Good call! Use the reserved kit to fix the water recycler.',
-    science: water.science,
-  },
+
 }
 
 export function RepairActivity({ id, onTest, onClose, onContinue }: {

@@ -1,6 +1,6 @@
 import { RepairActivity, type RepairLessonId } from '../rookie-training/RepairActivity'
 import { RepairSignal } from '../rookie-training/RepairEffects'
-import { advanceBreakdown, breakdownBlock, initialBreakdown, resolveBreakdownObjective, roverDay, waterDay } from '../rookie-training/breakdown'
+import { advanceBreakdown, breakdownBlock, completeWaterChallenge, initialBreakdown, resolveBreakdownObjective, roverDay, waterRepairActivity } from '../rookie-training/breakdown'
 import { useEffect, useRef, useState } from 'react'
 import { advanceRookie, createRookieSession, hasPendingTraining } from '../rookie-training/session'
 import type { TrainingLevel } from '../rookie-training/session'
@@ -65,7 +65,7 @@ export function MissionFeedback({ rookie = false, trainingLevel, startAtHabitat 
   const level = trainingLevel ?? (rookie ? 1 : undefined)
   const [session, setSession] = useState(() => level ? createRookieSession(level) : createSurvivalSession())
   const [breakdown, setBreakdown] = useState(initialBreakdown)
-  const [breakdownLesson, setBreakdownLesson] = useState<keyof typeof initialBreakdown>()
+  const [breakdownLesson, setBreakdownLesson] = useState<'roverFixed' | 'waterFixed'>()
   const [maintenance, setMaintenance] = useState<Equipment>()
   const [visit, setVisit] = useState<DepartmentId | undefined>(spawnInsideHabitat ? 'HAB-01' : undefined)
   const [approaching, setApproaching] = useState<DepartmentId>()
@@ -88,11 +88,11 @@ export function MissionFeedback({ rookie = false, trainingLevel, startAtHabitat 
   const failures = problems.filter(({ offline }) => offline)
   const needsAttention = new Set(problems.map(({ equipment }) => facilityFor(equipment).id))
   const offline = new Set(failures.map(({ equipment }) => facilityFor(equipment).id))
+  const waterPending = level === 3 && waterRepairActivity(state.tick, breakdown, false) === 'waterFixed'
   const pending = problems.filter(({ index, equipment }) => !postponed.has(index)
-    && !(level === 3 && state.tick >= waterDay && !breakdown.waterFixed && equipment === 'recycler'))
+    && !(waterPending && equipment === 'recycler'))
   const blockReason = level === 3 ? breakdownBlock(state.tick, breakdown) : undefined
   const roverPending = level === 3 && state.tick >= roverDay && !breakdown.roverFixed
-  const waterPending = level === 3 && state.tick >= waterDay && !breakdown.waterFixed
   if (roverPending) {
     offline.add('ROV-01')
     needsAttention.add('ROV-01')
@@ -122,10 +122,17 @@ export function MissionFeedback({ rookie = false, trainingLevel, startAtHabitat 
     pendingVisit.current = undefined
     setVisit(id)
     if (id === 'ROV-01' && roverPending) setBreakdownLesson('roverFixed')
-    if (id === 'WTR-01' && waterPending) setBreakdownLesson(breakdown.priorityLearned ? 'waterFixed' : 'priorityLearned')
     const equipment = equipmentFor(id)
-    if (canPlay && equipment && !(id === 'WTR-01' && waterPending) &&
-      (needsAttention.has(id) || state.condition[equipment] <= config.failureThreshold)) setMaintenance(equipment)
+    if (canPlay && equipment) {
+      const hasFault = needsAttention.has(id) || state.condition[equipment] <= config.failureThreshold
+      if (level === 3 && equipment === 'recycler') {
+        const activity = waterRepairActivity(state.tick, breakdown, hasFault)
+        if (activity === 'waterFixed') setBreakdownLesson(activity)
+        else if (activity === 'recycler') setMaintenance(activity)
+      } else if (hasFault) {
+        setMaintenance(equipment)
+      }
+    }
     setApproaching(undefined)
   }
 
@@ -148,7 +155,9 @@ export function MissionFeedback({ rookie = false, trainingLevel, startAtHabitat 
 
   function testBreakdown() {
     if (!breakdownLesson) return false
-    const next = resolveBreakdownObjective(session, breakdown, breakdownLesson, true)
+    const next = breakdownLesson === 'waterFixed'
+      ? completeWaterChallenge(session, breakdown, true)
+      : resolveBreakdownObjective(session, breakdown, breakdownLesson, true)
     if (!next.progress[breakdownLesson]) return false
     setBreakdown(next.progress)
     if (next.session !== session) {
@@ -310,7 +319,7 @@ export function MissionFeedback({ rookie = false, trainingLevel, startAtHabitat 
               ? ['🫧 Oh no! The oxygen machine stopped!', 'Our astronauts need air!']
               : problemCopy[equipment]
           return <article key={index} className="mf-notice mf-emergency">
-            <div role="alert"><strong>{offline || (level === 2 && hasPendingTraining(level, equipment, session)) ? title : '🚨 Oh no! ' + equipmentNames[equipment] + ' damaged!'}</strong><p>{detail}</p></div>
+            <div role="alert"><strong>{level === 3 && equipment === 'recycler' && breakdown.waterFixed ? '💧 New Water Recycler fault' : offline || (level === 2 && hasPendingTraining(level, equipment, session)) ? title : '🚨 Oh no! ' + equipmentNames[equipment] + ' damaged!'}</strong><p>{detail}</p></div>
             <button className="lg-button" type="button" onClick={() => inspectEquipment(equipment)}>🔍 Check it</button>
             <button className="lg-button" type="button"
               onClick={() => postpone((previous) => new Set([...previous, index]))}>Later</button>
@@ -324,11 +333,11 @@ export function MissionFeedback({ rookie = false, trainingLevel, startAtHabitat 
       damaged={visitingEquipment !== undefined && state.condition[visitingEquipment] < 1}
       repairAvailable={canRepairVisit} session={session} inspectionOnly={Boolean(repairId)}
       onTour={onReplayIntro} onBack={leaveVisit} onRepair={() => setMaintenance(visitingEquipment)} />}
-    {repairId && canPlay && <RepairActivity key={repairId} id={repairId}
+    {repairId && canPlay && <RepairActivity key={repairId} id={repairId === 'recycler' && level === 3 && breakdown.waterFixed ? 'recyclerMaintenance' : repairId}
       onTest={() => breakdownLesson ? { complete: testBreakdown() }
         : maintenance ? repair(maintenance) : { complete: false }}
       onClose={closeRepair}
-      onContinue={repairId === 'priorityLearned' ? () => setBreakdownLesson('waterFixed') : closeRepair} />}
+      onContinue={closeRepair} />}
     {level && outcome && <section className="rookie-result" aria-label="Mission result">
       <h2>LAMOON · {outcome.status === 'success' ? level === 3 ? '🌙 LEVEL 3 COMPLETE!' : 'MISSION COMPLETE!' : 'Mission Failed — Try Again!'}</h2>
       <p>{outcome.status === 'success' ? `You kept the base going for ${state.tick} days.` : 'The base could no longer keep the whole crew safe. On your next try, check supplies and repair crew essentials first.'}</p>
