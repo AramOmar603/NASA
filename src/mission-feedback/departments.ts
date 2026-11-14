@@ -46,3 +46,9 @@ export function repairFeedback(before: SurvivalSession, after: SurvivalSession, 
   if (event?.type !== 'equipmentRepaired' || event.equipment !== equipment) return undefined
   return after.state.condition[equipment] > after.config.failureThreshold ? 'operational' : 'still-offline'
 }
+
+export function greenhouseRepairActivity(session: SurvivalSession, hasIncident: boolean) {
+  if (!hasIncident && session.state.condition.greenhouse > session.config.failureThreshold) return undefined
+  return session.events.some(event => event.type === 'equipmentRepaired' && event.equipment === 'greenhouse')
+    ? 'greenhouseMaintenance' : 'greenhouse'
+}

@@ -1,10 +1,9 @@
-import { BreakdownActivity } from '../rookie-training/BreakdownActivity'
-import { advanceBreakdown, breakdownBlock, initialBreakdown, resolveBreakdownObjective, roverDay, waterDay } from '../rookie-training/breakdown'
+import { RepairActivity, type RepairLessonId } from '../rookie-training/RepairActivity'
+import { RepairSignal } from '../rookie-training/RepairEffects'
+import { advanceBreakdown, breakdownBlock, completeWaterChallenge, initialBreakdown, resolveBreakdownObjective, roverDay, waterRepairActivity } from '../rookie-training/breakdown'
 import { useEffect, useRef, useState } from 'react'
-import { advanceRookie, createRookieSession } from '../rookie-training/session'
+import { advanceRookie, createRookieSession, hasPendingTraining } from '../rookie-training/session'
 import type { TrainingLevel } from '../rookie-training/session'
-import { EquipmentActivity } from '../rookie-training/EquipmentActivity'
-import { GreenhouseInterior } from '../rookie-training/GreenhouseInterior'
 
 import '../rookie-training/training.css'
 import { useThree } from '@react-three/fiber'
@@ -17,7 +16,7 @@ import { LunarEnvironment } from '../scene/environment'
 import type { LunarCameraFocus } from '../scene/environment/LunarEnvironment'
 import { DepartmentVisit } from './DepartmentVisit'
 import { DepartmentLabels, LabelPositions, useLabelButtons } from './DepartmentLabels'
-import { updateProblems, type EquipmentProblem, departments, repairFeedback, type DepartmentId } from './departments'
+import { greenhouseRepairActivity, updateProblems, type EquipmentProblem, departments, repairFeedback, type DepartmentId } from './departments'
 import '../styles.css'
 import './preview.css'
 import './mission-layout.css'
@@ -66,13 +65,13 @@ export function MissionFeedback({ rookie = false, trainingLevel, startAtHabitat 
   const level = trainingLevel ?? (rookie ? 1 : undefined)
   const [session, setSession] = useState(() => level ? createRookieSession(level) : createSurvivalSession())
   const [breakdown, setBreakdown] = useState(initialBreakdown)
-  const [breakdownLesson, setBreakdownLesson] = useState<keyof typeof initialBreakdown>()
-  const [training, setTraining] = useState<Equipment>()
+  const [breakdownLesson, setBreakdownLesson] = useState<'roverFixed' | 'waterFixed'>()
+  const [greenhouseLesson, setGreenhouseLesson] = useState<ReturnType<typeof greenhouseRepairActivity>>()
+  const [maintenance, setMaintenance] = useState<Equipment>()
   const [visit, setVisit] = useState<DepartmentId | undefined>(spawnInsideHabitat ? 'HAB-01' : undefined)
   const [approaching, setApproaching] = useState<DepartmentId>()
   const pendingVisit = useRef<DepartmentId>(undefined)
   const [navigation, setNavigation] = useState<'map' | 'help' | 'more'>()
-  const repairApplied = useRef(false)
   const [focus, setFocus] = useState<LunarCameraFocus | undefined>(() => spawnInsideHabitat || !showBaseOverview ? homeApproach : baseOverview)
 
   useEffect(() => {
@@ -88,13 +87,18 @@ export function MissionFeedback({ rookie = false, trainingLevel, startAtHabitat 
   const { state, config, flows, events } = session
   const view = { ...dashboardState(state), buildings: outpost }
   const failures = problems.filter(({ offline }) => offline)
+  const needsAttention = new Set(problems.map(({ equipment }) => facilityFor(equipment).id))
   const offline = new Set(failures.map(({ equipment }) => facilityFor(equipment).id))
+  const waterPending = level === 3 && waterRepairActivity(state.tick, breakdown, false) === 'waterFixed'
   const pending = problems.filter(({ index, equipment }) => !postponed.has(index)
-    && !(level === 3 && state.tick >= waterDay && !breakdown.waterFixed && equipment === 'recycler'))
+    && !(waterPending && equipment === 'recycler'))
   const blockReason = level === 3 ? breakdownBlock(state.tick, breakdown) : undefined
   const roverPending = level === 3 && state.tick >= roverDay && !breakdown.roverFixed
-  const waterPending = level === 3 && state.tick >= waterDay && !breakdown.waterFixed
-  if (roverPending) offline.add('ROV-01')
+  if (roverPending) {
+    offline.add('ROV-01')
+    needsAttention.add('ROV-01')
+  }
+  const greenhouseActivity = greenhouseRepairActivity(session, needsAttention.has('BIO-01'))
   const canPlay = state.outcome === 'active'
   const outcome = canPlay ? undefined : {
     status: state.outcome as 'success' | 'failure',
@@ -115,17 +119,24 @@ export function MissionFeedback({ rookie = false, trainingLevel, startAtHabitat 
     if (level && next.state.outcome === 'success') onComplete?.()
   }
 
-  function hasLesson(equipment: Equipment) {
-    return (level === 1 && equipment === 'greenhouse')
-      || (level === 2 && (equipment === 'solar' || equipment === 'oxygenPlant'))
-  }
-
   function arrive(id: DepartmentId) {
     if (pendingVisit.current !== id) return
     pendingVisit.current = undefined
     setVisit(id)
     if (id === 'ROV-01' && roverPending) setBreakdownLesson('roverFixed')
-    if (id === 'WTR-01' && waterPending) setBreakdownLesson(breakdown.priorityLearned ? 'waterFixed' : 'priorityLearned')
+    const equipment = equipmentFor(id)
+    if (canPlay && equipment) {
+      const hasFault = equipment === 'greenhouse' ? Boolean(greenhouseActivity)
+        : needsAttention.has(id) || state.condition[equipment] <= config.failureThreshold
+      if (level === 3 && equipment === 'recycler') {
+        const activity = waterRepairActivity(state.tick, breakdown, hasFault)
+        if (activity === 'waterFixed') setBreakdownLesson(activity)
+        else if (activity === 'recycler') setMaintenance(activity)
+      } else if (hasFault) {
+        if (equipment === 'greenhouse') setGreenhouseLesson(greenhouseActivity)
+        setMaintenance(equipment)
+      }
+    }
     setApproaching(undefined)
   }
 
@@ -143,12 +154,14 @@ export function MissionFeedback({ rookie = false, trainingLevel, startAtHabitat 
     select(id)
     setNavigation(undefined)
     setApproaching(id)
-    setFocus({ x: position.x, z: position.y, distance: 26, onArrival: () => arrive(id) })
+    setFocus({ x: position.x, z: position.y, distance: id === 'ROV-01' && roverPending ? 18 : 26, onArrival: () => arrive(id) })
   }
 
   function testBreakdown() {
     if (!breakdownLesson) return false
-    const next = resolveBreakdownObjective(session, breakdown, breakdownLesson, true)
+    const next = breakdownLesson === 'waterFixed'
+      ? completeWaterChallenge(session, breakdown, true)
+      : resolveBreakdownObjective(session, breakdown, breakdownLesson, true)
     if (!next.progress[breakdownLesson]) return false
     setBreakdown(next.progress)
     if (next.session !== session) {
@@ -161,6 +174,7 @@ export function MissionFeedback({ rookie = false, trainingLevel, startAtHabitat 
 
   function leaveVisit() {
     setBreakdownLesson(undefined)
+    setMaintenance(undefined)
     setVisit(undefined)
     select(undefined)
     setFocus({ ...baseOverview })
@@ -170,11 +184,9 @@ export function MissionFeedback({ rookie = false, trainingLevel, startAtHabitat 
     explore(facilityFor(equipment).id)
   }
 
-  function repair(equipment: Equipment, lessonPassed = false) {
-    if (hasLesson(equipment) && !lessonPassed) {
-      repairApplied.current = false
-      setTraining(equipment)
-      return
+  function repair(equipment: Equipment) {
+    if (!breakdown.waterFixed && level === 3 && state.resources.spareKits <= 1) {
+      return { complete: false, message: 'The last kit is reserved for the water lesson.' }
     }
     const next = reduceSurvivalSession(session, { type: 'maintain', equipment })
     const feedback = repairFeedback(session, next, equipment)
@@ -183,27 +195,39 @@ export function MissionFeedback({ rookie = false, trainingLevel, startAtHabitat 
     setMessage(feedback === 'operational'
       ? equipmentNames[equipment] + (next.state.condition[equipment] === 1 ? ' fixed.' : ' working, but still damaged.')
       : feedback === 'still-offline' ? 'Still offline. Try another kit.' : next.feedback ?? '')
-    return next.state.condition[equipment] === 1 && feedback === 'operational'
+    return {
+      complete: next.state.condition[equipment] === 1 && feedback === 'operational',
+      message: feedback === 'operational' ? 'It’s working, but still damaged. Another kit can finish the repair.'
+        : feedback === 'still-offline' ? 'Still offline. Another kit is needed.' : next.feedback,
+    }
   }
 
   const visitingEquipment = visit ? equipmentFor(visit) : undefined
   const canRepairVisit = canPlay && visitingEquipment !== undefined &&
-    state.condition[visitingEquipment] < 1 && state.resources.spareKits > (level === 3 && !breakdown.waterFixed ? 1 : 0)
+    (visitingEquipment === 'greenhouse' ? Boolean(greenhouseActivity) : state.condition[visitingEquipment] < 1) && state.resources.spareKits > (level === 3 && !breakdown.waterFixed ? 1 : 0)
+
+  const lesson = breakdownLesson ?? maintenance
+  const repairId: RepairLessonId | undefined = lesson === 'greenhouse' ? greenhouseLesson : lesson
+
+  function closeRepair() {
+    setMaintenance(undefined)
+    setBreakdownLesson(undefined)
+  }
 
   return <main className="lg-survival mf-mission">
-    <div inert={Boolean(approaching || visit || training)}>
+    <div inert={Boolean(approaching || visit)}>
       <div className="mf-world">
         <LunarEnvironment className="lg-survival-world" focus={focus}>
           <CameraStart />
           <LunarBase selectedBuildingId={selected} onBuildingSelect={(id) => { if (Object.hasOwn(departments, id)) explore(id as DepartmentId) }}
             onGroundSelect={() => select(undefined)} />
-          {roverPending && visit === 'ROV-01' && <mesh position={[-21.18, .56, 20.42]} rotation={[0, Math.PI / 2, 0]} raycast={() => {}}>
-            <ringGeometry args={[.62, .76, 32]} />
-            <meshBasicMaterial color="#ffe080" depthTest={false} />
-          </mesh>}
+          {visit === 'ROV-01' && breakdownLesson === 'roverFixed' &&
+            <group position={[-21.18, .56, 20.42]} rotation={[0, Math.PI / 2, 0]}>
+              <RepairSignal broken={roverPending} wheel test />
+            </group>}
           <LabelPositions buttons={buttons} />
         </LunarEnvironment>
-        <DepartmentLabels buttons={buttons} selected={selected} offline={offline} onSelect={explore} />
+        <DepartmentLabels buttons={buttons} selected={selected} offline={offline} attention={needsAttention} onSelect={explore} />
       </div>
       <header className="mission-status" aria-label="Mission status">
         <strong><span aria-hidden="true">🌙</span> LAMOON</strong>
@@ -278,7 +302,7 @@ export function MissionFeedback({ rookie = false, trainingLevel, startAtHabitat 
       </section>}
 
       <section className="mf-notifications" aria-label="Mission notifications">
-        <div role="status">{message && <article className="mf-notice mf-feedback">
+        <div role="status">{message && <article className="mf-notice" data-tone={message.endsWith(' fixed.') ? 'success' : 'hint'}>
           {message.endsWith(' fixed.') && <strong>✅ Great job!</strong>}
           <p>{message}</p>
           {level && message === 'Greenhouse fixed.' && <p>Plants need water at their roots.</p>}
@@ -299,10 +323,8 @@ export function MissionFeedback({ rookie = false, trainingLevel, startAtHabitat 
               ? ['🫧 Oh no! The oxygen machine stopped!', 'Our astronauts need air!']
               : problemCopy[equipment]
           return <article key={index} className="mf-notice mf-emergency">
-            <div role="alert"><strong>{offline || (level === 2 && hasLesson(equipment)) ? title : '🚨 Oh no! ' + equipmentNames[equipment] + ' damaged!'}</strong><p>{detail}</p></div>
+            <div role="alert"><strong>{equipment === 'greenhouse' && greenhouseActivity === 'greenhouseMaintenance' ? '🌱 New greenhouse fault' : level === 3 && equipment === 'recycler' && breakdown.waterFixed ? '💧 New Water Recycler fault' : offline || (level === 2 && hasPendingTraining(level, equipment, session)) ? title : '🚨 Oh no! ' + equipmentNames[equipment] + ' damaged!'}</strong><p>{detail}</p></div>
             <button className="lg-button" type="button" onClick={() => inspectEquipment(equipment)}>🔍 Check it</button>
-            <button className="lg-button" type="button" disabled={!canPlay || state.resources.spareKits < 1}
-              onClick={() => inspectEquipment(equipment)}>🔧 Fix it</button>
             <button className="lg-button" type="button"
               onClick={() => postpone((previous) => new Set([...previous, index]))}>Later</button>
           </article>
@@ -311,25 +333,18 @@ export function MissionFeedback({ rookie = false, trainingLevel, startAtHabitat 
       </section>
     </div>
     {approaching && <p className="visit-approach" role="status">Approaching {departments[approaching].name}…</p>}
-    {visit && !training && <DepartmentVisit key={visit} id={visit} damaged={visitingEquipment !== undefined && state.condition[visitingEquipment] < 1} repairAvailable={canRepairVisit}
-      session={session} inspectionOnly={Boolean(breakdownLesson)} onTour={onReplayIntro} onBack={leaveVisit} onRepair={() => {
-        if (visitingEquipment) repair(visitingEquipment)
+    {visit && <DepartmentVisit key={visit} id={visit}
+      damaged={visitingEquipment === 'greenhouse' ? Boolean(greenhouseActivity) : visitingEquipment !== undefined && state.condition[visitingEquipment] < 1}
+      repairAvailable={canRepairVisit} session={session} inspectionOnly={Boolean(repairId)}
+      onTour={onReplayIntro} onBack={leaveVisit} onRepair={() => {
+        if (visitingEquipment === 'greenhouse') setGreenhouseLesson(greenhouseActivity)
+        setMaintenance(visitingEquipment)
       }} />}
-    {breakdownLesson && canPlay && <BreakdownActivity key={breakdownLesson} objective={breakdownLesson}
-      completed={breakdown[breakdownLesson]} onTest={testBreakdown} onClose={leaveVisit}
-      onContinue={breakdownLesson === 'priorityLearned' ? () => setBreakdownLesson('waterFixed') : undefined} />}
-    {level === 1 && training === 'greenhouse' && canPlay && <GreenhouseInterior
-      unavailable={state.resources.spareKits < 1 ? 'No spare kits left.' : state.condition.greenhouse >= 1 ? 'The greenhouse is already fixed.' : undefined}
-      onClose={() => setTraining(undefined)} onRepair={() => {
-        if (repairApplied.current) return true
-        repairApplied.current = repair('greenhouse', true) === true
-        return repairApplied.current
-      }} />}
-    {level === 2 && (training === 'solar' || training === 'oxygenPlant') && canPlay &&
-      <EquipmentActivity key={training} equipment={training}
-        production={training === 'solar' ? flows?.power.production : flows?.oxygen.production}
-        unavailable={state.resources.spareKits < 1 ? 'No spare kits left.' : state.condition[training] >= 1 ? 'This equipment is already fixed.' : undefined}
-        onClose={() => setTraining(undefined)} onRepair={() => repair(training, true) === true} />}
+    {repairId && canPlay && <RepairActivity key={repairId} id={repairId === 'recycler' && level === 3 && breakdown.waterFixed ? 'recyclerMaintenance' : repairId}
+      onTest={() => breakdownLesson ? { complete: testBreakdown() }
+        : maintenance ? repair(maintenance) : { complete: false }}
+      onClose={closeRepair}
+      onContinue={closeRepair} />}
     {level && outcome && <section className="rookie-result" aria-label="Mission result">
       <h2>LAMOON · {outcome.status === 'success' ? level === 3 ? '🌙 LEVEL 3 COMPLETE!' : 'MISSION COMPLETE!' : 'Mission Failed — Try Again!'}</h2>
       <p>{outcome.status === 'success' ? `You kept the base going for ${state.tick} days.` : 'The base could no longer keep the whole crew safe. On your next try, check supplies and repair crew essentials first.'}</p>

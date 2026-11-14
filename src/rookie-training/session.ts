@@ -1,3 +1,4 @@
+import type { Equipment } from '../engine/survival'
 import { createBreakdownSession } from './breakdown'
 import { createLevelConfig, levels } from '../levels'
 import { createSurvivalSession, reduceSurvivalSession } from '../components/dashboard/survivalController'
@@ -22,4 +23,14 @@ export function advanceRookie(session: SurvivalSession, level: Exclude<TrainingL
 
   const input = { ...session, config: { ...config, incidentProbability: 1, incidentDamage: 1 } }
   return { ...reduceSurvivalSession(input, { type: 'advanceTick' }), config }
+}
+
+
+// A successful engine repair records completion for the rest of this mission.
+export function hasPendingTraining(level: TrainingLevel | undefined, equipment: Equipment, session: SurvivalSession) {
+  const assigned = (level === 1 && equipment === 'greenhouse')
+    || (level === 2 && (equipment === 'solar' || equipment === 'oxygenPlant'))
+  if (!assigned) return false
+  return session.events.some((event) => event.type === 'equipmentFailed' && event.equipment === equipment)
+    && !session.events.some((event) => event.type === 'equipmentRepaired' && event.equipment === equipment)
 }

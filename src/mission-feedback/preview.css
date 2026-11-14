@@ -44,7 +44,6 @@
   color: #fff4e9;
 }
 .mf-notice strong { display: block; font-size: 1.05rem; }
-.mf-feedback { background: #103733; border-color: #67dfba; }
 .mf-notice button { margin: .45rem .35rem 0 0; }
 @media (max-width: 760px) {
   .mf-labels button { min-width: 2rem; min-height: 2rem; }
@@ -193,3 +192,27 @@
   font-size: clamp(1rem, 4vw, 1.3rem);
 }
 .moon-arrival-note .go-to-base:hover { filter: brightness(1.12); }
+
+.mf-notice {
+  background: #fffdf6;
+  color: #30243d;
+  border: 2px solid #e38c78;
+  border-inline-start-width: .45rem;
+  border-radius: 1rem;
+  box-shadow: 0 .4rem 1rem #25162d44;
+}
+.mf-notice strong { font-size: 1.15rem; line-height: 1.25; }
+.mf-notice[data-tone="success"] { border-color: #78c477; }
+.mf-notice[data-tone="hint"] { border-color: #b889e0; }
+.mf-notice .lg-button {
+  background: #ffe990;
+  color: #30243d;
+  border: 1px solid #c59c3b;
+  min-height: 2.65rem;
+}
+.mf-notice .lg-button:hover { background: #fff2b6; }
+.mf-labels button[data-attention="true"] { outline: 3px solid #ffad92; outline-offset: 3px; }
+@media (prefers-reduced-motion: no-preference) {
+  .mf-notice { animation: mission-card-in .32s ease-out both; }
+  @keyframes mission-card-in { from { opacity: 0; transform: translateY(-.55rem) scale(.96); } 70% { transform: translateY(.12rem) scale(1.015); } }
+}

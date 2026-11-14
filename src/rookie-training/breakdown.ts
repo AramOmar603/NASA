@@ -43,3 +43,15 @@ export function resolveBreakdownObjective(
   }
   return { session, progress: { ...progress, [objective]: true } }
 }
+
+export function waterRepairActivity(day: number, progress: BreakdownProgress, hasFault: boolean) {
+  if (day >= waterDay && !progress.waterFixed) return 'waterFixed'
+  return hasFault ? 'recycler' : undefined
+}
+
+export function completeWaterChallenge(session: SurvivalSession, progress: BreakdownProgress, correct: boolean) {
+  const priority = resolveBreakdownObjective(session, progress, 'priorityLearned', correct)
+  const result = resolveBreakdownObjective(session, priority.progress, 'waterFixed', correct)
+  // Choosing the recycler and completing its repair are one Day 9 challenge.
+  return result.progress.waterFixed ? result : { session, progress }
+}

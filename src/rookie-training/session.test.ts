@@ -1,7 +1,7 @@
 import { expect, it } from 'vitest'
 import { reduceSurvivalSession } from '../components/dashboard/survivalController'
 import { updateProblems } from '../mission-feedback/departments'
-import { advanceRookie, createRookieSession } from './session'
+import { advanceRookie, createRookieSession, hasPendingTraining } from './session'
 
 it('schedules one real greenhouse incident, repairs it with a kit, and completes day seven', () => {
   const initial = createRookieSession()
@@ -55,4 +55,36 @@ it('runs distinct solar and oxygen failures and recovers production in ten days'
   expect(session.state.outcome).toBe('success')
   expect(session.state.tick).toBe(10)
   expect(session.events).not.toContainEqual({ type: 'equipmentDamaged', equipment: 'greenhouse' })
+})
+
+it.each([[1, 'greenhouse'], [2, 'solar'], [2, 'oxygenPlant']] as const)(
+  'runs Level %i %s training once and allows later maintenance',
+  (level, equipment) => {
+    let session = createRookieSession(level)
+    expect(hasPendingTraining(level, equipment, session)).toBe(false)
+    for (let day = 0; day < (equipment === 'oxygenPlant' ? 3 : 1); day++) {
+      session = advanceRookie(session, level)
+      if (equipment === 'oxygenPlant' && day === 0) {
+        session = reduceSurvivalSession(session, { type: 'maintain', equipment: 'solar' })
+      }
+    }
+    expect(hasPendingTraining(level, equipment, session)).toBe(true)
+    const repaired = reduceSurvivalSession(session, { type: 'maintain', equipment })
+    expect(repaired.state.resources.spareKits).toBe(session.state.resources.spareKits - 1)
+    expect(hasPendingTraining(level, equipment, repaired)).toBe(false)
+
+    const laterFault = {
+      ...repaired,
+      state: { ...repaired.state, condition: { ...repaired.state.condition, [equipment]: 0 } },
+      events: [...repaired.events, { type: 'equipmentFailed' as const, equipment }],
+    }
+    expect(hasPendingTraining(level, equipment, laterFault)).toBe(false)
+    expect(reduceSurvivalSession(laterFault, { type: 'maintain', equipment }).state.condition[equipment]).toBe(1)
+  },
+)
+
+it('keeps greenhouse faults in other levels out of the greenhouse tutorial', () => {
+  const fault = advanceRookie(createRookieSession(1))
+  expect(hasPendingTraining(2, 'greenhouse', fault)).toBe(false)
+  expect(hasPendingTraining(3, 'greenhouse', fault)).toBe(false)
 })

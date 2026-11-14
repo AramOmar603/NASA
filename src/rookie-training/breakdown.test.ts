@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest'
-import { advanceBreakdown, breakdownBlock, createBreakdownSession, initialBreakdown, resolveBreakdownObjective } from './breakdown'
+import { advanceBreakdown, breakdownBlock, completeWaterChallenge, waterRepairActivity, createBreakdownSession, initialBreakdown, resolveBreakdownObjective } from './breakdown'
 
 it.each([1, 4, 9, 27, 99, 2026])('completes both repairs and all 15 days with seed %i', (seed) => {
   let session = createBreakdownSession(seed)
@@ -54,4 +54,33 @@ it('uses the engine failure outcome when a crew cannot get oxygen', () => {
   expect(failed.state.outcome).toBe('failure')
   expect(advanceBreakdown(failed, initialBreakdown)).toBe(failed)
   expect(resolveBreakdownObjective(failed, initialBreakdown, 'roverFixed', true).progress).toBe(initialBreakdown)
+})
+
+it('offers one Day 9 recycler challenge and routes subsequent faults to maintenance', () => {
+  let session = createBreakdownSession()
+  let progress = initialBreakdown
+  while (session.state.tick < 9) {
+    expect(waterRepairActivity(session.state.tick, progress, false)).toBeUndefined()
+    session = advanceBreakdown(session, progress)
+    if (session.state.tick === 5) progress = resolveBreakdownObjective(session, progress, 'roverFixed', true).progress
+  }
+
+  expect(waterRepairActivity(9, progress, true)).toBe('waterFixed')
+  expect(completeWaterChallenge(session, progress, false)).toEqual({ session, progress })
+  const kits = session.state.resources.spareKits
+  const repaired = completeWaterChallenge(session, progress, true)
+  expect(repaired.progress).toMatchObject({ waterFixed: true, priorityLearned: true })
+  expect(repaired.session.state.condition.recycler).toBe(1)
+  expect(repaired.session.state.resources.spareKits).toBe(kits - 1)
+  expect(completeWaterChallenge(repaired.session, repaired.progress, true).session).toBe(repaired.session)
+  expect(waterRepairActivity(9, repaired.progress, false)).toBeUndefined()
+  expect(waterRepairActivity(12, repaired.progress, true)).toBe('recycler')
+
+  session = repaired.session
+  while (session.state.tick < 15 && session.state.outcome === 'active') {
+    session = advanceBreakdown(session, repaired.progress)
+    expect(waterRepairActivity(session.state.tick, repaired.progress, false)).toBeUndefined()
+  }
+  expect(session.state.outcome).toBe('success')
+  expect(session.events.filter(event => event.type === 'equipmentRepaired' && event.equipment === 'recycler')).toHaveLength(1)
 })
