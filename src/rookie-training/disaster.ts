@@ -1,3 +1,4 @@
+import type { Equipment } from '../engine/survival'
 import { createSurvivalSession, reduceSurvivalSession, type SurvivalSession } from '../components/dashboard/survivalController'
 import { createLevelConfig, levels } from '../levels'
 
@@ -40,11 +41,28 @@ export function advanceDisaster(session: SurvivalSession, completed: DisasterPro
   return { ...next, config: session.config, events, state: { ...next.state, condition } }
 }
 
+export function disasterRepairBlock(
+  session: SurvivalSession, completed: DisasterProgress, equipment: Equipment, fault?: DisasterFault,
+) {
+  const { state } = session
+  if (state.outcome !== 'active') return 'The mission has ended.'
+  if (fault) {
+    if (completed.includes(fault)) return '✅ This emergency is already resolved!'
+    if (state.tick < disasterFaults[fault].day) return '⏳ This emergency hasn’t started yet.'
+  }
+  if (state.condition[equipment] >= 1) return '✅ This machine is already working!'
+  if (state.resources.spareKits < 1) return '🧰 You need one spare kit to repair this machine.'
+  if (!fault && state.resources.spareKits <= Object.keys(disasterFaults).length - completed.length) {
+    return '🧰 The remaining spare kits are reserved for mission emergencies.'
+  }
+}
+
 export function fixDisasterFault(session: SurvivalSession, completed: DisasterProgress, id: DisasterFault) {
-  if (!pendingDisasterFaults(session.state.tick, completed).includes(id)) return { session, completed }
   const { equipment } = disasterFaults[id]
+  const blocked = disasterRepairBlock(session, completed, equipment, id)
+  if (blocked) return { session, completed, blocked }
   const next = reduceSurvivalSession(session, { type: 'maintain', equipment })
-  if (next.state === session.state) return { session, completed }
+  if (next.state === session.state) return { session, completed, blocked: next.feedback }
   return { session: next, completed: [...completed, id] }
 }
 

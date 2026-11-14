@@ -77,10 +77,11 @@ function UtilityRoom({ id, active, showFilter, damaged, disasterFault }: { id: k
   )
 }
 
-export function DepartmentVisit({ id, damaged, repairAvailable, session, disasterFault, inspectionOnly = false, onRepair, onBack, onTour }: {
+export function DepartmentVisit({ id, damaged, repairAvailable, repairBlockedReason, session, disasterFault, inspectionOnly = false, onRepair, onBack, onTour }: {
   id: DepartmentId
   damaged: boolean
   repairAvailable: boolean
+  repairBlockedReason?: string
   session: SurvivalSession
   disasterFault?: DisasterFault
   inspectionOnly?: boolean
@@ -114,7 +115,7 @@ export function DepartmentVisit({ id, damaged, repairAvailable, session, disaste
           {!learned && <button type="button" onClick={() => setLearned(true)}>
             {habitat ? 'Check mission console' : 'Learn how it works'}
           </button>}
-          {damaged && !repairAvailable && <p>Repair is unavailable right now.</p>}
+          {damaged && !repairAvailable && <p>{repairBlockedReason ?? 'Repair is unavailable right now.'}</p>}
           {repairAvailable && <button type="button" onClick={onRepair}>Start repair</button>}
           {habitat && onTour && <button className="visit-tour" type="button" onClick={onTour}>
             <span aria-hidden="true">🚀</span> Take the Base Tour

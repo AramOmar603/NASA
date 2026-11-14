@@ -1,4 +1,4 @@
-import { advanceDisaster, disasterFaults, disasterPriority, fixDisasterFault, pendingDisasterFaults, type DisasterFault, type DisasterProgress } from '../rookie-training/disaster'
+import { advanceDisaster, disasterFaults, disasterPriority, disasterRepairBlock, fixDisasterFault, pendingDisasterFaults, type DisasterFault, type DisasterProgress } from '../rookie-training/disaster'
 import { RepairActivity, type RepairLessonId } from '../rookie-training/RepairActivity'
 import { RepairSignal } from '../rookie-training/RepairEffects'
 import { advanceBreakdown, breakdownBlock, completeWaterChallenge, initialBreakdown, resolveBreakdownObjective, roverDay, waterRepairActivity } from '../rookie-training/breakdown'
@@ -201,7 +201,7 @@ export function MissionFeedback({ rookie = false, trainingLevel, startAtHabitat 
 
   function testDisaster(id: DisasterFault) {
     const result = fixDisasterFault(session, disasterCompleted, id)
-    if (result.session === session) return { complete: false, message: 'This repair needs a spare kit.' }
+    if (result.session === session) return { complete: false, message: result.blocked }
     setProblems(updateProblems(problems, session, result.session))
     setSession(result.session)
     setDisasterCompleted(result.completed)
@@ -209,8 +209,11 @@ export function MissionFeedback({ rookie = false, trainingLevel, startAtHabitat 
   }
 
   function repair(equipment: Equipment) {
-    if (level === 4 && state.resources.spareKits <= reservedKits) {
-      return { complete: false, message: 'The remaining kits are set aside for the mission emergencies.' }
+    if (level === 4) {
+      const scheduled = disasterPending.find(id => disasterFaults[id].equipment === equipment)
+      if (scheduled) return testDisaster(scheduled)
+      const blocked = disasterRepairBlock(session, disasterCompleted, equipment)
+      if (blocked) return { complete: false, message: blocked }
     }
     if (!breakdown.waterFixed && level === 3 && state.resources.spareKits <= 1) {
       return { complete: false, message: 'The last kit is reserved for the water lesson.' }
@@ -234,7 +237,12 @@ export function MissionFeedback({ rookie = false, trainingLevel, startAtHabitat 
     : visitingEquipment !== undefined && (level === 4
       ? Boolean(visit && needsAttention.has(visit)) || state.condition[visitingEquipment] <= config.failureThreshold
       : state.condition[visitingEquipment] < 1)
-  const canRepairVisit = canPlay && visitDamaged && state.resources.spareKits > reservedKits
+  const scheduledVisitFault = disasterPending.find(id => disasterFaults[id].equipment === visitingEquipment)
+  const visitRepairBlock = level === 4 && visitingEquipment
+    ? disasterRepairBlock(session, disasterCompleted, visitingEquipment, scheduledVisitFault)
+    : undefined
+  const canRepairVisit = canPlay && visitDamaged && (level === 4
+    ? !visitRepairBlock : state.resources.spareKits > reservedKits)
 
   const lesson = disasterLesson ?? breakdownLesson ?? maintenance
   const repairId: RepairLessonId | undefined = lesson === 'greenhouse' ? greenhouseLesson : lesson
@@ -385,8 +393,12 @@ export function MissionFeedback({ rookie = false, trainingLevel, startAtHabitat 
     {approaching && <p className="visit-approach" role="status">Approaching {departments[approaching].name}…</p>}
     {visit && <DepartmentVisit key={visit} id={visit}
       damaged={visitDamaged}
-      repairAvailable={canRepairVisit} session={session} disasterFault={disasterLesson} inspectionOnly={Boolean(repairId)}
+      repairAvailable={canRepairVisit} repairBlockedReason={visitRepairBlock} session={session} disasterFault={disasterLesson} inspectionOnly={Boolean(repairId)}
       onTour={onReplayIntro} onBack={leaveVisit} onRepair={() => {
+        if (scheduledVisitFault) {
+          setDisasterLesson(scheduledVisitFault)
+          return
+        }
         if (level === 4 && visitingEquipment) {
           leaveVisit()
           repair(visitingEquipment)
