@@ -48,3 +48,26 @@
 .base-tour-reveal { animation: tour-scene-in .5s ease-out both; }
 @keyframes tour-scene-in { from { opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .base-tour-reveal { animation: none; } }
+
+/* Reserve space for the note so it cannot cover a tour stop. */
+.base-tour { --tour-note-width: min(34vw, 25rem); }
+.base-tour .base-tour-world { inset: 0 0 0 calc(var(--tour-note-width) + 2rem); }
+.base-tour:is([data-side="right"], [data-side="top-right"]) .base-tour-world {
+  inset: 0 calc(var(--tour-note-width) + 2rem) 0 0;
+}
+.base-tour-card { width: var(--tour-note-width); }
+.base-tour-card[data-side="top-center"] { inset: 1rem auto auto 1rem; margin-inline: 0; }
+.base-tour-card .base-tour-primary { min-height: 3.1rem; padding-inline: 1.1rem; }
+@media (max-width: 42rem) {
+  .base-tour .base-tour-world { inset: 0 0 43dvh; }
+  .base-tour-card:is([data-side]) { inset: auto .65rem max(.65rem, env(safe-area-inset-bottom)); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .base-tour-card[data-side="top-right"][data-leaving="false"] { animation-name: tour-note-drop; }
+  .base-tour-card[data-side="left"][data-leaving="false"] { animation-name: tour-note-rise; }
+  .base-tour-card[data-side="top-center"][data-leaving="false"] { animation-name: tour-note-pop; }
+}
+@keyframes tour-note-drop { from { opacity: 0; transform: translateY(-1.2rem); } }
+@keyframes tour-note-rise { from { opacity: 0; transform: translateY(.9rem); } }
+@keyframes tour-note-pop { from { opacity: 0; transform: scale(.91); } }

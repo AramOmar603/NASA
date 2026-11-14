@@ -89,9 +89,10 @@ export interface LunarEnvironmentProps {
   className?: string
   focus?: LunarCameraFocus
   interactive?: boolean
+  fallback?: ReactNode
 }
 
-export function LunarEnvironment({ children, className, focus, interactive = true }: LunarEnvironmentProps) {
+export function LunarEnvironment({ children, className, focus, interactive = true, fallback = <p>This lunar scene requires WebGL 2.</p> }: LunarEnvironmentProps) {
   return (
     <div className={className} style={className ? undefined : { height: 'min(75vh, 720px)' }}>
       <Canvas
@@ -99,7 +100,7 @@ export function LunarEnvironment({ children, className, focus, interactive = tru
         dpr={[1, 1.5]}
         frameloop="demand"
         shadows={{ type: PCFShadowMap }}
-        fallback={<p>This lunar scene requires WebGL 2.</p>}
+        fallback={fallback ?? <div />}
       >
         <ambientLight intensity={0.44} color="#d2dcff" />
         <directionalLight

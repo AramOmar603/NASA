@@ -6,5 +6,6 @@ it('welcomes the player into the seven-day Rookie Astronaut mission at the root'
   const html = renderToStaticMarkup(<App />)
   expect(html).toContain('Level 1 · Rookie Astronaut')
   expect(html).toContain('Keep four astronauts safe for seven Moon days.')
-  expect(html).toContain('>Start Mission</button>')
+  expect(html).toContain('EXPLORE THE MOON BASE!')
+  expect(html).toContain('Skip Tour &amp; Start Playing')
 })
