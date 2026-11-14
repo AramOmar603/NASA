@@ -96,9 +96,9 @@ export function App() {
         </div>
       )}
       {(entry === 'orbit' || entry === 'approach') && (
-        <MoonArrival onApproach={() => setEntry('approach')} onArrival={() => setEntry('habitat')} />
+        <MoonArrival onApproach={() => setEntry('approach')} onArrival={() => setEntry(level === 4 ? 'base' : 'habitat')} />
       )}
-      {(entry === 'approach' || entry === 'habitat') && (
+      {level !== 4 && (entry === 'approach' || entry === 'habitat') && (
         <HabitatArrival onHome={goHome} active={entry === 'habitat'} onBegin={() => setEntry('base')} />
       )}
     </>

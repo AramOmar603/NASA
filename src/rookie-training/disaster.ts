@@ -12,8 +12,17 @@ export const disasterFaults = {
 export type DisasterFault = keyof typeof disasterFaults
 export type DisasterProgress = readonly DisasterFault[]
 
+export const disasterMaintenanceKits = 2
+
 export function createDisasterSession(seed = 9) {
-  return createSurvivalSession(seed, { ...createLevelConfig(levels[3]), repairAmount: 1 })
+  const session = createSurvivalSession(seed, { ...createLevelConfig(levels[3]), repairAmount: 1 })
+  return {
+    ...session,
+    state: {
+      ...session.state,
+      resources: { ...session.state.resources, spareKits: session.state.resources.spareKits + disasterMaintenanceKits },
+    },
+  }
 }
 
 export function pendingDisasterFaults(day: number, completed: DisasterProgress) {
@@ -26,7 +35,14 @@ export function advanceDisaster(session: SurvivalSession, completed: DisasterPro
   const day = session.state.tick + 1
   const due = pendingDisasterFaults(day, completed)
   // A fictional one-day radiation pulse uses the engine's existing shielding formula.
-  const config = day === 6 ? { ...session.config, radiationMilliSvPerDay: session.config.radiationMilliSvPerDay * 4 } : session.config
+  const config = {
+    ...session.config,
+    radiationMilliSvPerDay: session.config.radiationMilliSvPerDay * (day === 6 ? 4 : 1),
+    // Two kits are available for optional damage. Let scheduled faults drive
+    // the mission once those two repair opportunities have appeared.
+    incidentProbability: due.length || session.events.filter(event => event.type === 'equipmentDamaged').length >= disasterMaintenanceKits
+      ? 0 : session.config.incidentProbability,
+  }
   const next = reduceSurvivalSession({ ...session, config }, { type: 'advanceTick' })
   if (!due.length || next.state.outcome !== 'active') return { ...next, config: session.config }
 

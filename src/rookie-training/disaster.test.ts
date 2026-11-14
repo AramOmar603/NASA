@@ -1,3 +1,4 @@
+import { reduceSurvivalSession } from '../components/dashboard/survivalController'
 import { expect, it } from 'vitest'
 import { advanceDisaster, createDisasterSession, disasterFaults, disasterPriority, disasterRepairBlock, fixDisasterFault, pendingDisasterFaults, type DisasterProgress } from './disaster'
 
@@ -7,6 +8,12 @@ it.each([1, 4, 9, 27, 99, 2026])('completes Day 20 with four one-kit repairs on 
   for (let day = 1; day <= 20; day++) {
     session = advanceDisaster(session, completed)
     expect(session.state.tick).toBe(day)
+    if (day === 2 || day === 4) {
+      // Spend both backup kits earlier than necessary; the scheduled repairs still fit.
+      const maintained = reduceSurvivalSession(session, { type: 'maintain', equipment: 'greenhouse' })
+      expect(maintained.state.resources.spareKits).toBe(session.state.resources.spareKits - 1)
+      session = maintained
+    }
     const pending = pendingDisasterFaults(day, completed)
     expect(pending).toEqual(day === 5 ? ['shelterPanel'] : day === 10 ? ['powerConnection']
       : day === 15 ? ['powerRelay', 'waterPump'] : [])
@@ -26,6 +33,33 @@ it.each([1, 4, 9, 27, 99, 2026])('completes Day 20 with four one-kit repairs on 
   expect(session.state.outcome).toBe('success')
   expect(session.state.crew.every(member => member.health > 0)).toBe(true)
   expect(completed).toHaveLength(4)
+  expect(session.state.resources.spareKits).toBe(1)
+})
+
+it('keeps optional damage within the backup kit budget across 128 full missions', () => {
+  let runsWithDamage = 0
+  for (let seed = 1; seed <= 128; seed++) {
+    let session = createDisasterSession(seed * 7919)
+    let completed: DisasterProgress = []
+    for (let day = 1; day <= 20; day++) {
+      session = advanceDisaster(session, completed)
+      expect(session.state.tick).toBe(day)
+      const faults = pendingDisasterFaults(day, completed)
+      if (seed % 2 === 0) faults.reverse()
+      for (const fault of faults) {
+        const repaired = fixDisasterFault(session, completed, fault)
+        expect(repaired.blocked).toBeUndefined()
+        session = repaired.session
+        completed = repaired.completed
+      }
+    }
+    const incidents = session.events.filter(event => event.type === 'equipmentDamaged')
+    if (incidents.length) runsWithDamage++
+    expect(incidents.length).toBeLessThanOrEqual(2)
+    expect(session.state.outcome).toBe('success')
+    expect(completed).toHaveLength(4)
+  }
+  expect(runsWithDamage).toBeGreaterThan(0)
 })
 
 it('recommends a priority using the reserves and leaves future faults unrepairable', () => {

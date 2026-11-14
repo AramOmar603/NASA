@@ -65,12 +65,16 @@ export const levels: readonly LevelDefinition[] = Object.freeze([
   defineLevel({
     id: 4,
     name: 'Lunar Disaster',
-    description: 'Manage a longer mission with faster wear and more frequent damage.',
+    description: 'Keep the crew safe through scheduled emergencies and a day with two simultaneous failures.',
     difficulty: 'very-hard',
     missionDays: 20,
     learningObjectives: ['Manage multiple emergencies without losing crew members.'],
     plannedEmergencies: [{ kind: 'solar-radiation', approximateDay: 5 }, { kind: 'equipment-malfunction', approximateDay: 10 }, { kind: 'simultaneous-failures', approximateDay: 15 }],
-    survivalOverrides: { dailyWear: 0.005, incidentProbability: 0.1, incidentDamage: 0.24 },
+    survivalOverrides: {
+      dailyWear: 0.005, incidentProbability: 0.05, incidentDamage: 0.15,
+      oxygenKgPerPersonDay: 0.8, waterCapacityL: 140, foodKgPerPersonDay: 0.62,
+      batteryCapacityKWh: 60,
+    },
   }),
   defineLevel({
     id: 5,

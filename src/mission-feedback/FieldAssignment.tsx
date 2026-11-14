@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { SurvivalSession } from '../components/dashboard/survivalController'
+import { commanderReserves } from '../rookie-training/commander'
 import { departmentReadings } from './DepartmentInfo'
 import type { fieldAssignment } from './fieldAssignments'
 
@@ -11,6 +12,41 @@ export function FieldAssignment({ task, session, onComplete }: {
   onComplete: () => void
 }) {
   const [wrong, setWrong] = useState(false)
+  const [stations, setStations] = useState(0)
+  const interaction = 'interaction' in task ? task.interaction : undefined
+  if (interaction === 'sequence') return <section className="field-report" aria-label="Field assignment">
+    <h3>⭐ {task.title}</h3>
+    <p>{task.prompt}</p>
+    <p aria-live="polite">{stations} / {task.choices.length} steps ready</p>
+    <div className="field-choices">
+      {[2, 0, 1].map(index => <button key={index} type="button" disabled={index < stations} onClick={() => {
+        if (index !== stations) {
+          setWrong(true)
+          return
+        }
+        setWrong(false)
+        if (stations + 1 === task.choices.length) onComplete()
+        else setStations(stations + 1)
+      }}>{task.choices[index]}</button>)}
+    </div>
+    {wrong && <p role="status">💡 {task.hint}</p>}
+  </section>
+  if (interaction === 'reserves') {
+    const reserves = commanderReserves(session)
+    const options = Object.entries(reserves).map(([name, days]) => ({ name, days: Number(days.toFixed(1)) }))
+    const shortest = Math.min(...options.map(option => option.days))
+    return <section className="field-report" aria-label="Field assignment">
+      <h3>⭐ {task.title}</h3>
+      <p>{task.prompt}</p>
+      <div className="field-choices">
+        {options.map(({ name, days }) => <button key={name} type="button"
+          onClick={() => days === shortest ? onComplete() : setWrong(true)}>
+          {name === 'power' ? 'Battery' : name[0].toUpperCase() + name.slice(1)} · {days} days
+        </button>)}
+      </div>
+      {wrong && <p role="status">💡 {task.hint}</p>}
+    </section>
+  }
   const crew = session.state.crew.filter(member => member.health > 0).length
   const readings = departmentReadings(task.building, session)
   const isBattery = task.building === 'PWR-01'

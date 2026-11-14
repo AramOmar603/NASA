@@ -3,8 +3,9 @@ import { createRookieSession, advanceRookie } from '../rookie-training/session'
 import { advanceCommander } from '../rookie-training/commander'
 import { fieldAssignment, travelToNextActivity } from './fieldAssignments'
 
-it('provides a starting assignment for every selectable level', () => {
-  for (const level of [1, 2, 3, 4, 5] as const) expect(fieldAssignment(level, 0)).toBeDefined()
+it('provides a starting assignment for levels without a mandatory opening emergency', () => {
+  expect(fieldAssignment(4, 0)).toBeUndefined()
+  for (const level of [1, 2, 3, 5] as const) expect(fieldAssignment(level, 0)).toBeDefined()
 })
 
 it('stops at a failure, then advances ordinary days through the original simulator', () => {
