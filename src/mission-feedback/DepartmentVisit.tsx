@@ -1,3 +1,4 @@
+import type { DisasterFault } from '../rookie-training/disaster'
 import type { SurvivalSession } from '../components/dashboard/survivalController'
 import { DepartmentInfo } from './DepartmentInfo'
 import { useState } from 'react'
@@ -16,7 +17,7 @@ const rooms = {
   'SHD-01': { color: '#ffb681', cue: 'Thick walls help protect the crew during space storms.' },
 } as const
 
-function UtilityRoom({ id, active, showFilter, damaged }: { id: keyof typeof rooms; active: boolean; showFilter: boolean; damaged: boolean }) {
+function UtilityRoom({ id, active, showFilter, damaged, disasterFault }: { id: keyof typeof rooms; active: boolean; showFilter: boolean; damaged: boolean; disasterFault?: DisasterFault }) {
   const { color } = rooms[id]
   return (
     <Canvas camera={{ position: [3.5, 2.4, 5.8], fov: 50 }}
@@ -44,7 +45,13 @@ function UtilityRoom({ id, active, showFilter, damaged }: { id: keyof typeof roo
         </mesh>
         <group position={[0, .86, -.15]}><RepairFlow broken={damaged} /></group>
         <group position={[0, .86, -.04]}><RepairSignal broken={damaged} /></group>
-        {showFilter && <mesh position={[0, .85, -.37]} rotation={[0, 0, Math.PI / 2]}>
+        {disasterFault === 'waterPump' && <group position={[-.8, .86, -.02]}>
+          <mesh rotation={[0, 0, Math.PI / 2]}><cylinderGeometry args={[.29, .29, .48, 16]} />
+            <meshStandardMaterial color={damaged ? '#ffbd61' : '#70ffc8'} />
+          </mesh>
+          <RepairSignal broken={damaged} test warningColor="#ffbd51" />
+        </group>}
+        {showFilter && disasterFault !== 'waterPump' && <mesh position={[0, .85, -.37]} rotation={[0, 0, Math.PI / 2]}>
           <cylinderGeometry args={[.27, .27, .62, 16]} />
           <meshStandardMaterial color={active ? '#70ffc8' : '#ffcc67'} emissive={active ? '#267b58' : '#af641d'} emissiveIntensity={.45} />
         </mesh>}
@@ -63,18 +70,19 @@ function UtilityRoom({ id, active, showFilter, damaged }: { id: keyof typeof roo
           <mesh position={[.7, .05, .63]}>
             <circleGeometry args={[.13, 24]} /><meshBasicMaterial color={!damaged ? '#86f3c3' : color} />
           </mesh>
-          <group position={[.7, .05, .69]}><RepairSignal broken={damaged} /></group>
+          <group position={[.7, .05, .69]}><RepairSignal broken={damaged} test={disasterFault === 'shelterPanel'} warningColor={disasterFault === 'shelterPanel' ? '#ffd35c' : undefined} /></group>
         </group>
       )}
     </Canvas>
   )
 }
 
-export function DepartmentVisit({ id, damaged, repairAvailable, session, inspectionOnly = false, onRepair, onBack, onTour }: {
+export function DepartmentVisit({ id, damaged, repairAvailable, session, disasterFault, inspectionOnly = false, onRepair, onBack, onTour }: {
   id: DepartmentId
   damaged: boolean
   repairAvailable: boolean
   session: SurvivalSession
+  disasterFault?: DisasterFault
   inspectionOnly?: boolean
   onRepair: () => void
   onBack: () => void
@@ -94,10 +102,10 @@ export function DepartmentVisit({ id, damaged, repairAvailable, session, inspect
       {equipment && (
         <div className="visit-equipment">
           <EquipmentScene equipment={id === 'SOL-01' ? 'solar' : 'oxygenPlant'}
-            ready={learned} repaired={!damaged} onInspect={() => setLearned(true)} />
+            ready={learned} repaired={!damaged} outputFault={disasterFault === 'powerConnection' || disasterFault === 'powerRelay'} onInspect={() => setLearned(true)} />
         </div>
       )}
-      {room && <div className="visit-room"><UtilityRoom id={id as keyof typeof rooms} active={inspectionOnly ? !damaged : learned} showFilter={inspectionOnly} damaged={damaged} /></div>}
+      {room && <div className="visit-room"><UtilityRoom id={id as keyof typeof rooms} active={inspectionOnly ? !damaged : learned} showFilter={inspectionOnly} damaged={damaged} disasterFault={disasterFault} /></div>}
       {!inspectionOnly && <div className="visit-card">
         {habitat && <p className="mission-wordmark">🌙 LAMOON</p>}
         <DepartmentInfo id={id} session={session} />

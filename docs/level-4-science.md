@@ -1,0 +1,8 @@
+# Level 4 science
+
+- A solar particle event can raise radiation exposure. Shielding reduces exposure, and crews still need monitoring and shelter procedures. The game uses a fictional one-day dose multiplier and its existing shielding formula. [NASA radiation protection at the Moon](https://science.nasa.gov/science-research/heliophysics/how-nasa-will-protect-astronauts-from-space-radiation-at-the-moon/)
+- Generation, storage, and distribution are separate functions. The two electrical lessons represent different faults in the solar output path as outages of the modeled solar array. The engine already tracks battery energy in kWh. It has no separate switch or battery failure model. [NASA Moon Base Systems](https://www.nasa.gov/moonbase-systems/)
+- Pumps move water through equipment. Actual life support recovers water from multiple sources through several treatment steps. The pump lesson maps to the existing recycler condition and uses the engine's recovery readings. [NASA ECLSS](https://www.nasa.gov/reference/environmental-control-and-life-support-systems-eclss/)
+- Lunar dust and local conditions can affect equipment reliability. The scheduled faults, spare kits and repair sequence are training mechanics. [NASA Lunar South Pole Environment](https://www.nasa.gov/reference/moonbase-environment/)
+
+The scheduled faults appear after the named day's resource draw. The double-emergency recommendation compares battery energy with configured daily electrical demand and stored water with the living crew's daily water use. This estimates reserve time during the outage. The player can repair either system first and must finish both before the next day.

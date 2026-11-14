@@ -5,10 +5,11 @@ import { PanelAlignment, RepairFlow, RepairSignal } from './RepairEffects'
 
 type LessonEquipment = 'solar' | 'oxygenPlant'
 
-export function EquipmentScene({ equipment, ready, repaired, onInspect }: {
+export function EquipmentScene({ equipment, ready, repaired, outputFault = false, onInspect }: {
   equipment: LessonEquipment
   ready: boolean
   repaired: boolean
+  outputFault?: boolean
   onInspect?: () => void
 }) {
   const panel = useRef<Group>(null)
@@ -34,7 +35,7 @@ export function EquipmentScene({ equipment, ready, repaired, onInspect }: {
               <cylinderGeometry args={[.22, .34, 1.1, 16]} />
               <meshStandardMaterial color="#adbcc9" />
             </mesh>
-            <PanelAlignment broken={!repaired} panel={panel} />
+            <PanelAlignment broken={!repaired && !outputFault} panel={panel} />
             <group ref={panel} onClick={onInspect}>
               <mesh>
                 <boxGeometry args={[3.1, 1.65, .2]} />
@@ -46,8 +47,12 @@ export function EquipmentScene({ equipment, ready, repaired, onInspect }: {
                   <meshStandardMaterial color="#3772ae" metalness={.24} roughness={.3} />
                 </mesh>
               )))}
-              <group position={[0, .15, .15]}><RepairSignal broken={!repaired} /></group>
+              <group position={[0, .15, .15]}><RepairSignal broken={!repaired && !outputFault} /></group>
             </group>
+            {outputFault && <group position={[0, -.65, .6]}>
+              <mesh><boxGeometry args={[.55, .42, .22]} /><meshStandardMaterial color={signal} /></mesh>
+              <RepairSignal broken={!repaired} test warningColor="#ffbd51" />
+            </group>}
             <group position={[0, -.85, .5]}><RepairFlow broken={!repaired} color="#ffeb73" /></group>
           </>
         ) : (

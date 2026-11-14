@@ -69,7 +69,7 @@ export const levels: readonly LevelDefinition[] = Object.freeze([
     difficulty: 'very-hard',
     missionDays: 20,
     learningObjectives: ['Manage multiple emergencies without losing crew members.'],
-    plannedEmergencies: [{ kind: 'micrometeoroid-damage' }, { kind: 'simultaneous-failures' }],
+    plannedEmergencies: [{ kind: 'solar-radiation', approximateDay: 5 }, { kind: 'equipment-malfunction', approximateDay: 10 }, { kind: 'simultaneous-failures', approximateDay: 15 }],
     survivalOverrides: { dailyWear: 0.005, incidentProbability: 0.1, incidentDamage: 0.24 },
   }),
   defineLevel({
