@@ -86,9 +86,10 @@ export interface LunarEnvironmentProps {
   /** CSS class for the outer container. Give it a measurable height. */
   className?: string
   focus?: LunarCameraFocus
+  interactive?: boolean
 }
 
-export function LunarEnvironment({ children, className, focus }: LunarEnvironmentProps) {
+export function LunarEnvironment({ children, className, focus, interactive = true }: LunarEnvironmentProps) {
   return (
     <div className={className} style={className ? undefined : { height: 'min(75vh, 720px)' }}>
       <Canvas
@@ -115,7 +116,7 @@ export function LunarEnvironment({ children, className, focus }: LunarEnvironmen
         <Sky />
         <Surface />
         {children}
-        <CameraControls focus={focus} />
+        {interactive && <CameraControls focus={focus} />}
       </Canvas>
     </div>
   )

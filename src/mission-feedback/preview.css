@@ -51,3 +51,94 @@
   .mf-labels button { min-width: 2rem; min-height: 2rem; }
   .mf-notifications { top: 8rem; max-height: 34dvh; }
 }
+
+.moon-arrival {
+  position: fixed;
+  z-index: 40;
+  inset: 0;
+  overflow: hidden;
+  background: #080f1c radial-gradient(ellipse at center, #233d5a, transparent 70%);
+  color: #effcff;
+}
+.moon-arrival[data-approaching="true"] { animation: moon-handoff 3.6s ease-in both; }
+@keyframes moon-handoff { 0%, 76% { opacity: 1; } 100% { opacity: 0; } }
+.moon-arrival-scene { position: absolute; inset: 0 0 min(11rem, 32dvh); }
+.moon-arrival-note {
+  position: absolute;
+  inset: auto 1rem max(1rem, env(safe-area-inset-bottom));
+  text-align: center;
+}
+.moon-arrival-note h1 { font-size: clamp(1.55rem, 5vw, 2.5rem); font-weight: 850; }
+.moon-arrival-note p { margin: .25rem 0 .65rem; }
+.moon-arrival-note button {
+  padding: .75rem 1.25rem;
+  border-radius: .65rem;
+  background: #87ffe5;
+  color: #10283a;
+  font-weight: 800;
+  cursor: pointer;
+}
+.moon-arrival-note button:focus-visible { outline: 3px solid #ffe082; outline-offset: 4px; }
+.moon-arrival-fallback { display: grid; place-items: center; height: 100%; }
+.moon-arrival-fallback span {
+  width: min(60vw, 45dvh);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 30% 22%, transparent 30%, #080f1c9c 91%),
+    url('./assets/moon-lroc.jpg') center / auto 100%;
+  box-shadow: 0 0 2rem #a5c6fb55;
+  display: grid;
+  place-items: center;
+}
+.moon-arrival-fallback span::after {
+  content: '';
+  width: .85rem;
+  aspect-ratio: 1;
+  border: 3px solid #87ffe5;
+  border-radius: 50%;
+}
+[data-approaching="true"] .moon-arrival-fallback span { animation: moon-fallback-zoom 3.6s ease-in-out both; }
+@keyframes moon-fallback-zoom { to { transform: scale(5); } }
+.habitat-first-step { border-left: 3px solid #87ffe5; padding-inline-start: .6rem; }
+
+.habitat-arrival {
+  position: fixed;
+  inset: 0;
+  z-index: 39;
+  background: #16283c;
+  color: #effcff;
+  animation: habitat-reveal .7s ease-out both;
+}
+@keyframes habitat-reveal { from { opacity: 0; } }
+.habitat-arrival-scene { position: absolute; inset: 0; }
+.habitat-arrival-fallback {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  background: radial-gradient(ellipse at 50% 42%, #405b6e, #16283c 70%);
+}
+.habitat-arrival-fallback span { color: #ffd38b; font-size: clamp(4rem, 20vw, 10rem); }
+.habitat-arrival-note {
+  position: absolute;
+  inset: auto 1rem max(1rem, env(safe-area-inset-bottom));
+  max-width: 34rem;
+  margin-inline: auto;
+  padding: clamp(.8rem, 3vw, 1.5rem);
+  border: 1px solid #6ea3b0;
+  border-radius: 1rem;
+  background: #10283af5;
+  text-align: center;
+}
+.habitat-arrival-note h1 { font-size: clamp(1.45rem, 5vw, 2.3rem); font-weight: 850; }
+.habitat-arrival-note p { margin: .35rem 0 .85rem; }
+.habitat-arrival-note button {
+  padding: .7rem 1rem;
+  border-radius: .65rem;
+  background: #87ffe5;
+  color: #10283a;
+  font-weight: 800;
+  cursor: pointer;
+}
+.habitat-arrival-note button:focus-visible { outline: 3px solid #ffe082; outline-offset: 4px; }
+@media (prefers-reduced-motion: reduce) { .habitat-arrival { animation: none; } }
