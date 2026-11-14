@@ -1,9 +1,10 @@
+import type { CommanderObjective } from './commander'
 import type { DisasterFault } from './disaster'
 import { useEffect, useState } from 'react'
 import { useReducedMotion } from './RepairEffects'
 import type { Equipment } from '../engine/survival'
 
-export type RepairLessonId = Equipment | DisasterFault | 'greenhouseMaintenance' | 'roverFixed' | 'waterFixed' | 'recyclerMaintenance'
+export type RepairLessonId = Exclude<CommanderObjective, 'planning'> | Equipment | DisasterFault | 'greenhouseMaintenance' | 'roverFixed' | 'waterFixed' | 'recyclerMaintenance'
 type Lesson = {
   icon: string
   problem: string
@@ -30,6 +31,61 @@ const water: Lesson = {
 }
 
 export const repairLessons: Record<RepairLessonId, Lesson> = {
+  temperature: {
+    icon: '🌡️', problem: 'Temperature Trouble!', detail: 'The Home Center’s training display shows that its cooling loop has stopped.',
+    question: 'What should we check to help control the habitat temperature?',
+    choices: [
+      { label: '🌡️ Check the cooling-loop pump' },
+      { label: '💡 Turn up the cabin lights', why: 'Lights do not move heat out of the cabin.' },
+      { label: '📡 Turn the antenna', why: 'The antenna sends messages. The cooling loop moves heat.' },
+    ],
+    success: 'The practice temperature display is back in its safe range!',
+    science: { explanation: 'Spacecraft cooling loops carry heat away from equipment and living spaces.', url: 'https://ntrs.nasa.gov/citations/20080026002' },
+  },
+  signal: {
+    icon: '📡', problem: 'Signal Lost!', detail: 'The training console shows power but has lost its link to the relay.',
+    question: 'What should we check to restore our connection?',
+    choices: [
+      { label: '🔊 Turn up the speakers', why: 'Louder speakers do not restore a radio connection.' },
+      { label: '📡 Reconnect to the relay', },
+      { label: '🌡️ Change the cabin temperature', why: 'The cooling controls do not route messages.' },
+    ],
+    success: 'Signal restored! Mission Control can hear us again!',
+    science: { explanation: 'Lunar relay networks can pass messages between the Moon and Earth.', url: 'https://www.nasa.gov/communicating-with-missions/lunanet/' },
+  },
+  finalPower: {
+    icon: '⚡', problem: 'The array’s protection tripped!', detail: 'The array is aligned, but its protection disconnected the output after a fault.',
+    question: 'What should we check before bringing the array back online?',
+    choices: [
+      { label: '☀️ Tilt the array', why: 'The cells already face the Sun. Check why the output disconnected.' },
+      { label: '⚡ Check the protective circuit' },
+      { label: '🔋 Turn off the battery', why: 'The battery supplies stored energy while the array is down.' },
+    ],
+    success: 'The solar array can supply power again!',
+    science: { explanation: 'Generation and storage have different jobs in lunar power systems.', url: 'https://www.nasa.gov/moonbase-systems/' },
+  },
+  finalAir: {
+    icon: '🫧', problem: 'The oxygen machine has lost its water feed!', detail: 'The machine’s power light is on, but water isn’t reaching its intake in this exercise.',
+    question: 'What should we investigate to make oxygen again?',
+    choices: [
+      { label: '🫧 Check the generator’s water intake' },
+      { label: '💡 Turn up the room lights', why: 'Room lights do not feed water to the generator.' },
+      { label: '🌀 Open a cabin vent', why: 'Moving existing air does not give the generator water to split.' },
+    ],
+    success: 'The generator can make oxygen again. Check tomorrow’s reading.',
+    science: { explanation: 'Electrolysis uses electricity to split water into oxygen and hydrogen.', url: 'https://www.nasa.gov/reference/environmental-control-and-life-support-systems-eclss/' },
+  },
+  finalWater: {
+    icon: '💧', problem: 'The recycler’s valve is sending water the wrong way!', detail: 'The pump has power, but the marked routing valve diverts used water away from treatment.',
+    question: 'How should we route the used water?',
+    choices: [
+      { label: '🪣 Send it straight to the crew tank', why: 'Used water needs treatment and quality checks first.' },
+      { label: '🧰 Replace the working filter', why: 'The water never reaches the filter while the route is blocked.' },
+      { label: '💧 Restore the route through treatment' },
+    ],
+    success: 'Used water can reach treatment again!',
+    science: { explanation: 'Space station water is treated and checked before reaching the crew’s supply.', url: 'https://www.nasa.gov/reference/environmental-control-and-life-support-systems-eclss/' },
+  },
   shelterPanel: {
     icon: '🛡️', problem: 'Space Weather Alert!', detail: 'A solar particle storm is approaching. The yellow light marks a damaged shelter panel.',
     question: 'What should we check to help protect our astronauts?',

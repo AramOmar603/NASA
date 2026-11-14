@@ -5,11 +5,12 @@ import { PanelAlignment, RepairFlow, RepairSignal } from './RepairEffects'
 
 type LessonEquipment = 'solar' | 'oxygenPlant'
 
-export function EquipmentScene({ equipment, ready, repaired, outputFault = false, onInspect }: {
+export function EquipmentScene({ equipment, ready, repaired, outputFault = false, intakeFault = false, onInspect }: {
   equipment: LessonEquipment
   ready: boolean
   repaired: boolean
   outputFault?: boolean
+  intakeFault?: boolean
   onInspect?: () => void
 }) {
   const panel = useRef<Group>(null)
@@ -75,6 +76,10 @@ export function EquipmentScene({ equipment, ready, repaired, outputFault = false
               <circleGeometry args={[.23, 24]} />
               <meshBasicMaterial color={signal} />
             </mesh>
+            {intakeFault && <group position={[-.8, -.35, .91]}>
+              <mesh><boxGeometry args={[.4, .3, .2]} /><meshStandardMaterial color={repaired ? '#70ffc8' : '#ffad55'} /></mesh>
+              <RepairSignal broken={!repaired} test />
+            </group>}
             <group position={[0, .15, .82]}><RepairSignal broken={!repaired} /></group>
             <group position={[0, -.35, .76]}><RepairFlow broken={!repaired} /></group>
           </group>

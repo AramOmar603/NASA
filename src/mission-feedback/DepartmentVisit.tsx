@@ -1,3 +1,4 @@
+import type { CommanderObjective } from '../rookie-training/commander'
 import type { DisasterFault } from '../rookie-training/disaster'
 import type { SurvivalSession } from '../components/dashboard/survivalController'
 import { DepartmentInfo } from './DepartmentInfo'
@@ -17,7 +18,7 @@ const rooms = {
   'SHD-01': { color: '#ffb681', cue: 'Thick walls help protect the crew during space storms.' },
 } as const
 
-function UtilityRoom({ id, active, showFilter, damaged, disasterFault }: { id: keyof typeof rooms; active: boolean; showFilter: boolean; damaged: boolean; disasterFault?: DisasterFault }) {
+function UtilityRoom({ id, active, showFilter, damaged, disasterFault, commanderValve }: { id: keyof typeof rooms; active: boolean; showFilter: boolean; damaged: boolean; disasterFault?: DisasterFault; commanderValve?: boolean }) {
   const { color } = rooms[id]
   return (
     <Canvas camera={{ position: [3.5, 2.4, 5.8], fov: 50 }}
@@ -51,7 +52,11 @@ function UtilityRoom({ id, active, showFilter, damaged, disasterFault }: { id: k
           </mesh>
           <RepairSignal broken={damaged} test warningColor="#ffbd51" />
         </group>}
-        {showFilter && disasterFault !== 'waterPump' && <mesh position={[0, .85, -.37]} rotation={[0, 0, Math.PI / 2]}>
+        {commanderValve && <group position={[.62, 1.13, -.03]} rotation={[0, 0, damaged ? .65 : 0]}>
+          <mesh><boxGeometry args={[.52, .13, .18]} /><meshStandardMaterial color={damaged ? '#ffc461' : '#70ffc8'} /></mesh>
+          <RepairSignal broken={damaged} test />
+        </group>}
+        {showFilter && !commanderValve && disasterFault !== 'waterPump' && <mesh position={[0, .85, -.37]} rotation={[0, 0, Math.PI / 2]}>
           <cylinderGeometry args={[.27, .27, .62, 16]} />
           <meshStandardMaterial color={active ? '#70ffc8' : '#ffcc67'} emissive={active ? '#267b58' : '#af641d'} emissiveIntensity={.45} />
         </mesh>}
@@ -77,13 +82,15 @@ function UtilityRoom({ id, active, showFilter, damaged, disasterFault }: { id: k
   )
 }
 
-export function DepartmentVisit({ id, damaged, repairAvailable, repairBlockedReason, session, disasterFault, inspectionOnly = false, onRepair, onBack, onTour }: {
+export function DepartmentVisit({ id, damaged, repairAvailable, repairBlockedReason, session, disasterFault, commanderLesson, commanderResolved, inspectionOnly = false, onRepair, onBack, onTour }: {
   id: DepartmentId
   damaged: boolean
   repairAvailable: boolean
   repairBlockedReason?: string
   session: SurvivalSession
   disasterFault?: DisasterFault
+  commanderLesson?: Exclude<CommanderObjective, 'planning'>
+  commanderResolved?: boolean
   inspectionOnly?: boolean
   onRepair: () => void
   onBack: () => void
@@ -99,14 +106,14 @@ export function DepartmentVisit({ id, damaged, repairAvailable, repairBlockedRea
   const room = id === 'WTR-01' || id === 'PWR-01' || id === 'SHD-01' ? rooms[id] : undefined
   return (
     <section data-home={habitat} className={id === 'ROV-01' ? 'department-visit visit-exterior' : 'department-visit'} aria-label={departments[id].name}>
-      {habitat && <HabitatInterior checked={learned} onExit={onBack} onCheck={() => setLearned(true)} />}
+      {habitat && <HabitatInterior checked={learned} training={commanderLesson === 'temperature' || commanderLesson === 'signal' ? commanderLesson : undefined} trainingResolved={commanderResolved} onExit={onBack} onCheck={() => setLearned(true)} />}
       {equipment && (
         <div className="visit-equipment">
           <EquipmentScene equipment={id === 'SOL-01' ? 'solar' : 'oxygenPlant'}
-            ready={learned} repaired={!damaged} outputFault={disasterFault === 'powerConnection' || disasterFault === 'powerRelay'} onInspect={() => setLearned(true)} />
+            ready={learned} repaired={!damaged} outputFault={disasterFault === 'powerConnection' || disasterFault === 'powerRelay' || commanderLesson === 'finalPower'} intakeFault={commanderLesson === 'finalAir'} onInspect={() => setLearned(true)} />
         </div>
       )}
-      {room && <div className="visit-room"><UtilityRoom id={id as keyof typeof rooms} active={inspectionOnly ? !damaged : learned} showFilter={inspectionOnly} damaged={damaged} disasterFault={disasterFault} /></div>}
+      {room && <div className="visit-room"><UtilityRoom id={id as keyof typeof rooms} active={inspectionOnly ? !damaged : learned} showFilter={inspectionOnly} damaged={damaged} disasterFault={disasterFault} commanderValve={commanderLesson === 'finalWater'} /></div>}
       {!inspectionOnly && <div className="visit-card">
         {habitat && <p className="mission-wordmark">🌙 LAMOON</p>}
         <DepartmentInfo id={id} session={session} />

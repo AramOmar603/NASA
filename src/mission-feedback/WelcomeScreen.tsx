@@ -26,12 +26,14 @@ function WelcomeCamera() {
   return null
 }
 
-export function WelcomeScreen({ onExplore, onSkip, onLevelTwo, onLevelThree, onLevelFour }: {
+export function WelcomeScreen({ onExplore, onSkip, onLevelTwo, onLevelThree, onLevelFour, onLevelFive, commanderWon }: {
   onExplore: () => void
   onSkip: () => void
   onLevelTwo: () => void
   onLevelThree: () => void
   onLevelFour: () => void
+  onLevelFive: () => void
+  commanderWon: boolean
 }) {
   return (
     <main className="launch-welcome">
@@ -51,6 +53,7 @@ export function WelcomeScreen({ onExplore, onSkip, onLevelTwo, onLevelThree, onL
           <button type="button" onClick={onLevelTwo}>Level 2 · First Emergency</button>
           <button type="button" onClick={onLevelThree}>Level 3 · Mission Breakdown</button>
           <button type="button" onClick={onLevelFour}>Level 4 · Lunar Disaster</button>
+          <button type="button" onClick={onLevelFive}>{commanderWon ? '🏆 ' : ''}Level 5 · Ultimate Commander</button>
         </div>
       </section>
     </main>

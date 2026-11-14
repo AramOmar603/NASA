@@ -11,6 +11,10 @@ export function App() {
   const [entry, setEntry] = useState<'orbit' | 'approach' | 'habitat' | 'base'>('orbit')
   const [startInsideHome, setStartInsideHome] = useState(true)
   const [tourOpen, setTourOpen] = useState(false)
+  const [commanderWon, setCommanderWon] = useState(() => {
+    try { return typeof window !== 'undefined' && window.localStorage.getItem('lamoon-ultimate-commander') === 'complete' }
+    catch { return false }
+  })
   const [attempt, setAttempt] = useState(0)
 
   if (attempt > 0 && level === 1) {
@@ -37,6 +41,11 @@ export function App() {
       {(entry === 'habitat' || entry === 'base') && (
         <div inert={entry === 'habitat'}>
           <MissionFeedback key={attempt} trainingLevel={level} startAtHabitat showBaseOverview={entry === 'base'}
+            onComplete={level === 5 ? () => {
+              setCommanderWon(true)
+              try { window.localStorage.setItem('lamoon-ultimate-commander', 'complete') } catch { /* Keep the medal in this session. */ }
+            } : undefined}
+            onHome={() => { setAttempt(0); setEntry('orbit'); setLevel(1) }}
             onRestart={() => setAttempt((previous) => previous + 1)} />
         </div>
       )}
@@ -54,5 +63,6 @@ export function App() {
     onSkip={() => { setEntry('base'); setAttempt(1) }}
     onLevelTwo={() => { setLevel(2); setAttempt(1) }}
     onLevelThree={() => { setLevel(3); setAttempt(1) }}
-    onLevelFour={() => { setLevel(4); setAttempt(1) }} />
+    onLevelFour={() => { setLevel(4); setAttempt(1) }}
+    commanderWon={commanderWon} onLevelFive={() => { setLevel(5); setAttempt(1) }} />
 }

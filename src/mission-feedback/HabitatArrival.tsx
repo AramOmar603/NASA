@@ -1,3 +1,4 @@
+import { RepairFlow, RepairSignal } from '../rookie-training/RepairEffects'
 import { Canvas } from '@react-three/fiber'
 import { useEffect, useRef, useState } from 'react'
 
@@ -26,10 +27,10 @@ export function HabitatArrival({ active, onBegin }: { active: boolean; onBegin: 
   )
 }
 
-export function HabitatInterior({ checked = false, onCheck, onExit }: { checked?: boolean; onCheck?: () => void; onExit?: () => void }) {
+export function HabitatInterior({ checked = false, onCheck, onExit, training, trainingResolved = false }: { checked?: boolean; onCheck?: () => void; onExit?: () => void; training?: 'temperature' | 'signal'; trainingResolved?: boolean }) {
   return (
     <div className="habitat-arrival-scene" aria-hidden="true">
-      <Canvas camera={{ position: [0, 1.65, 4.35], fov: 60 }} dpr={[1, 1.5]} frameloop="demand"
+      <Canvas camera={{ position: [0, 1.65, 4.35], fov: 60 }} dpr={[1, 1.5]} frameloop={training ? 'always' : 'demand'}
         fallback={<div className="habitat-arrival-fallback"><span>◈</span></div>}>
         <color attach="background" args={['#1c2c42']} />
         <ambientLight intensity={1.25} color="#d6deff" />
@@ -87,8 +88,13 @@ export function HabitatInterior({ checked = false, onCheck, onExit }: { checked?
           <boxGeometry args={[1.65, .85, .22]} /><meshStandardMaterial color="#213b57" />
         </mesh>
         <mesh position={[0, 1.18, -2.72]} onClick={onCheck}>
-          <planeGeometry args={[1.32, .46]} /><meshBasicMaterial color={checked ? '#7ef4bd' : '#ffd38b'} />
+          <planeGeometry args={[1.32, .46]} /><meshBasicMaterial color={training ? trainingResolved ? '#7ef4bd' : '#ff835c' : checked ? '#7ef4bd' : '#ffd38b'} />
         </mesh>
+        {training && <group position={[0, 1.32, -2.68]}>
+          <RepairSignal broken={!trainingResolved} test />
+          {training === 'temperature' || trainingResolved ? <group scale={.45}><RepairFlow broken={!trainingResolved} /></group>
+            : <mesh rotation={[0, 0, .45]}><boxGeometry args={[.65, .06, .04]} /><meshBasicMaterial color="#ffecad" /></mesh>}
+        </group>}
         <mesh position={[0, 2.35, -3.08]}>
           <circleGeometry args={[.63, 48]} /><meshBasicMaterial color="#081525" />
         </mesh>
