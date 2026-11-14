@@ -5,11 +5,10 @@ import type { fieldAssignment } from './fieldAssignments'
 
 type Assignment = NonNullable<ReturnType<typeof fieldAssignment>>
 
-export function FieldAssignment({ task, session, onComplete, onSkip }: {
+export function FieldAssignment({ task, session, onComplete }: {
   task: Assignment
   session: SurvivalSession
   onComplete: () => void
-  onSkip: () => void
 }) {
   const [wrong, setWrong] = useState(false)
   const crew = session.state.crew.filter(member => member.health > 0).length
@@ -35,7 +34,6 @@ export function FieldAssignment({ task, session, onComplete, onSkip }: {
       {[...choices.slice(offset), ...choices.slice(0, offset)].map(({ label, index }) =>
         <button key={label} type="button" onClick={() => index === 0 ? onComplete() : setWrong(true)}>{label}</button>)}
     </div>
-    <button className="skip-mission" type="button" onClick={onSkip}>Skip Mission</button>
     {wrong && <p role="status">💡 {task.hint} Try another reading.</p>}
   </section>
 }

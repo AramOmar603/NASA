@@ -154,15 +154,5 @@
   color: #183327;
 }
 
-.field-report .skip-mission, .mission-hint .skip-mission {
-  background: #fffaf0;
-  color: #30243d;
-  border: 1px solid #c59c3b;
-  border-radius: .65rem;
-  padding: .45rem .65rem;
-  min-height: 2.5rem;
-  font-weight: 750;
-}
-.field-report .skip-mission { margin-top: .45rem; }
 .leave-mission-dialog { inset: 50% auto auto 50%; transform: translate(-50%, -50%); }
 .leave-mission-dialog::backdrop { background: #10182d99; }

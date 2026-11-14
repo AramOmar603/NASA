@@ -236,12 +236,12 @@ export const repairLessons: Record<RepairLessonId, Lesson> = {
 
 }
 
-export function RepairActivity({ id, onTest, onClose, onContinue, onHome, onSkip, skipWarning }: {
+export function RepairActivity({ id, onTest, onClose, onContinue, onHome, onSkipLevel, skipLevelLabel }: {
   id: RepairLessonId
   onTest: () => { complete: boolean; message?: string }
   onHome?: () => void
-  skipWarning?: string
-  onSkip?: () => void
+  skipLevelLabel?: string
+  onSkipLevel?: () => void
   onClose: () => void
   onContinue: () => void
 }) {
@@ -300,9 +300,8 @@ export function RepairActivity({ id, onTest, onClose, onContinue, onHome, onSkip
       {step === 'success' && lesson.science && <details><summary>NASA Science</summary>
         <p>{lesson.science.explanation}</p><a href={lesson.science.url} target="_blank" rel="noreferrer">Read the NASA source</a>
       </details>}
-      {onSkip && skipWarning && step !== 'success' && <p role="status">{skipWarning}</p>}
-      {(onHome || (onSkip && step !== 'success')) && <div className="field-choices">
-        {onSkip && step !== 'success' && <button type="button" onClick={onSkip}>Skip Mission</button>}
+      {(onHome || onSkipLevel) && <div className="field-choices">
+        {onSkipLevel && <button type="button" onClick={onSkipLevel}>{skipLevelLabel}</button>}
         {onHome && <button type="button" onClick={onHome}>🏠 Home</button>}
       </div>}
     </div>

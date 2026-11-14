@@ -56,12 +56,22 @@ export function App() {
 
   const nextLevel = level < 5 ? () => launchMission((level + 1) as TrainingLevel) : undefined
 
+  function skipLevel() {
+    try { window.localStorage.setItem(`lamoon-level-${level}-skipped`, 'true') } catch { /* Navigation still works without storage. */ }
+    if (level === 5) {
+      goHome()
+      return
+    }
+    launchMission((level + 1) as TrainingLevel)
+    setEntry('base')
+  }
+
   if (attempt > 0 && level === 1) {
     return <>
       {(entry === 'approach' || entry === 'base') && (
         <div hidden={tourOpen} inert={entry === 'approach'}>
           <MissionFeedback key={attempt} trainingLevel={1} startAtHabitat spawnInsideHabitat={startInsideHome || attempt > 1}
-            onHome={goHome} onNextLevel={nextLevel} onComplete={recordCompletion}
+            onHome={goHome} onSkipLevel={skipLevel} onNextLevel={nextLevel} onComplete={recordCompletion}
             onReplayIntro={() => setTourOpen(true)}
             onRestart={() => setAttempt((previous) => previous + 1)} />
         </div>
@@ -81,7 +91,7 @@ export function App() {
       {(entry === 'habitat' || entry === 'base') && (
         <div inert={entry === 'habitat'}>
           <MissionFeedback key={attempt} trainingLevel={level} startAtHabitat showBaseOverview={entry === 'base'}
-            onHome={goHome} onNextLevel={nextLevel} onComplete={recordCompletion}
+            onHome={goHome} onSkipLevel={skipLevel} onNextLevel={nextLevel} onComplete={recordCompletion}
             onRestart={() => setAttempt((previous) => previous + 1)} />
         </div>
       )}

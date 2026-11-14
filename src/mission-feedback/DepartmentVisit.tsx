@@ -82,7 +82,7 @@ function UtilityRoom({ id, active, showFilter, damaged, disasterFault, commander
   )
 }
 
-export function DepartmentVisit({ id, damaged, repairAvailable, repairBlockedReason, session, disasterFault, commanderLesson, commanderResolved, assignment, inspectionOnly = false, onRepair, onBack, onHome, onTour }: {
+export function DepartmentVisit({ id, damaged, repairAvailable, repairBlockedReason, session, disasterFault, commanderLesson, commanderResolved, assignment, inspectionOnly = false, onRepair, onBack, onHome, onSkipLevel, skipLevelLabel, onTour }: {
   id: DepartmentId
   damaged: boolean
   repairAvailable: boolean
@@ -95,13 +95,15 @@ export function DepartmentVisit({ id, damaged, repairAvailable, repairBlockedRea
   inspectionOnly?: boolean
   onRepair: () => void
   onBack: () => void
+  onSkipLevel?: () => void
+  skipLevelLabel?: string
   onHome?: () => void
   onTour?: () => void
 }) {
   const [learned, setLearned] = useState(false)
   const habitat = id === 'HAB-01'
   if (id === 'BIO-01') return (
-    <GreenhouseInterior assignment={assignment} departmentInfo={<DepartmentInfo id={id} session={session} greenhouseFault={damaged} />} damaged={damaged} inspectionOnly={inspectionOnly} onClose={onBack} onHome={onHome} onStartRepair={repairAvailable ? onRepair : undefined} />
+    <GreenhouseInterior assignment={assignment} departmentInfo={<DepartmentInfo id={id} session={session} greenhouseFault={damaged} />} damaged={damaged} inspectionOnly={inspectionOnly} onClose={onBack} onHome={onHome} onSkipLevel={onSkipLevel} skipLevelLabel={skipLevelLabel} onStartRepair={repairAvailable ? onRepair : undefined} />
   )
 
   const equipment = id === 'OXY-01' || id === 'SOL-01'
@@ -129,6 +131,7 @@ export function DepartmentVisit({ id, damaged, repairAvailable, repairBlockedRea
           {habitat && onTour && <button className="visit-tour" type="button" onClick={onTour}>
             <span aria-hidden="true">🚀</span> Take the Base Tour
           </button>}
+          {onSkipLevel && <button type="button" onClick={onSkipLevel}>{skipLevelLabel}</button>}
           {onHome && <button type="button" onClick={onHome}>🏠 Home</button>}
           <button autoFocus type="button" onClick={onBack}>{habitat ? '🚪 Explore Moon Base' : '↩ Back to Base'}</button>
         </div>
