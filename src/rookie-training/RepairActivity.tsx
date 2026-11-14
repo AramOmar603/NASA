@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useReducedMotion } from './RepairEffects'
 import type { Equipment } from '../engine/survival'
 
-export type RepairLessonId = Equipment | 'roverFixed' | 'waterFixed' | 'recyclerMaintenance'
+export type RepairLessonId = Equipment | 'greenhouseMaintenance' | 'roverFixed' | 'waterFixed' | 'recyclerMaintenance'
 type Lesson = {
   icon: string
   problem: string
@@ -30,7 +30,7 @@ const water: Lesson = {
 
 export const repairLessons: Record<RepairLessonId, Lesson> = {
   greenhouse: {
-    icon: '🌱', problem: 'Oh no! Our plants are thirsty!', detail: 'The highlighted watering line has stopped and the leaves are drooping.',
+    icon: '🌱', problem: 'Our plants aren’t getting enough water!', detail: 'The highlighted watering line has stopped and the leaves are drooping.',
     question: 'What should we do to help the plants?',
     choices: [
       { label: '☀️ Add more light', why: 'Light helps plants grow, but their roots are still dry.' },
@@ -38,6 +38,17 @@ export const repairLessons: Record<RepairLessonId, Lesson> = {
       { label: '🔧 Check a different machine', why: 'That leaves the watering line blocked. The roots still need water.' },
     ],
     success: 'Water is flowing again, and the plants are perking up!',
+  },
+  greenhouseMaintenance: {
+    icon: '🌱', problem: 'The greenhouse has a new fault!',
+    detail: 'The watering system needs maintenance after new damage.',
+    question: 'What should we check first to get water back to the roots?',
+    choices: [
+      { label: '💡 Check the grow lights', why: 'The lights do not move water to the roots.' },
+      { label: '🧰 Check the irrigation line' },
+      { label: '🪴 Move the plants', why: 'Moving the plants leaves the damaged watering system in place.' },
+    ],
+    success: 'The irrigation line is working again!',
   },
   solar: {
     icon: '☀️', problem: 'The solar panel is out of line!', detail: 'The highlighted panel is tilted away from the sunlight.',

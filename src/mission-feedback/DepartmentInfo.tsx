@@ -22,11 +22,11 @@ export function departmentReadings(id: DepartmentId, { state, flows, config }: S
   }
 }
 
-export function DepartmentInfo({ id, session }: { id: DepartmentId; session: SurvivalSession }) {
+export function DepartmentInfo({ id, session, greenhouseFault }: { id: DepartmentId; session: SurvivalSession; greenhouseFault?: boolean }) {
   const department = departments[id]
   const condition = 'equipment' in department ? session.state.condition[department.equipment] : undefined
   const offline = condition !== undefined && condition <= session.config.failureThreshold
-  const damaged = condition !== undefined && condition < 1
+  const damaged = greenhouseFault ?? (condition !== undefined && condition < 1)
   const status = offline ? 'Offline' : damaged ? 'Damaged' : condition !== undefined ? 'Working'
     : id === 'ROV-01' ? 'Rover condition is not tracked' : id === 'PWR-01' ? 'Battery status' : 'Crew status'
 

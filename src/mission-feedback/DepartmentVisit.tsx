@@ -83,7 +83,7 @@ export function DepartmentVisit({ id, damaged, repairAvailable, session, inspect
   const [learned, setLearned] = useState(false)
   const habitat = id === 'HAB-01'
   if (id === 'BIO-01') return (
-    <GreenhouseInterior departmentInfo={<DepartmentInfo id={id} session={session} />} damaged={damaged} inspectionOnly={inspectionOnly} onClose={onBack} onStartRepair={repairAvailable ? onRepair : undefined} />
+    <GreenhouseInterior departmentInfo={<DepartmentInfo id={id} session={session} greenhouseFault={damaged} />} damaged={damaged} inspectionOnly={inspectionOnly} onClose={onBack} onStartRepair={repairAvailable ? onRepair : undefined} />
   )
 
   const equipment = id === 'OXY-01' || id === 'SOL-01'
