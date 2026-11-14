@@ -67,7 +67,7 @@
 .mission-popover {
   position: absolute;
   z-index: 13;
-  right: .65rem;
+  inset-inline-end: .65rem;
   bottom: calc(max(.65rem, env(safe-area-inset-bottom)) + 4.25rem);
   width: min(30rem, calc(100% - 1.3rem));
   max-height: calc(100dvh - 12rem);
@@ -101,4 +101,8 @@
   .mission-status dd { font-size: .82rem; }
   .mission-dock { gap: .3rem; }
   .mission-dock .lamoon-button { padding-inline: .45rem; font-size: .9rem; }
+}
+
+@media (max-width: 600px) {
+  .mission-popover { inset-inline: .65rem; width: auto; }
 }

@@ -12,16 +12,23 @@ it('welcomes the player into the seven-day Rookie Astronaut mission at the root'
   expect(html).toContain('Skip Tour &amp; Start Playing')
 })
 
-it('keeps the main actions and live resources visible without opening a building card', () => {
-  const html = renderToStaticMarkup(<MissionFeedback trainingLevel={2} startAtHabitat />)
+it.each([[1, 7], [2, 10]] as const)(
+  'renders the Level %i Moon base with one status bar and one action dock',
+  (level, missionDays) => {
+    const html = renderToStaticMarkup(<MissionFeedback trainingLevel={level} startAtHabitat />)
 
-  expect(html).toContain('aria-label="Mission status"')
-  expect(html).toContain('<dd>0 / 10</dd>')
-  expect(html).toContain('Electricity')
-  expect(html).toContain('▶ Next Day')
-  expect(html).toContain('🏠 Home')
-  expect(html).toContain('🗺️ Map')
-  expect(html).toContain('❓ Help')
-  expect(html).not.toContain('mission-building-card')
-  expect(html).not.toContain('Mission log')
-})
+    expect(html).toContain('aria-label="Mission status"')
+    expect(html).toContain(`<dd>0 / ${missionDays}</dd>`)
+    expect(html).toContain('Electricity')
+    expect(html).toContain('▶ Next Day')
+    expect(html).toContain('🏠 Home')
+    expect(html).toContain('🗺️ Map')
+    expect(html).toContain('❓ Help')
+    expect(html).not.toContain('mission-building-card')
+    expect(html).not.toContain('Mission log')
+    expect(html).toContain('class="mission-dock"')
+    expect(html).not.toContain('lg-survival-controls')
+    expect(html).not.toContain('lg-building')
+    expect(html).not.toContain('LUNARIS')
+  },
+)
