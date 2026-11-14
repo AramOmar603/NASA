@@ -1,6 +1,6 @@
 import { Suspense, useEffect, useMemo } from 'react'
 import { useLoader } from '@react-three/fiber'
-import { AdditiveBlending, CanvasTexture, SRGBColorSpace, TextureLoader } from 'three'
+import { AdditiveBlending, CanvasTexture, SRGBColorSpace, TextureLoader, Vector3 } from 'three'
 import { randomSequence } from './terrain'
 import earthMap from './assets/earth.jpg'
 
@@ -42,39 +42,71 @@ function createSunGlow() {
 
 const sunPosition = sunlightPosition.map((coordinate) => coordinate * 8) as [number, number, number]
 
-const atmosphereVertex = `
+const earthPosition = [-520, 255, -1640] as const
+// Use the Sun's bearing from Earth, rather than the light aimed at the outpost.
+const earthSunDirection = new Vector3(...sunPosition).sub(new Vector3(...earthPosition)).normalize()
+
+const earthVertex = `
+  varying vec2 textureUv;
   varying vec3 surfaceNormal;
   varying vec3 viewDirection;
   void main() {
     vec4 viewPosition = modelViewMatrix * vec4(position, 1.0);
+    textureUv = uv;
     surfaceNormal = normalMatrix * normal;
     viewDirection = -viewPosition.xyz;
     gl_Position = projectionMatrix * viewPosition;
   }
 `
 
+const earthFragment = `
+  uniform sampler2D earthMap;
+  uniform vec3 sunDirection;
+  varying vec2 textureUv;
+  varying vec3 surfaceNormal;
+
+  void main() {
+    vec3 normal = normalize(surfaceNormal);
+    vec3 sunlight = (viewMatrix * vec4(sunDirection, 0.0)).xyz;
+    float incidence = dot(normal, sunlight);
+    float daylight = smoothstep(-0.12, 0.78, incidence);
+    vec3 surface = texture2D(earthMap, textureUv).rgb;
+    // Keep oceans and continents readable in the shadow while retaining the terminator.
+    vec3 fill = vec3(0.31, 0.36, 0.44) * (1.0 - daylight);
+    gl_FragColor = vec4(surface * (fill + daylight * 1.16), 1.0);
+    #include <colorspace_fragment>
+  }
+`
+
 const atmosphereFragment = `
+  uniform vec3 sunDirection;
   varying vec3 surfaceNormal;
   varying vec3 viewDirection;
   void main() {
-    float facing = max(dot(normalize(surfaceNormal), normalize(viewDirection)), 0.0);
-    float rim = pow(1.0 - facing, 4.5);
-    gl_FragColor = vec4(0.23, 0.57, 1.0, rim * 0.64);
+    vec3 normal = normalize(surfaceNormal);
+    vec3 sunlight = (viewMatrix * vec4(sunDirection, 0.0)).xyz;
+    float facing = max(dot(normal, normalize(viewDirection)), 0.0);
+    float rim = pow(1.0 - facing, 5.0);
+    float daylight = smoothstep(-0.2, 0.65, dot(normal, sunlight));
+    gl_FragColor = vec4(0.24, 0.58, 1.0, rim * mix(0.14, 0.52, daylight));
   }
 `
 
 function Earth() {
   const texture = useLoader(TextureLoader, earthMap)
-  texture.colorSpace = SRGBColorSpace
+  const uniforms = useMemo(() => {
+    texture.colorSpace = SRGBColorSpace
+    return { earthMap: { value: texture }, sunDirection: { value: earthSunDirection } }
+  }, [texture])
   return (
-    <group position={[-520, 255, -1640]}>
+    <group position={earthPosition}>
       <mesh rotation={[0.14, 1.9, -0.26]}>
         <sphereGeometry args={[46, 48, 32]} />
-        <meshStandardMaterial map={texture} roughness={0.92} />
+        <shaderMaterial uniforms={uniforms} vertexShader={earthVertex} fragmentShader={earthFragment} />
       </mesh>
       <mesh>
         <sphereGeometry args={[47.2, 48, 32]} />
-        <shaderMaterial vertexShader={atmosphereVertex} fragmentShader={atmosphereFragment}
+        <shaderMaterial uniforms={uniforms} vertexShader={earthVertex} fragmentShader={atmosphereFragment}
           transparent depthWrite={false} blending={AdditiveBlending} />
       </mesh>
     </group>
