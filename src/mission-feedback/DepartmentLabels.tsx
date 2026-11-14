@@ -23,10 +23,11 @@ export function useLabelButtons() {
   return useRef<Partial<Record<DepartmentId, HTMLButtonElement>>>({}).current
 }
 
-export function DepartmentLabels({ buttons, selected, offline, onSelect }: {
+export function DepartmentLabels({ buttons, selected, offline, attention, onSelect }: {
   buttons: Partial<Record<DepartmentId, HTMLButtonElement>>
   selected?: string
   offline: ReadonlySet<string>
+  attention?: ReadonlySet<string>
   onSelect: (id: DepartmentId) => void
 }) {
   return <div className="mf-labels" aria-label="Lunar departments">
@@ -36,7 +37,7 @@ export function DepartmentLabels({ buttons, selected, offline, onSelect }: {
         if (button) buttons[id] = button
         else delete buttons[id]
       }} aria-label={name + (offline.has(id) ? ', offline' : '')} aria-pressed={selected === id}
-        data-department={id} data-offline={offline.has(id)} onClick={() => onSelect(id)}>
+        data-department={id} data-offline={offline.has(id)} data-attention={attention?.has(id)} onClick={() => onSelect(id)}>
         <span className="mission-icon" aria-hidden="true">{icon}</span>
       </button>
     })}

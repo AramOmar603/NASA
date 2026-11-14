@@ -99,8 +99,6 @@
   box-shadow: none;
   font-size: clamp(.92rem, 2vw, 1.16rem);
 }
-.rookie-guided .rookie-guide[data-tone="retry"] { background: #452c3f; border-color: #ffd884; }
-.rookie-guided .rookie-guide[data-tone="success"] { background: #123d32; border-color: #83f1ba; }
 .rookie-guided .rookie-guide button {
   margin-top: .7rem;
   min-height: 2.75rem;
@@ -208,3 +206,57 @@
 .breakdown-activity summary { cursor: pointer; font-weight: 750; }
 .breakdown-activity a { color: #9dffdf; text-decoration: underline; }
 .breakdown-activity { z-index: 27; }
+
+/* Repair lessons use the same light cards and color cues as mission alerts. */
+.equipment-activity, .rookie-interior .rookie-guide, .rookie-workbench {
+  background: #fffdf6;
+  color: #262039;
+  border: 3px solid #f4c650;
+  border-radius: 1.25rem;
+  box-shadow: 0 .65rem 1.6rem #23153644;
+}
+.equipment-activity h2, .rookie-guide h2 { font-size: clamp(1.2rem, 3vw, 1.65rem); }
+.equipment-note, .rookie-interior .rookie-guide p {
+  background: #fff1b8;
+  color: #322344;
+  border-radius: .75rem;
+  border: 0;
+  padding: .65rem;
+  box-shadow: none;
+}
+.equipment-note[data-step="retry"], .rookie-interior .rookie-guide[data-tone="retry"] p { background: #efe0ff; }
+.equipment-note[data-step="done"], .rookie-interior .rookie-guide[data-tone="success"] p { background: #d6f8c9; }
+.rookie-interior .rookie-guide[data-tone="retry"] { background: #fffdf6; border-color: #b889e0; }
+.rookie-interior .rookie-guide[data-tone="success"] { background: #fffdf6; border-color: #75c675; }
+.equipment-activity button, .equipment-activity .equipment-target, .rookie-interior .rookie-guide button,
+.rookie-interior .rookie-tools button, .rookie-interior .rookie-workbench > button {
+  background: #ffe990;
+  border-color: #d2a025;
+  color: #262039;
+  min-height: 2.75rem;
+}
+.rookie-interior .rookie-tools button:nth-child(2) { background: #ebd8ff; border-color: #ae84d5; }
+.rookie-interior .rookie-tools button:nth-child(3) { background: #ffd9ce; border-color: #df8b77; }
+.rookie-interior .rookie-tools small:last-child { color: #3c3046; }
+.equipment-choices button[aria-pressed="true"], .equipment-choices button:hover:not(:disabled) {
+  background: #d6f8c9;
+  border-color: #639b51;
+}
+.equipment-activity .equipment-retry { background: #efe0ff; border-color: #ae84d5; }
+.equipment-reading, .breakdown-activity details { background: #def2fc; color: #24334f; border-radius: .75rem; padding: .6rem; }
+.breakdown-activity a { color: #41327b; }
+.breakdown-diagram li { background: #f0e6ff; }
+.breakdown-diagram li[data-highlight="true"] { background: #ffdbcf; }
+.equipment-activity .mission-icon { background: #fff1b8; color: #262039; font-size: 1.35em; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .equipment-note[data-step="done"], .rookie-guide[data-tone="success"] { animation: repair-cheer .35s ease-out both; }
+  @keyframes repair-cheer { from { transform: scale(.96); } 65% { transform: scale(1.025); } }
+}
+
+.rookie-interior .rookie-guide { width: min(30rem, 100%); padding: .7rem; }
+.rookie-interior header:has(.rookie-guide) { align-items: flex-start; }
+.rookie-interior header:has(.rookie-guide) > button { flex-shrink: 0; }
+@media (max-width: 500px) {
+  .rookie-interior header:has(.rookie-guide) { flex-direction: column-reverse; align-items: flex-end; }
+}

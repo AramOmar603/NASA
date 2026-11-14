@@ -59,6 +59,7 @@ export function GreenhouseInterior({ guided = false, exploring = false, damaged 
 }) {
   const [inspected, inspect] = useState(false)
   const [selected, select] = useState<(typeof tools)[number]['id']>()
+  const [toolApplied, setToolApplied] = useState(false)
   const [retry, setRetry] = useState(false)
   const [restored, restore] = useState(false)
   const [message, tell] = useState(exploring ? '🌱 Welcome to the greenhouse. Check a plant bed to learn how crops grow.' : '🌱 Oh no! Tap the thirsty plants.')
@@ -68,8 +69,8 @@ export function GreenhouseInterior({ guided = false, exploring = false, damaged 
   const drag = useRef<{ start: number; yaw: number } | null>(null)
 
   const heading = restored ? 'Crops rescued!'
-    : retry ? 'The crops are still thirsty'
-      : selected ? '3 / 3 · Try your tool'
+    : retry ? '🤔 Good try!'
+      : toolApplied ? '3 / 3 · Test your tool' : selected ? 'Use your tool on the bed'
         : inspected ? '2 / 3 · Pick a tool' : '1 / 3 · Check the weak plants'
   const cardText = !inspected ? 'The wilted plants need help. Tap the marked bed to look closer.' : message
 
@@ -79,25 +80,26 @@ export function GreenhouseInterior({ guided = false, exploring = false, damaged 
       return
     }
     if (restored || retry) return
-    if (!inspected || !selected) {
+    if (!inspected) {
       inspect(true)
-      tell(guided ? '💧 The soil is dry and the leaves are drooping. Which tool gives the roots a drink?' : '💧 These plants are thirsty. Pick a tool!')
-    } else if (selected !== 'water') {
-      if (guided) {
-        setRetry(true)
-        tell(wrongToolFeedback[selected])
-      } else {
-        select(undefined)
-        tell('🤔 Try another tool. These plants need water!')
-      }
-    } else if (unavailable) {
-      tell(unavailable)
-    } else if (onRepair()) {
-      restore(true)
-      tell(guided ? '✅ Water reached the roots. The crops can stand tall and grow again!' : '✅ Great job! Water is flowing again.')
-    } else {
-      tell('The bed still needs help.')
+      setLook(0)
+      setDepth(4.2)
+      tell('The soil is dry and the leaves droop. Pick a tool for the roots.')
+    } else if (selected) {
+      setToolApplied(true)
+      tell('Tool ready at the plant bed. Press Test to see what happens.')
     }
+  }
+
+  function testTool() {
+    if (!toolApplied || !selected || restored || retry) return
+    if (selected === 'water' && !unavailable && onRepair()) {
+      restore(true)
+      tell('💧 Hooray! Water is flowing again!')
+      return
+    }
+    setRetry(true)
+    tell(selected === 'water' ? unavailable ?? 'The bed still needs help. Check your spare kits.' : wrongToolFeedback[selected])
   }
 
   return <section className={guided ? "rookie-interior rookie-guided" : "rookie-interior"} role="dialog" aria-modal="true" aria-label="Greenhouse interior">
@@ -144,13 +146,15 @@ export function GreenhouseInterior({ guided = false, exploring = false, damaged 
       useBed()
     }}>{selected && inspected ? '💧 Use tool here' : '↓ Thirsty plants'}</button>}
     <header>
-      {departmentInfo ? <div className="greenhouse-info">{departmentInfo}<p role="status">{message}</p></div> : guided ? <div className="rookie-guide" data-tone={restored ? 'success' : retry ? 'retry' : 'step'}>
+      {departmentInfo ? <div className="greenhouse-info">{departmentInfo}<p role="status">{message}</p></div> : !exploring ? <div className="rookie-guide" data-tone={restored ? 'success' : retry ? 'retry' : 'step'}>
         <div role="status"><h2>{heading}</h2><p>{cardText}</p></div>
         {retry && <button type="button" onClick={() => {
           select(undefined)
           setRetry(false)
+          setToolApplied(false)
           tell('Take another look at the tools. Which one gives the roots a drink?')
         }}>Try Again</button>}
+        {restored && <button type="button" onClick={onClose}>⭐ Continue</button>}
       </div> : <p role="status">{message}</p>}
       <button autoFocus type="button" onClick={onClose}>Back to Base</button>
     </header>
@@ -167,13 +171,15 @@ export function GreenhouseInterior({ guided = false, exploring = false, damaged 
           {repairAvailable && <button type="button" onClick={onStartRepair}>Start repair</button>}
         </> : <>
           <button type="button" disabled={restored || retry} onClick={useBed}>{inspected && selected ? 'Use tool on plant bed' : '🌱 Check plant bed'}</button>
-          <div className="rookie-tools" aria-label="Tool station">
+          {toolApplied && !restored && !retry && <button type="button" onClick={testTool}>Test</button>}
+          {!restored && !retry && <div className="rookie-tools" aria-label="Tool station">
             {tools.map(({ id, icon, name, hint }) => <button key={id} type="button" title={hint} aria-label={name}
               aria-pressed={selected === id} disabled={!inspected || restored || retry} onClick={() => {
                 select(id)
+                setToolApplied(false)
                 tell(guided && id === 'water' ? '💧 Good idea! Water helps thirsty plants. Use it on the marked bed.' : 'Tap the thirsty bed to use your tool.')
               }}><span className="mission-icon" aria-hidden="true">{icon}</span><small>{name}</small><small>{hint}</small></button>)}
-          </div>
+          </div>}
         </>}
       </div>
     </footer>

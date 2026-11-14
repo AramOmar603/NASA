@@ -4,11 +4,13 @@ const lessons = {
   roverFixed: {
     title: '🚙 Moon Explorer wheel',
     instruction: 'The wheel sticks. Look at the dusty cover near its axle.',
+    inspect: 'Check the wheel cover',
+    finding: 'Dust slipped past the seal. Protect the axle so the wheel can turn freely.',
     diagram: ['Moon dust', '⚠ Wheel cover', 'Wheel'],
     fixed: ['Dust outside', '✓ Sealed cover', 'Wheel turns'],
     choices: [
-      ['🛡️ Fit a clean dust seal', ''],
-      ['💧 Add water', 'Water won’t keep abrasive dust out of the wheel. Try protecting the axle.'],
+      ['🛡️ Clear the trapped dust and fit a seal', ''],
+      ['💧 Wipe only the wheel rim', 'The rim looks cleaner, but dust is still trapped near the axle.'],
       ['🔋 Swap the battery', 'The wheel is stuck at the axle. A new battery won’t clear the dust.'],
     ],
     success: 'The wheel turns again! The clean seal helps keep dust out.',
@@ -18,6 +20,8 @@ const lessons = {
   priorityLearned: {
     title: '🧰 Which repair comes first?',
     instruction: 'There’s a water fault and only one kit set aside. Which repair should get it?',
+    inspect: 'Check the reserved kit',
+    finding: 'The crew needs clean water every day. Choose where to use the kit.',
     diagram: ['🧑‍🚀 Crew', '🧰 One kit', '💧 Clean water'],
     fixed: ['🧑‍🚀 Crew', '✓ Kit reserved', '💧 Clean water'],
     choices: [
@@ -31,12 +35,14 @@ const lessons = {
   waterFixed: {
     title: '💧 Water recycler',
     instruction: 'Follow the water. The filter is blocked, so used water can’t move through this training system.',
+    inspect: 'Inspect the filter',
+    finding: 'Water reaches the filter but stops there. Choose a way to clear the path.',
     diagram: ['Used water', '⚠ Blocked filter', 'No clean flow'],
     fixed: ['Used water', '✓ New filter', 'Clean water'],
     choices: [
       ['🧰 Replace the blocked filter', ''],
       ['💧 Send more used water', 'More water still can’t pass through a blocked filter.'],
-      ['🔌 Switch on a light', 'A light helps you see the filter, but it doesn’t clear the blockage.'],
+      ['🔌 Empty the clean-water tank', 'An empty tank has room for clean water, but the blocked filter still stops the flow.'],
     ],
     success: 'The recycler is working again. Advance a day to see the new water reading.',
     science: 'NASA reuses water from sources such as cabin humidity and crew wastewater. Real systems use several treatment steps.',
@@ -51,12 +57,13 @@ export function BreakdownActivity({ objective, completed, onTest, onClose, onCon
   onClose: () => void
   onContinue?: () => void
 }) {
+  const [inspected, setInspected] = useState(false)
   const [choice, setChoice] = useState<number>()
   const [feedback, setFeedback] = useState('')
   const lesson = lessons[objective]
 
   function test() {
-    if (choice === undefined || completed || feedback) return
+    if (!inspected || choice === undefined || completed || feedback) return
     const explanation = lesson.choices[choice][1]
     if (explanation) setFeedback(explanation)
     else if (!onTest()) setFeedback('This repair couldn’t be completed. Check your kit and try again.')
@@ -64,15 +71,17 @@ export function BreakdownActivity({ objective, completed, onTest, onClose, onCon
 
   return <section className="equipment-activity breakdown-activity" aria-label={lesson.title}>
     <header><h2>{lesson.title}</h2><button autoFocus type="button" onClick={onClose}>Back to Base</button></header>
-    <p className="equipment-note" role="status" data-step={completed ? 'done' : feedback ? 'retry' : 'choose'}>
-      {completed ? lesson.success : feedback || lesson.instruction}
+    <p className="equipment-note" role="status" data-step={completed ? 'done' : feedback ? 'retry' : inspected ? 'choose' : 'inspect'}>
+      {completed ? lesson.success : feedback || (inspected ? lesson.finding : lesson.instruction)}
     </p>
     <ol className="breakdown-diagram" aria-label="Component diagram">
-      {(completed ? lesson.fixed : lesson.diagram).map((part, index) => <li key={part} data-highlight={index === 1}>{part}</li>)}
+      {(completed ? lesson.fixed : lesson.diagram).map((part, index) => <li key={part} data-highlight={index === 1}>{index === 1 && !completed
+        ? <button type="button" aria-pressed={inspected} onClick={() => setInspected(true)}>{lesson.inspect}</button>
+        : part}</li>)}
     </ol>
-    {completed ? onContinue && <button type="button" onClick={onContinue}>Check the water recycler</button>
+    {completed ? <button type="button" onClick={onContinue ?? onClose}>⭐ {onContinue ? 'Check the water recycler' : 'Continue'}</button>
       : feedback ? <button className="equipment-retry" type="button" onClick={() => { setChoice(undefined); setFeedback('') }}>Retry</button>
-      : <>
+      : inspected && <>
         <div className="equipment-choices" role="group" aria-label="Choose a solution">
           {lesson.choices.map(([label], index) => <button key={label} type="button" aria-pressed={choice === index} onClick={() => setChoice(index)}>{label}</button>)}
         </div>

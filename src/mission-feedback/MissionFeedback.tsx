@@ -1,7 +1,7 @@
 import { BreakdownActivity } from '../rookie-training/BreakdownActivity'
 import { advanceBreakdown, breakdownBlock, initialBreakdown, resolveBreakdownObjective, roverDay, waterDay } from '../rookie-training/breakdown'
 import { useEffect, useRef, useState } from 'react'
-import { advanceRookie, createRookieSession } from '../rookie-training/session'
+import { advanceRookie, createRookieSession, hasPendingTraining } from '../rookie-training/session'
 import type { TrainingLevel } from '../rookie-training/session'
 import { EquipmentActivity } from '../rookie-training/EquipmentActivity'
 import { GreenhouseInterior } from '../rookie-training/GreenhouseInterior'
@@ -88,13 +88,17 @@ export function MissionFeedback({ rookie = false, trainingLevel, startAtHabitat 
   const { state, config, flows, events } = session
   const view = { ...dashboardState(state), buildings: outpost }
   const failures = problems.filter(({ offline }) => offline)
+  const needsAttention = new Set(problems.map(({ equipment }) => facilityFor(equipment).id))
   const offline = new Set(failures.map(({ equipment }) => facilityFor(equipment).id))
   const pending = problems.filter(({ index, equipment }) => !postponed.has(index)
     && !(level === 3 && state.tick >= waterDay && !breakdown.waterFixed && equipment === 'recycler'))
   const blockReason = level === 3 ? breakdownBlock(state.tick, breakdown) : undefined
   const roverPending = level === 3 && state.tick >= roverDay && !breakdown.roverFixed
   const waterPending = level === 3 && state.tick >= waterDay && !breakdown.waterFixed
-  if (roverPending) offline.add('ROV-01')
+  if (roverPending) {
+    offline.add('ROV-01')
+    needsAttention.add('ROV-01')
+  }
   const canPlay = state.outcome === 'active'
   const outcome = canPlay ? undefined : {
     status: state.outcome as 'success' | 'failure',
@@ -113,11 +117,6 @@ export function MissionFeedback({ rookie = false, trainingLevel, startAtHabitat 
     setSession(next)
     setMessage('')
     if (level && next.state.outcome === 'success') onComplete?.()
-  }
-
-  function hasLesson(equipment: Equipment) {
-    return (level === 1 && equipment === 'greenhouse')
-      || (level === 2 && (equipment === 'solar' || equipment === 'oxygenPlant'))
   }
 
   function arrive(id: DepartmentId) {
@@ -171,7 +170,7 @@ export function MissionFeedback({ rookie = false, trainingLevel, startAtHabitat 
   }
 
   function repair(equipment: Equipment, lessonPassed = false) {
-    if (hasLesson(equipment) && !lessonPassed) {
+    if (hasPendingTraining(level, equipment, session) && !lessonPassed) {
       repairApplied.current = false
       setTraining(equipment)
       return
@@ -203,7 +202,7 @@ export function MissionFeedback({ rookie = false, trainingLevel, startAtHabitat 
           </mesh>}
           <LabelPositions buttons={buttons} />
         </LunarEnvironment>
-        <DepartmentLabels buttons={buttons} selected={selected} offline={offline} onSelect={explore} />
+        <DepartmentLabels buttons={buttons} selected={selected} offline={offline} attention={needsAttention} onSelect={explore} />
       </div>
       <header className="mission-status" aria-label="Mission status">
         <strong><span aria-hidden="true">🌙</span> LAMOON</strong>
@@ -278,7 +277,7 @@ export function MissionFeedback({ rookie = false, trainingLevel, startAtHabitat 
       </section>}
 
       <section className="mf-notifications" aria-label="Mission notifications">
-        <div role="status">{message && <article className="mf-notice mf-feedback">
+        <div role="status">{message && <article className="mf-notice" data-tone={message.endsWith(' fixed.') ? 'success' : 'hint'}>
           {message.endsWith(' fixed.') && <strong>✅ Great job!</strong>}
           <p>{message}</p>
           {level && message === 'Greenhouse fixed.' && <p>Plants need water at their roots.</p>}
@@ -299,10 +298,8 @@ export function MissionFeedback({ rookie = false, trainingLevel, startAtHabitat 
               ? ['🫧 Oh no! The oxygen machine stopped!', 'Our astronauts need air!']
               : problemCopy[equipment]
           return <article key={index} className="mf-notice mf-emergency">
-            <div role="alert"><strong>{offline || (level === 2 && hasLesson(equipment)) ? title : '🚨 Oh no! ' + equipmentNames[equipment] + ' damaged!'}</strong><p>{detail}</p></div>
+            <div role="alert"><strong>{offline || (level === 2 && hasPendingTraining(level, equipment, session)) ? title : '🚨 Oh no! ' + equipmentNames[equipment] + ' damaged!'}</strong><p>{detail}</p></div>
             <button className="lg-button" type="button" onClick={() => inspectEquipment(equipment)}>🔍 Check it</button>
-            <button className="lg-button" type="button" disabled={!canPlay || state.resources.spareKits < 1}
-              onClick={() => inspectEquipment(equipment)}>🔧 Fix it</button>
             <button className="lg-button" type="button"
               onClick={() => postpone((previous) => new Set([...previous, index]))}>Later</button>
           </article>

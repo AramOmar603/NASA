@@ -22,14 +22,14 @@ const lessons = {
     title: 'Oxygen generator inspection',
     icon: 'O₂',
     target: '↓ Inspect the glowing power indicator',
-    inspect: 'The oxygen machine stopped. Look at its glowing power indicator.',
-    prompt: 'Pick what the machine needs to start again. Then press Test.',
+    inspect: 'The oxygen machine stopped. Check the highlighted power indicator.',
+    prompt: 'The power indicator shows a fault. Pick a solution and press Test.',
     choices: [
-      { label: '💧 Send water', works: false, feedback: 'Water alone cannot start the machine. Its power indicator still shows a problem.' },
+      { label: '💧 Send water', works: false, feedback: 'Water is needed to make oxygen, but without electricity the machine can’t split water.' },
       { label: '⚡ Restore power', works: true },
-      { label: '💡 Turn on a nearby light', works: false, feedback: 'The light helps us see. The oxygen machine still needs its own power.' },
+      { label: '💡 Adjust the air vent', works: false, feedback: 'The vent can move air around, but it can’t make oxygen or supply electricity.' },
     ],
-    success: '✅ Amazing! Power helps the machine make oxygen the crew can breathe.',
+    success: '🎉 Amazing! The machine has power to make oxygen again.',
     reading: 'Oxygen made last day',
     unit: 'kg',
   },
@@ -87,7 +87,7 @@ export function EquipmentActivity({ equipment, production, unavailable, onClose,
         }}>Try Again</button>}
       </div>
       <p className="equipment-reading">{lesson.reading}: {production === undefined ? 'No reading yet' : `${production.toFixed(2)} ${lesson.unit}`}</p>
-      {step === 'done' && <p>Repair complete. Advance one day to see the next production reading.</p>}
+      {step === 'done' && <><p>Advance one day to see the next production reading.</p><button type="button" onClick={onClose}>⭐ Continue</button></>}
     </section>
   )
 }
