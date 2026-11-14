@@ -92,7 +92,7 @@ export function MissionDashboard({
           <p>{outcome.summary}</p>
         </section>}
 
-        <section aria-label="Life support and radiation">
+        <section aria-label="Life support and crew safety">
           <h2 className="md-section-title">Life support</h2>
           <div className="md-resources">
             {missionResources.map(({ id, name, symbol, unit: defaultUnit, color }) => {
@@ -112,11 +112,11 @@ export function MissionDashboard({
             })}
             <article className="md-panel md-resource" style={{ accentColor: '#d6a6fd' }}>
               <span className="md-resource-icon text-violet-300" aria-hidden="true">☢</span>
-              <h3>Radiation safety</h3>
+              <h3>Crew safety</h3>
               <p className="md-reading">{radiation ? Number(radiation.dose.toFixed(2)) : '—'} <small>mSv</small></p>
-              {radiation?.limit !== undefined && <Battery value={radiation.dose} capacity={radiation?.limit} label="Radiation dose relative to safety limit" />}
+              {radiation?.limit !== undefined && <Battery value={radiation.dose} capacity={radiation?.limit} label="Space exposure compared with the safety limit" />}
               <p className={radiationLimitReached ? 'md-danger' : 'md-muted'}>
-                {radiation?.limit !== undefined ? radiationLimitReached ? 'Safety limit reached' : `Below ${radiation.limit} mSv limit` : radiation ? 'Highest cumulative crew dose' : 'Telemetry unavailable'}
+                {radiation?.limit !== undefined ? radiationLimitReached ? 'Safety limit reached' : `Below ${radiation.limit} mSv limit` : radiation ? 'Most space exposure any crew member has received' : 'Telemetry unavailable'}
               </p>
             </article>
           </div>
@@ -150,7 +150,7 @@ export function MissionDashboard({
             <div className="flex flex-wrap gap-2">
               {state.buildings.map((item) => <button key={item.id} type="button" aria-pressed={item.id === selectedBuildingId}
                 disabled={!onBuildingSelect} onClick={() => onBuildingSelect?.(item.id)}>
-                {item.kind.toLowerCase() === 'habitat' ? 'Home Center' : item.kind} · {item.id}
+                {item.kind.toLowerCase() === 'habitat' ? 'Home Center' : item.kind.toLowerCase().replaceAll(' ', '-') === 'radiation-shelter' ? 'Safety Shelter' : item.kind} · {item.id}
               </button>)}
             </div>
             {building && <dl className="md-building">

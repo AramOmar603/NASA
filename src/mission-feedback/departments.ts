@@ -2,14 +2,14 @@ import type { Equipment, SurvivalEvent } from '../engine/survival'
 import type { SurvivalSession } from '../components/dashboard/survivalController'
 
 export const departments = {
-  'OXY-01': { icon: 'O₂', name: 'Air Rangers', equipment: 'oxygenPlant', lesson: 'Astronauts need an oxygen supply because the Moon has no breathable atmosphere.' },
-  'WTR-01': { icon: '💧', name: 'Hydro Heroes', equipment: 'recycler', lesson: 'Reusing water means astronauts can bring less water from Earth.' },
-  'BIO-01': { icon: '🌱', name: 'Garden Guardians', equipment: 'greenhouse', lesson: 'Plants need water and light. The simulator uses electricity to grow food.' },
-  'SOL-01': { icon: '☀️', name: 'Solar Sparks', equipment: 'solar', lesson: 'Solar panels turn sunlight into electricity for the base.' },
-  'PWR-01': { icon: '🔋', name: 'Power Patrol', lesson: 'Batteries store energy for times when the base needs more than the panels supply.' },
-  'HAB-01': { icon: '🏠', name: 'Home Center', lesson: 'Life support helps give the crew air they can breathe.' },
-  'SHD-01': { icon: '🛡️', name: 'Shield Squad', equipment: 'shielding', lesson: 'Shielding reduces the amount of radiation that reaches the crew.' },
-  'ROV-01': { icon: '🚙', name: 'Moon Explorers', lesson: 'Rovers can carry people and tools. This rover is a display model.' },
+  'OXY-01': { icon: 'O₂', name: 'Oxygen System', equipment: 'oxygenPlant', lesson: 'This machine makes oxygen so astronauts can breathe.' },
+  'WTR-01': { icon: '💧', name: 'Water Recycler', equipment: 'recycler', lesson: 'We clean used water so the crew can use it again.' },
+  'BIO-01': { icon: '🌱', name: 'Greenhouse', equipment: 'greenhouse', lesson: 'We grow food here. Plants need water and light.' },
+  'SOL-01': { icon: '☀️', name: 'Solar Panels', equipment: 'solar', lesson: 'These panels make electricity from sunlight.' },
+  'PWR-01': { icon: '🔋', name: 'Battery Station', lesson: 'This stores electricity for when the base needs it.' },
+  'HAB-01': { icon: '🏠', name: 'Home Center', lesson: 'This is your Moon home. The crew rests here.' },
+  'SHD-01': { icon: '🛡️', name: 'Safety Shelter', equipment: 'shielding', lesson: 'This room helps keep astronauts safe during space storms.' },
+  'ROV-01': { icon: '🚙', name: 'Lunar Rover', lesson: 'Rovers help astronauts explore and carry tools. Look closely at this rover.' },
 } as const satisfies Record<string, { icon: string; name: string; lesson: string; equipment?: Equipment }>
 
 export type DepartmentId = keyof typeof departments

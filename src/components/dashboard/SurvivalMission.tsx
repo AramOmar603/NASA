@@ -54,8 +54,8 @@ export function buildingTelemetry(building: Building, { state, config, flows }: 
       readings = { generation: rate(flows?.oxygen.production, 'kg'), equipment: status }
       break
     case 'radiation-shelter':
-      readings = { radiationRisk: `${reading(dose)} mSv maximum cumulative dose`, readiness: status,
-        protection: `${reading((status === 'Operational' ? state.condition.shielding * config.shieldingFraction : 0) * 100)}% passive shielding` }
+      readings = { radiationRisk: `${reading(dose)} mSv · highest crew exposure`, readiness: status,
+        protection: `${reading((status === 'Operational' ? state.condition.shielding * config.shieldingFraction : 0) * 100)}% protection` }
       break
   }
   return {

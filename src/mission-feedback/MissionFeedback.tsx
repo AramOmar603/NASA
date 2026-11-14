@@ -15,7 +15,7 @@ import type { Equipment } from '../engine/survival'
 import { LunarBase, outpost } from '../scene/buildings'
 import { LunarEnvironment } from '../scene/environment'
 import type { LunarCameraFocus } from '../scene/environment/LunarEnvironment'
-import { DepartmentVisit, facilityTitles } from './DepartmentVisit'
+import { DepartmentVisit } from './DepartmentVisit'
 import { DepartmentLabels, LabelPositions, useLabelButtons } from './DepartmentLabels'
 import { updateProblems, type EquipmentProblem, departments, repairFeedback, type DepartmentId } from './departments'
 import '../styles.css'
@@ -45,7 +45,7 @@ const problemCopy = {
   recycler: ['💧 Water System Problem!', 'We need clean water.'],
   solar: ['☀️ Solar Panels Offline!', 'The base needs power.'],
   greenhouse: ['🌱 Greenhouse Trouble!', 'The crew needs food.'],
-  shielding: ['🛡️ Shield Problem!', 'Astronauts need protection.'],
+  shielding: ['🛡️ Safety Shelter Needs Help!', 'This room helps keep the crew safe.'],
 } satisfies Record<Equipment, readonly [string, string]>
 
 export function MissionFeedback({ rookie = false, trainingLevel, startAtHabitat = false, spawnInsideHabitat = false, onReplayIntro, onRestart, onComplete }: {
@@ -179,8 +179,8 @@ export function MissionFeedback({ rookie = false, trainingLevel, startAtHabitat 
           <div className="base-map">
             {outpost.map(({ id, position }) => <button key={id} type="button"
               style={{ left: `${50 + position.x * 1.28}%`, top: `${48 + position.y * 1.45}%` }}
-              aria-label={`Explore ${facilityTitles[id]}`} onClick={() => explore(id)}>
-              {departments[id].icon}<small>{facilityTitles[id]}</small>
+              aria-label={`Explore ${departments[id].name}`} onClick={() => explore(id)}>
+              {departments[id].icon}<small>{departments[id].name}</small>
             </button>)}
           </div>
         </> : <p>Pick a place on the Base Map to explore. Use Return Home to find your crew.</p>}
@@ -202,7 +202,7 @@ export function MissionFeedback({ rookie = false, trainingLevel, startAtHabitat 
           <ul>{outpost.map(({ id }) => <li key={id}>
             <button className="lg-button" type="button" onClick={() => explore(id)}>{departments[id].name}</button>
           </li>)}</ul>
-          <p>Life support receives power first. Production readings describe the last completed day.</p>
+          <p>The crew’s air system gets power first. Readings are from the last full day.</p>
         </details>
         <details>
           <summary>Mission log</summary>
@@ -220,7 +220,7 @@ export function MissionFeedback({ rookie = false, trainingLevel, startAtHabitat 
       {selected && <div className="mf-lesson">
         <strong>{departments[selected].name}</strong>
         <p>{departments[selected].lesson}</p>
-        <button className="lg-button" type="button" onClick={() => explore(selected)}>🔍 Explore {facilityTitles[selected]}</button>
+        <button className="lg-button" type="button" onClick={() => explore(selected)}>🔍 Explore {departments[selected].name}</button>
         {selected === 'PWR-01' && <p>Battery reserve {state.resources.batteryKWh.toFixed(1)} kWh</p>}
         {selected === 'WTR-01' && <p>{flows ? 'Water recovered last day ' + flows.water.production.toFixed(1) + ' L' : 'Water recovery measurements start after the first day.'}</p>}
         {offline.has(selected) && <p>Offline. Restore this equipment to resume its work.</p>}
@@ -251,7 +251,7 @@ export function MissionFeedback({ rookie = false, trainingLevel, startAtHabitat 
         {pending.length > 2 && <p className="mf-notice">{pending.length - 2} more to check</p>}
       </section>
     </div>
-    {approaching && <p className="visit-approach" role="status">Approaching {facilityTitles[approaching]}…</p>}
+    {approaching && <p className="visit-approach" role="status">Approaching {departments[approaching].name}…</p>}
     {visit && !training && <DepartmentVisit key={visit} id={visit} damaged={problems.some(({ equipment }) => equipment === visitingEquipment)} repairAvailable={canRepairVisit}
       telemetry={telemetry[visit]} onTour={onReplayIntro} onBack={leaveVisit} onRepair={() => {
         if (visitingEquipment) repair(visitingEquipment)

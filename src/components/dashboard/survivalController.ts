@@ -7,7 +7,7 @@ import type { ResourceTelemetry } from './MissionDashboard'
 
 export const equipmentNames: Record<Equipment, string> = {
   solar: 'Solar array', oxygenPlant: 'Oxygen generator', recycler: 'Water recycler',
-  greenhouse: 'Greenhouse', shielding: 'Radiation shelter',
+  greenhouse: 'Greenhouse', shielding: 'Safety Shelter',
 }
 
 type Resource = 'oxygen' | 'water' | 'food' | 'power'

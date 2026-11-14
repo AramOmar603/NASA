@@ -54,7 +54,7 @@ describe('survival dashboard integration', () => {
       radiation={{ dose: session.state.crew[0].doseMilliSv }}
       alerts={[{ id: 'failure', severity: 'emergency', message: describeSurvivalEvent(alert) }]} />)
     expect(html).toContain(`Health ${crew[0].health}%`)
-    expect(html).toContain('Highest cumulative crew dose')
+    expect(html).toContain('Most space exposure any crew member has received')
     expect(html).toContain('Solar array failed.')
     expect(html).toContain('role="alert"')
   })

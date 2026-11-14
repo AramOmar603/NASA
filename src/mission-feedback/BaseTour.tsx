@@ -14,7 +14,7 @@ const buildingStops = [
   { id: 'WTR-01', icon: '💧', title: 'Water Recycler', note: 'We recycle water so we don’t waste it!', color: '#84eaf6', side: 'left' },
   { id: 'BIO-01', icon: '🌱', title: 'Greenhouse', note: 'We grow food for our astronauts!', color: '#b7ec90', side: 'top-center' },
   { id: 'PWR-01', icon: '🔋', title: 'Battery Station', note: 'Batteries save power for later!', color: '#d7b8ff', side: 'right' },
-  { id: 'SHD-01', icon: '🛡️', title: 'Radiation Shelter', note: 'This helps protect us from radiation!', color: '#ffc187', side: 'left' },
+  { id: 'SHD-01', icon: '🛡️', title: 'Safety Shelter', note: 'This room helps keep astronauts safe during space storms!', color: '#ffc187', side: 'left' },
   { id: 'ROV-01', icon: '🚙', title: 'Lunar Rover', note: 'This vehicle helps us explore!', color: '#ffac9d', side: 'top-right' },
 ].map((stop) => ({ ...stop, building: outpost.find(({ id }) => id === stop.id)! }))
 

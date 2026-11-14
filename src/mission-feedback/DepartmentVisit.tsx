@@ -9,16 +9,10 @@ import type { DepartmentId } from './departments'
 import './exploration.css'
 
 const rooms = {
-  'WTR-01': { title: 'Water Recycler', color: '#44cfff', cue: 'Follow the blue pipe. The recycler collects water so the crew can use it again.' },
-  'PWR-01': { title: 'Battery Station', color: '#b99aff', cue: 'Batteries store electricity so the base can use it later.' },
-  'SHD-01': { title: 'Radiation Shelter', color: '#ffb681', cue: 'Thick walls help protect the crew from radiation.' },
+  'WTR-01': { color: '#44cfff', cue: 'Follow the blue pipe. The recycler collects water so the crew can use it again.' },
+  'PWR-01': { color: '#b99aff', cue: 'Batteries store electricity so the base can use it later.' },
+  'SHD-01': { color: '#ffb681', cue: 'Thick walls help protect the crew during space storms.' },
 } as const
-
-export const facilityTitles: Record<DepartmentId, string> = {
-  'HAB-01': 'Home Center', 'OXY-01': 'Oxygen System', 'SOL-01': 'Solar Panels',
-  'WTR-01': 'Water Recycler', 'BIO-01': 'Greenhouse', 'PWR-01': 'Battery Station',
-  'SHD-01': 'Radiation Shelter', 'ROV-01': 'Lunar Rover',
-}
 
 function UtilityRoom({ id, active }: { id: keyof typeof rooms; active: boolean }) {
   const { color } = rooms[id]
@@ -84,7 +78,7 @@ export function DepartmentVisit({ id, damaged, repairAvailable, telemetry, onRep
   const equipment = id === 'OXY-01' || id === 'SOL-01'
   const room = id === 'WTR-01' || id === 'PWR-01' || id === 'SHD-01' ? rooms[id] : undefined
   return (
-    <section className={id === 'ROV-01' ? 'department-visit visit-exterior' : 'department-visit'} aria-label={facilityTitles[id]}>
+    <section data-home={habitat} className={id === 'ROV-01' ? 'department-visit visit-exterior' : 'department-visit'} aria-label={departments[id].name}>
       {habitat && <HabitatInterior checked={learned} onExit={onBack} onCheck={() => setLearned(true)} />}
       {equipment && (
         <div className="visit-equipment">
@@ -94,10 +88,10 @@ export function DepartmentVisit({ id, damaged, repairAvailable, telemetry, onRep
       )}
       {room && <div className="visit-room"><UtilityRoom id={id as keyof typeof rooms} active={learned} /></div>}
       <div className="visit-card">
-        <h2>{departments[id].icon} {facilityTitles[id]}</h2>
+        <h2>{departments[id].icon} {departments[id].name}</h2>
         <p role="status">{learned ? room?.cue ?? departments[id].lesson
-          : habitat ? 'Welcome home! Check the mission console or head outside.'
-            : 'Take a closer look, then tap Learn how it works.'}</p>
+          : habitat ? 'Welcome home! Tap the console or the glowing exit.'
+            : 'Tap Learn to see what this does.'}</p>
         {equipment && telemetry && <dl className="visit-readings">
           <div><dt>Condition</dt><dd>{telemetry.condition ?? 'Unavailable'}</dd></div>
           <div><dt>{id === 'SOL-01' ? 'Electricity produced last day' : 'Oxygen produced last day'}</dt>
@@ -110,7 +104,7 @@ export function DepartmentVisit({ id, damaged, repairAvailable, telemetry, onRep
           </button>}
           {damaged && !repairAvailable && <p>Repair is unavailable right now.</p>}
           {repairAvailable && <button type="button" onClick={onRepair}>Start repair</button>}
-          {habitat && onTour && <button type="button" onClick={onTour}>Take the base tour</button>}
+          {habitat && onTour && <button className="visit-tour" type="button" onClick={onTour}>Take the base tour</button>}
           <button autoFocus type="button" onClick={onBack}>{habitat ? '🚪 Exit to Moon base' : '↩ Back to Base'}</button>
         </div>
       </div>

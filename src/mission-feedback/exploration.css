@@ -109,3 +109,16 @@
 }
 .visit-readings div { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .25rem .75rem; }
 .visit-readings dd { margin: 0; font-weight: 750; }
+
+.department-visit[data-home="true"] .visit-card {
+  inset-inline: 1rem auto;
+  max-width: 24rem;
+  border-color: #c9b1ff;
+  background: #212345f5;
+  box-shadow: 0 .65rem 2rem #10152a88;
+}
+.department-visit[data-home="true"] .visit-card h2 { color: #eee3ff; }
+.visit-actions .visit-tour { border-color: transparent; background: transparent; text-decoration: underline; }
+@media (max-width: 44rem) {
+  .department-visit[data-home="true"] .visit-card { inset-inline: .65rem; width: auto; max-width: none; }
+}

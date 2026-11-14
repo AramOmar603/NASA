@@ -35,7 +35,7 @@ const panels = {
   greenhouse: { name: 'Greenhouse', symbol: '✳', metrics: [['production', 'Food production'], ['crops', 'Crop status']], reserve: { id: 'food', unit: 'rations' }, allocation: 'water' },
   'water-recycler': { name: 'Water recycler', symbol: '≈', metrics: [['efficiency', 'Recycling efficiency'], ['condition', 'System condition']], reserve: { id: 'water', unit: 'L' } },
   'oxygen-production': { name: 'Oxygen production', symbol: 'O₂', metrics: [['generation', 'Oxygen generation'], ['equipment', 'Equipment status']], reserve: { id: 'oxygen', unit: 'kg' } },
-  'radiation-shelter': { name: 'Radiation shelter', symbol: '☢', metrics: [['radiationRisk', 'Radiation risk'], ['readiness', 'Shelter readiness'], ['protection', 'Crew protection']] },
+  'radiation-shelter': { name: 'Safety Shelter', symbol: '🛡', metrics: [['radiationRisk', 'Space exposure'], ['readiness', 'Shelter readiness'], ['protection', 'Crew protection']] },
 } satisfies Record<string, PanelDefinition>
 
 export type BuildingPanelKind = keyof typeof panels

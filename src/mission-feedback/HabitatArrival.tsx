@@ -15,8 +15,8 @@ export function HabitatArrival({ active, onBegin }: { active: boolean; onBegin: 
       <div className="habitat-arrival-note">
         <h1>Welcome home, astronaut!</h1>
         <p role="status">{checked
-          ? 'This is your crew’s home. Head outside and advance one day to begin.'
-          : 'You’re inside the Home Center. Check the glowing mission console to get started.'}</p>
+          ? 'Ready to explore? Head outside to start your first day.'
+          : 'This is your Moon home! Check the glowing console.'}</p>
         {checked
           ? <button key="outside" ref={action} type="button" onClick={onBegin}>Explore the Moon base</button>
           : <button key="console" ref={action} type="button" onClick={() => setChecked(true)}>Check mission console</button>}
@@ -28,19 +28,33 @@ export function HabitatArrival({ active, onBegin }: { active: boolean; onBegin: 
 export function HabitatInterior({ checked = false, onCheck, onExit }: { checked?: boolean; onCheck?: () => void; onExit?: () => void }) {
   return (
     <div className="habitat-arrival-scene" aria-hidden="true">
-      <Canvas camera={{ position: [0, 1.55, 4.7], fov: 58 }} frameloop="demand"
+      <Canvas camera={{ position: [0, 1.65, 4.35], fov: 60 }} dpr={[1, 1.5]} frameloop="demand"
         fallback={<div className="habitat-arrival-fallback"><span>◈</span></div>}>
         <color attach="background" args={['#1c2c42']} />
-        <ambientLight intensity={1.6} />
-        <pointLight position={[0, 2.7, 1]} intensity={28} color="#ffdfae" />
+        <ambientLight intensity={1.25} color="#d6deff" />
+        <pointLight position={[-2.1, 2.6, -.8]} intensity={12} color="#a28bff" />
+        <pointLight position={[2.2, 2.6, -.8]} intensity={13} color="#80eada" />
+        <pointLight position={[0, 2.7, 1.8]} intensity={24} color="#ffdfae" />
         <mesh position={[0, -.12, 0]}>
-          <boxGeometry args={[7, .22, 10]} /><meshStandardMaterial color="#435975" />
+          <boxGeometry args={[7, .22, 10]} /><meshStandardMaterial color="#3d4f70" />
         </mesh>
         <mesh position={[0, 1.55, -3.2]}>
-          <boxGeometry args={[7, 3.1, .2]} /><meshStandardMaterial color="#8398ab" />
+          <boxGeometry args={[7, 3.1, .2]} /><meshStandardMaterial color="#6980a0" />
         </mesh>
         {[-3.45, 3.45].map((x) => <mesh key={x} position={[x, 1.5, 0]}>
-          <boxGeometry args={[.15, 3, 9]} /><meshStandardMaterial color="#b9c3c8" />
+          <boxGeometry args={[.15, 3, 9]} /><meshStandardMaterial color="#a5b5ce" />
+        </mesh>)}
+        <mesh position={[0, 2.99, -.9]}>
+          <boxGeometry args={[6.9, .12, 4.5]} /><meshStandardMaterial color="#344969" />
+        </mesh>
+        {[-2.15, 2.15].map((x) => <mesh key={x} position={[x, 2.91, -.85]}>
+          <boxGeometry args={[.1, .05, 3.55]} /><meshBasicMaterial color={x < 0 ? '#c8a7ff' : '#9cf8ec'} />
+        </mesh>)}
+        <mesh position={[0, .005, .15]}>
+          <boxGeometry args={[1.55, .02, 4.7]} /><meshStandardMaterial color="#365e78" />
+        </mesh>
+        {[-.79, .79].map((x) => <mesh key={x} position={[x, .022, .15]}>
+          <boxGeometry args={[.04, .02, 4.7]} /><meshBasicMaterial color="#81e4de" />
         </mesh>)}
         {[-2.15, 2.15].map((x) => <group key={x} position={[x, 0, -.7]}>
           <mesh position={[0, .32, 0]}>
@@ -48,6 +62,12 @@ export function HabitatInterior({ checked = false, onCheck, onExit }: { checked?
           </mesh>
           <mesh position={[0, .68, 0]}>
             <boxGeometry args={[1.15, .16, 2.3]} /><meshStandardMaterial color={x < 0 ? '#65c8be' : '#e6af74'} />
+          </mesh>
+          <mesh position={[0, .79, .48]}>
+            <boxGeometry args={[1.15, .09, 1.3]} /><meshStandardMaterial color={x < 0 ? '#a98bef' : '#f0ae72'} />
+          </mesh>
+          <mesh position={[0, 1.04, -1.19]}>
+            <boxGeometry args={[1.28, .95, .13]} /><meshStandardMaterial color="#47648a" />
           </mesh>
           <mesh position={[0, .82, -.75]}>
             <boxGeometry args={[.82, .16, .48]} /><meshStandardMaterial color="#e8ebdc" />
@@ -57,7 +77,8 @@ export function HabitatInterior({ checked = false, onCheck, onExit }: { checked?
           <mesh><boxGeometry args={[.9, 1.75, .28]} /><meshStandardMaterial color={x < 0 ? '#7867ae' : '#4eaaa9'} /></mesh>
           <mesh position={[0, .34, .17]}><boxGeometry args={[.53, .06, .05]} /><meshBasicMaterial color="#ffe0a4" /></mesh>
         </group>)}
-        <group position={[2.7, 1.12, -3.02]} onClick={onExit}>
+        <group position={[2.78, 1.15, -2.92]} onClick={onExit}>
+          <mesh position={[0, 0, -.055]}><boxGeometry args={[1.35, 2.34, .17]} /><meshBasicMaterial color="#83ffe3" /></mesh>
           <mesh><boxGeometry args={[1.15, 2.2, .18]} /><meshStandardMaterial color="#335677" /></mesh>
           <mesh position={[0, .83, .11]}><boxGeometry args={[.7, .12, .05]} /><meshBasicMaterial color="#82ffd6" /></mesh>
         </group>
