@@ -1,3 +1,4 @@
+import { OxygenReserve } from '../components/dashboard/OxygenReserve'
 import { useState } from 'react'
 import type { SurvivalSession } from '../components/dashboard/survivalController'
 import { planningOptions } from './commander'
@@ -13,7 +14,7 @@ export function CommanderPlanning({ session, onComplete }: { session: SurvivalSe
       <h2>🧠 Commander Decision!</h2>
       <p>Which reserve would run out first if the base stopped making supplies?</p>
       <ul>
-        <li>Oxygen: {oxygenKg.toFixed(1)} kg</li>
+        <li>🫧 Oxygen Left: <OxygenReserve stored={oxygenKg} capacity={session.config.oxygenCapacityKg} compact /></li>
         <li>Water: {waterL.toFixed(1)} L</li>
         <li>Food: {foodKg.toFixed(1)} kg</li>
         <li>Electricity: {batteryKWh.toFixed(1)} kWh</li>

@@ -1,3 +1,4 @@
+import { OxygenReserve, oxygenLabel, oxygenPercent } from '../components/dashboard/OxygenReserve'
 import { FieldAssignment } from './FieldAssignment'
 import { fieldAssignment, travelToNextActivity } from './fieldAssignments'
 import { levels } from '../levels'
@@ -157,13 +158,13 @@ export function MissionFeedback({ rookie = false, trainingLevel, startAtHabitat 
     const before = state.resources
     const after = next.state.resources
     const changes = [
-      ['O₂', after.oxygenKg - before.oxygenKg, 'kg'],
+      ['🫧', (oxygenPercent(after.oxygenKg, config.oxygenCapacityKg) ?? 0) - (oxygenPercent(before.oxygenKg, config.oxygenCapacityKg) ?? 0), 'pp'],
       ['💧', after.waterL - before.waterL, 'L'],
       ['🌱', after.foodKg - before.foodKg, 'kg'],
       ['⚡', after.batteryKWh - before.batteryKWh, 'kWh'],
     ] as const
     setDayReport(changes.filter(([, amount]) => Math.abs(amount) >= .05)
-      .map(([icon, amount, unit]) => `${icon} ${amount > 0 ? '+' : ''}${amount.toFixed(1)} ${unit}`).join(' · '))
+      .map(([icon, amount, unit]) => `${icon} ${amount > 0 ? '+' : ''}${unit === 'pp' ? `${amount}% of tank` : `${amount.toFixed(1)} ${unit}`}`).join(' · '))
     setMessage('')
     if (level && next.state.outcome === 'success') onComplete?.()
   }
@@ -336,7 +337,7 @@ export function MissionFeedback({ rookie = false, trainingLevel, startAtHabitat 
         <strong><span aria-hidden="true">🌙</span> LAMOON</strong>
         <dl>
           <div><dt>📅 Mission Day</dt><dd>{state.tick} / {config.missionDays}</dd></div>
-          <div><dt>O₂ Oxygen</dt><dd>{view.resources.oxygen?.toFixed(1)} <small>kg</small></dd></div>
+          <div><dt>🫧 Oxygen Left</dt><dd><OxygenReserve stored={state.resources.oxygenKg} capacity={config.oxygenCapacityKg} compact /></dd></div>
           <div><dt>⚡ Electricity</dt><dd>{view.resources.power?.toFixed(1)} <small>kWh</small></dd></div>
           <div><dt>💧 Water</dt><dd>{view.resources.water?.toFixed(1)} <small>L</small></dd></div>
           <div><dt>🌱 Food</dt><dd>{view.resources.food?.toFixed(1)} <small>kg</small></dd></div>
@@ -438,7 +439,7 @@ export function MissionFeedback({ rookie = false, trainingLevel, startAtHabitat 
         </article>}
         {canPlay && finalPending.length > 0 && <article className="mf-notice mf-emergency commander-alert" data-triple={finalPending.length === 3}>
           <strong role="alert">{finalPending.length === 3 ? '🚨 TRIPLE EMERGENCY!' : `🚨 ${finalPending.length} ${finalPending.length === 1 ? 'system still needs' : 'systems still need'} help!`}</strong>
-          <p>Battery: {state.resources.batteryKWh.toFixed(1)} kWh · Oxygen: {state.resources.oxygenKg.toFixed(1)} kg · Water: {state.resources.waterL.toFixed(1)} L</p>
+          <p>Battery: {state.resources.batteryKWh.toFixed(1)} kWh · Oxygen Left: {oxygenLabel(state.resources.oxygenKg, config.oxygenCapacityKg)} · Water: {state.resources.waterL.toFixed(1)} L</p>
           <p>{finalPending.length === 3 ? 'Choose a system to inspect first. Power helps both the oxygen generator and the recycler run.' : 'Check each remaining system before the next day.'}</p>
           {finalPending.map(id => {
             const building = facilityFor(finalFaults[id]).id

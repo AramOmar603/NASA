@@ -18,7 +18,7 @@ it('shows three readings per department and reflects live changes and equipment 
     expect(departmentReadings(id, next)).toHaveLength(3)
   }
   expect(departmentReadings('OXY-01', next)).toContainEqual([
-    'Oxygen stored', `${Number(next.state.resources.oxygenKg.toFixed(1))} kg`,
+    'Oxygen Left', `${Math.round(next.state.resources.oxygenKg / next.config.oxygenCapacityKg * 100)}%`,
   ])
   expect(renderToStaticMarkup(<DepartmentInfo id="SOL-01" session={initial} />)).toContain('Working')
   expect(renderToStaticMarkup(<DepartmentInfo id="SOL-01" session={next} />)).toContain('Offline')

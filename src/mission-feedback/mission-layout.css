@@ -140,3 +140,16 @@
 @media (max-width: 600px) {
   .mission-dock { flex-wrap: wrap; justify-content: center; }
 }
+
+.greenhouse-info :is(.field-report, .department-info) {
+  background: #fffdf5;
+  color: #183327;
+  border-color: #65a880;
+}
+.greenhouse-info .department-stats div { background: #e2f2e8; }
+.greenhouse-info .department-stats :is(dt, dd) { color: #183327; }
+.rookie-interior .greenhouse-info .field-choices button {
+  background: #d4f3dd;
+  border-color: #448862;
+  color: #183327;
+}

@@ -1,3 +1,4 @@
+import { OxygenReserve } from './OxygenReserve'
 import { useId } from 'react'
 import type { BuildingId, GameAction, GameViewProps, ResourceId } from '../../types'
 import './mission-dashboard.css'
@@ -101,9 +102,11 @@ export function MissionDashboard({
               const telemetry = resources?.[id]
               return <article key={id} className="md-panel md-resource" style={{ accentColor: color }}>
                 <span className="md-resource-icon" style={{ color }} aria-hidden="true">{symbol}</span>
-                <h3>{name}</h3>
-                <p className="md-reading">{balance === undefined ? '—' : Number(balance.toFixed(2))} <small>{unit}</small></p>
-                <Battery value={balance} capacity={telemetry?.capacity} label={`${name} capacity`} />
+                <h3>{id === 'oxygen' ? 'Oxygen Left' : name}</h3>
+                {id === 'oxygen' ? <OxygenReserve stored={balance} capacity={telemetry?.capacity} /> : <>
+                  <p className="md-reading">{balance === undefined ? '—' : Number(balance.toFixed(2))} <small>{unit}</small></p>
+                  <Battery value={balance} capacity={telemetry?.capacity} label={`${name} capacity`} />
+                </>}
                 <dl className="md-flow">
                   <div><dt>Production</dt><dd>{telemetry?.production === undefined ? '—' : `+${Number(telemetry.production.toFixed(2))} ${unit}/day`}</dd></div>
                   <div><dt>Consumption</dt><dd>{telemetry?.consumption === undefined ? '—' : `−${Number(telemetry.consumption.toFixed(2))} ${unit}/day`}</dd></div>

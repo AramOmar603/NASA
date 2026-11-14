@@ -1,0 +1,12 @@
+.oxygen-reserve { display: inline-grid; gap: .22rem; min-width: 4rem; max-width: 100%; }
+.oxygen-track {
+  display: block;
+  min-height: .42rem;
+  overflow: hidden;
+  border-radius: 1rem;
+  background: #73839355;
+}
+.oxygen-track > span { display: block; min-height: .42rem; background: #57ce88; border-radius: inherit; }
+.oxygen-reserve[data-tone="watch"] .oxygen-track > span { background: #ecc24c; }
+.oxygen-reserve[data-tone="low"] .oxygen-track > span { background: #ef7568; }
+.oxygen-reserve small { font-size: .8rem; }

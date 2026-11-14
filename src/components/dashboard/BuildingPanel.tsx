@@ -1,3 +1,4 @@
+import { OxygenReserve } from './OxygenReserve'
 import type { ReactNode } from 'react'
 import { useEffect, useId, useRef } from 'react'
 import type { Building, BuildingId, BuildingKind, GameViewProps } from '../../types'
@@ -54,11 +55,12 @@ export interface BuildingPanelProps extends GameViewProps {
   readonly telemetry?: Readonly<Partial<Record<BuildingId, BuildingTelemetry>>>
   readonly onAction?: (action: BuildingAction) => void
   readonly onClose: () => void
+  readonly oxygenCapacity?: number
   readonly foodUnit?: string
   readonly children?: ReactNode
 }
 
-export function BuildingPanel({ state, buildings = state.buildings, selectedBuildingId, telemetry, onAction, onClose, foodUnit = 'rations', children }: BuildingPanelProps) {
+export function BuildingPanel({ state, buildings = state.buildings, selectedBuildingId, telemetry, onAction, onClose, foodUnit = 'rations', oxygenCapacity, children }: BuildingPanelProps) {
   const heading = useId()
   const close = useRef<HTMLButtonElement>(null)
   const building = buildings.find(({ id }) => id === selectedBuildingId)
@@ -101,7 +103,7 @@ export function BuildingPanel({ state, buildings = state.buildings, selectedBuil
           {panel.metrics.map(([key, label]) => (
             <div key={key}><dt>{label}</dt><dd>{data?.readings?.[key] ?? 'Unavailable'}</dd></div>
           ))}
-          {panel.reserve && <div><dt>Base {panel.reserve.id} reserves</dt><dd>{reserve === undefined ? 'Unavailable' : `${Number(reserve.toFixed(2))} ${panel.reserve.id === 'food' ? foodUnit : panel.reserve.unit}`}</dd></div>}
+          {panel.reserve && <div><dt>{panel.reserve.id === 'oxygen' ? 'Oxygen Left' : `Base ${panel.reserve.id} reserves`}</dt><dd>{panel.reserve.id === 'oxygen' ? <OxygenReserve stored={reserve} capacity={oxygenCapacity} compact /> : reserve === undefined ? 'Unavailable' : `${Number(reserve.toFixed(2))} ${panel.reserve.id === 'food' ? foodUnit : panel.reserve.unit}`}</dd></div>}
           {data?.condition && <div><dt>Equipment condition</dt><dd>{data.condition}</dd></div>}
         </dl>
         {allocation && typeof percent === 'number' && onAction && (

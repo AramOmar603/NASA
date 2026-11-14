@@ -1,3 +1,4 @@
+import { oxygenLabel } from '../components/dashboard/OxygenReserve'
 import type { SurvivalSession } from '../components/dashboard/survivalController'
 import { departments, type DepartmentId } from './departments'
 
@@ -10,9 +11,9 @@ export function departmentReadings(id: DepartmentId, { state, flows, config }: S
   const dose = Math.max(0, ...state.crew.map(({ doseMilliSv }) => doseMilliSv))
 
   switch (id) {
-    case 'HAB-01': return [['Crew safe', crew], ['Oxygen stored', reading(resources.oxygenKg, 'kg')], ['Life support power', power(powerDeliveredKWh.lifeSupport)]]
+    case 'HAB-01': return [['Crew safe', crew], ['Oxygen Left', oxygenLabel(resources.oxygenKg, config.oxygenCapacityKg)], ['Life support power', power(powerDeliveredKWh.lifeSupport)]]
     case 'BIO-01': return [['Food grown last day', reading(flows?.food.production, 'kg')], ['Food stored', reading(resources.foodKg, 'kg')], ['Greenhouse power', power(powerDeliveredKWh.greenhouse)]]
-    case 'OXY-01': return [['Oxygen made last day', reading(flows?.oxygen.production, 'kg')], ['Oxygen stored', reading(resources.oxygenKg, 'kg')], ['Generator power', power(powerDeliveredKWh.oxygenPlant)]]
+    case 'OXY-01': return [['Oxygen made last day', reading(flows?.oxygen.production, 'kg')], ['Oxygen Left', oxygenLabel(resources.oxygenKg, config.oxygenCapacityKg)], ['Generator power', power(powerDeliveredKWh.oxygenPlant)]]
     case 'SOL-01': return [['Power made last day', reading(flows?.power.production, 'kWh')], ['Battery reserve', reading(resources.batteryKWh, 'kWh')], ['Array condition', `${Math.round(state.condition.solar * 100)}%`]]
     case 'WTR-01': return [['Water cleaned last day', reading(flows?.water.production, 'L')], ['Water stored', reading(resources.waterL, 'L')], ['Recycler power', power(powerDeliveredKWh.recycler)]]
     case 'PWR-01': return [['Battery reserve', reading(resources.batteryKWh, 'kWh')], ['Battery capacity', reading(config.batteryCapacityKWh, 'kWh')], ['Power used last day', reading(flows?.power.consumption, 'kWh')]]

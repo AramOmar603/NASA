@@ -249,7 +249,7 @@ export function RepairActivity({ id, onTest, onClose, onContinue }: {
     setStep(result.complete ? 'success' : 'retry')
   }
 
-  return <section className="repair-card" data-step={step} aria-label="Repair activity">
+  return <section className="repair-card" data-lesson={id} data-step={step} aria-label="Repair activity">
     <button className="repair-close" type="button" aria-label="Close repair" onClick={onClose}>×</button>
     <div key={step} className="repair-card-page" data-leaving={leaving}>
       <span className="repair-card-icon" aria-hidden="true">{step === 'success' ? '🎉' : step === 'retry' ? '🤔' : lesson.icon}</span>
