@@ -1,8 +1,9 @@
+import type { DisasterFault } from './disaster'
 import { useEffect, useState } from 'react'
 import { useReducedMotion } from './RepairEffects'
 import type { Equipment } from '../engine/survival'
 
-export type RepairLessonId = Equipment | 'greenhouseMaintenance' | 'roverFixed' | 'waterFixed' | 'recyclerMaintenance'
+export type RepairLessonId = Equipment | DisasterFault | 'greenhouseMaintenance' | 'roverFixed' | 'waterFixed' | 'recyclerMaintenance'
 type Lesson = {
   icon: string
   problem: string
@@ -29,6 +30,50 @@ const water: Lesson = {
 }
 
 export const repairLessons: Record<RepairLessonId, Lesson> = {
+  shelterPanel: {
+    icon: '🛡️', problem: 'Space Weather Alert!', detail: 'A solar particle storm is approaching. The yellow light marks a damaged shelter panel.',
+    question: 'What should we check to help protect our astronauts?',
+    choices: [
+      { label: '🧱 Restore the damaged shielding panel' },
+      { label: '🌱 Water the greenhouse plants', why: 'Water helps the plants. The crew still needs the shelter panel.' },
+      { label: '🚙 Turn on the lunar rover', why: 'The rover helps with travel. It won’t fix the gap in the shelter.' },
+    ],
+    success: 'The shielding is restored. It reduces exposure during the storm, and the crew still needs to monitor space weather.',
+    science: { explanation: 'Shielding can reduce exposure to energetic particles from the Sun.', url: 'https://science.nasa.gov/science-research/heliophysics/how-nasa-will-protect-astronauts-from-space-radiation-at-the-moon/' },
+  },
+  powerConnection: {
+    icon: '🔋', problem: 'Our Moon base is losing power!', detail: 'Solar energy isn’t reaching the base. The battery is supplying the crew from its reserve.',
+    question: 'What should we investigate first?',
+    choices: [
+      { label: '🔌 Check the solar power connection' },
+      { label: '🌱 Inspect the greenhouse lights', why: 'The lights use electricity. They can’t reconnect the supply.' },
+      { label: '⏳ Wait for the battery to refill', why: 'The battery needs an energy source to recharge.' },
+    ],
+    success: 'The solar array can supply the base again. Check the energy readings after the next day.',
+    science: { explanation: 'Solar arrays generate electricity. Storage helps keep equipment supplied when incoming energy drops.', url: 'https://www.nasa.gov/moonbase-systems/' },
+  },
+  powerRelay: {
+    icon: '⚡', problem: 'The power switch is stuck open!', detail: 'The solar cells are facing the Sun. A fault in their output switch stopped energy from reaching the base.',
+    question: 'How can we restore the path for electricity?',
+    choices: [
+      { label: '☀️ Turn the already aligned array', why: 'The cells are already facing the Sun. Turning them won’t close the broken path.' },
+      { label: '🔌 Restore the output switch' },
+      { label: '🔋 Disconnect the battery reserve', why: 'The reserve is keeping essential systems running while the output is down.' },
+    ],
+    success: 'The power path is restored. If the water pump still needs help, check it next.',
+    science: { explanation: 'Power systems need a working path from the source to the equipment that uses the energy.', url: 'https://www.nasa.gov/moonbase-systems/' },
+  },
+  waterPump: {
+    icon: '💧', problem: 'The water pump stopped!', detail: 'The filter is clear. The highlighted pump can’t move used water into the recycler.',
+    question: 'How can we get the used water moving again?',
+    choices: [
+      { label: '🪣 Empty the clean-water tank', why: 'That makes space, but it doesn’t move water through the recycler.' },
+      { label: '🧰 Replace the clear filter', why: 'The filter is clear. The pump is the part that moves water.' },
+      { label: '💧 Restore the water pump' },
+    ],
+    success: 'Water can move through the recycler again. Check the recovery reading after the next day.',
+    science: { explanation: 'Real life support uses several treatment steps to recover usable water from wastewater and cabin humidity.', url: 'https://www.nasa.gov/reference/environmental-control-and-life-support-systems-eclss/' },
+  },
   greenhouse: {
     icon: '🌱', problem: 'Our plants aren’t getting enough water!', detail: 'The highlighted watering line has stopped and the leaves are drooping.',
     question: 'What should we do to help the plants?',

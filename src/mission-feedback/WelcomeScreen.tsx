@@ -26,11 +26,12 @@ function WelcomeCamera() {
   return null
 }
 
-export function WelcomeScreen({ onExplore, onSkip, onLevelTwo, onLevelThree }: {
+export function WelcomeScreen({ onExplore, onSkip, onLevelTwo, onLevelThree, onLevelFour }: {
   onExplore: () => void
   onSkip: () => void
   onLevelTwo: () => void
   onLevelThree: () => void
+  onLevelFour: () => void
 }) {
   return (
     <main className="launch-welcome">
@@ -49,6 +50,7 @@ export function WelcomeScreen({ onExplore, onSkip, onLevelTwo, onLevelThree }: {
           <button type="button" onClick={onSkip}>Skip Tour &amp; Start Playing</button>
           <button type="button" onClick={onLevelTwo}>Level 2 · First Emergency</button>
           <button type="button" onClick={onLevelThree}>Level 3 · Mission Breakdown</button>
+          <button type="button" onClick={onLevelFour}>Level 4 · Lunar Disaster</button>
         </div>
       </section>
     </main>

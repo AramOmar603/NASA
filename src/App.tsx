@@ -53,5 +53,6 @@ export function App() {
     onExplore={() => { setStartInsideHome(false); setAttempt(1) }}
     onSkip={() => { setEntry('base'); setAttempt(1) }}
     onLevelTwo={() => { setLevel(2); setAttempt(1) }}
-    onLevelThree={() => { setLevel(3); setAttempt(1) }} />
+    onLevelThree={() => { setLevel(3); setAttempt(1) }}
+    onLevelFour={() => { setLevel(4); setAttempt(1) }} />
 }

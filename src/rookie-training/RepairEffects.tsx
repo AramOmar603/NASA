@@ -13,7 +13,7 @@ export function useReducedMotion() {
   return useSyncExternalStore(subscribe, () => window.matchMedia(motionQuery).matches, () => true)
 }
 
-export function RepairSignal({ broken, wheel = false, test = false }: { broken: boolean; wheel?: boolean; test?: boolean }) {
+export function RepairSignal({ broken, wheel = false, test = false, warningColor = '#ff7355' }: { broken: boolean; wheel?: boolean; test?: boolean; warningColor?: string }) {
   const group = useRef<Group>(null)
   const reduced = useReducedMotion()
   const invalidate = useThree((state) => state.invalidate)
@@ -26,7 +26,7 @@ export function RepairSignal({ broken, wheel = false, test = false }: { broken: 
     if (wheel) group.current.rotation.z += broken ? Math.sin(time * 16) * delta * 2 : delta * 4
   })
   if (!broken && !test) return null
-  const color = broken ? '#ff7355' : '#66ffad'
+  const color = broken ? warningColor : '#66ffad'
   return <group ref={group}>
     <mesh><ringGeometry args={[.45, .54, 32]} /><meshBasicMaterial color={color} depthTest={false} toneMapped={false} /></mesh>
     {wheel && <mesh position={[.36, 0, 0]}><sphereGeometry args={[.09, 12, 8]} /><meshBasicMaterial color={color} depthTest={false} /></mesh>}
