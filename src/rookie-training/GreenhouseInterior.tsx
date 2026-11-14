@@ -38,11 +38,12 @@ function PlantBed({ dry, restored, onClick }: { dry: boolean; restored: boolean;
   </group>
 }
 
-export function GreenhouseInterior({ damaged, departmentInfo, assignment, inspectionOnly, onClose, onStartRepair }: {
+export function GreenhouseInterior({ damaged, departmentInfo, assignment, inspectionOnly, onClose, onHome, onStartRepair }: {
   damaged: boolean
   departmentInfo: React.ReactNode
   assignment?: React.ReactNode
   inspectionOnly: boolean
+  onHome?: () => void
   onClose: () => void
   onStartRepair?: () => void
 }) {
@@ -97,7 +98,8 @@ export function GreenhouseInterior({ damaged, departmentInfo, assignment, inspec
     </div>
     {!inspectionOnly && <>
       <header><div className="greenhouse-info">{assignment ?? departmentInfo}<p role="status">{message}</p></div>
-        <button autoFocus type="button" onClick={onClose}>Back to Base</button>
+        <div className="field-choices"><button autoFocus type="button" onClick={onClose}>Back to Base</button>
+          {onHome && <button type="button" onClick={onHome}>🏠 Home</button>}</div>
       </header>
       <footer>
         <div className="rookie-look" role="group" aria-label="Look around">

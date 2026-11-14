@@ -26,7 +26,7 @@ function WelcomeCamera() {
   return null
 }
 
-export function WelcomeScreen({ onExplore, onSkip, onLevelTwo, onLevelThree, onLevelFour, onLevelFive, commanderWon }: {
+export function WelcomeScreen({ onExplore, onSkip, onLevelTwo, onLevelThree, onLevelFour, onLevelFive, commanderWon, introSkipped }: {
   onExplore: () => void
   onSkip: () => void
   onLevelTwo: () => void
@@ -34,6 +34,7 @@ export function WelcomeScreen({ onExplore, onSkip, onLevelTwo, onLevelThree, onL
   onLevelFour: () => void
   onLevelFive: () => void
   commanderWon: boolean
+  introSkipped: boolean
 }) {
   return (
     <main className="launch-welcome">
@@ -49,7 +50,7 @@ export function WelcomeScreen({ onExplore, onSkip, onLevelTwo, onLevelThree, onL
         <p>Keep four astronauts safe for seven Moon days.</p>
         <div className="launch-actions">
           <button className="launch-primary" type="button" onClick={onExplore}>🚀 EXPLORE THE MOON BASE!</button>
-          <button type="button" onClick={onSkip}>Skip Tour &amp; Start Playing</button>
+          <button type="button" onClick={onSkip} title={introSkipped ? 'Your skip-tour preference is saved.' : undefined}>🚀 SKIP TOUR &amp; START LEVEL 1</button>
           <button type="button" onClick={onLevelTwo}>Level 2 · First Emergency</button>
           <button type="button" onClick={onLevelThree}>Level 3 · Mission Breakdown</button>
           <button type="button" onClick={onLevelFour}>Level 4 · Lunar Disaster</button>

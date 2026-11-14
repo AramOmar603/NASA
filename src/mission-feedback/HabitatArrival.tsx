@@ -2,7 +2,7 @@ import { RepairFlow, RepairSignal } from '../rookie-training/RepairEffects'
 import { Canvas } from '@react-three/fiber'
 import { useEffect, useRef, useState } from 'react'
 
-export function HabitatArrival({ active, onBegin }: { active: boolean; onBegin: () => void }) {
+export function HabitatArrival({ active, onBegin, onHome }: { active: boolean; onBegin: () => void; onHome?: () => void }) {
   const [checked, setChecked] = useState(false)
   const action = useRef<HTMLButtonElement>(null)
 
@@ -22,6 +22,7 @@ export function HabitatArrival({ active, onBegin }: { active: boolean; onBegin: 
         {checked
           ? <button key="outside" ref={action} type="button" onClick={onBegin}>Explore the Moon base</button>
           : <button key="console" ref={action} type="button" onClick={() => setChecked(true)}>Check mission console</button>}
+        {onHome && <button type="button" onClick={onHome}>🏠 Home</button>}
       </div>
     </section>
   )

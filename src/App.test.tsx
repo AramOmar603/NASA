@@ -10,7 +10,7 @@ it('welcomes the player into the seven-day Rookie Astronaut mission at the root'
   expect(html).toContain('Keep four astronauts safe for seven Moon days.')
   expect(html).toContain('EXPLORE THE MOON BASE!')
   expect(html).not.toContain('Take the Base Tour')
-  expect(html).toContain('Skip Tour &amp; Start Playing')
+  expect(html).toContain('🚀 SKIP TOUR &amp; START LEVEL 1')
 })
 
 it.each([[1, 7], [2, 10]] as const)(

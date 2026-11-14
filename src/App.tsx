@@ -15,6 +15,10 @@ export function App() {
     try { return typeof window !== 'undefined' && window.localStorage.getItem('lamoon-ultimate-commander') === 'complete' }
     catch { return false }
   })
+  const [introSkipped, setIntroSkipped] = useState(() => {
+    try { return typeof window !== 'undefined' && window.localStorage.getItem('lamoon-intro-skipped') === 'true' }
+    catch { return false }
+  })
   const [attempt, setAttempt] = useState(0)
 
   function launchMission(next: TrainingLevel) {
@@ -23,6 +27,24 @@ export function App() {
     setEntry('orbit')
     setLevel(next)
     setAttempt(previous => previous + 1)
+  }
+
+  function skipIntro() {
+    setIntroSkipped(true)
+    try { window.localStorage.setItem('lamoon-intro-skipped', 'true') } catch { /* The current launch still skips the tour. */ }
+    setTourOpen(false)
+    setStartInsideHome(true)
+    setLevel(1)
+    setEntry('base')
+    setAttempt(1)
+  }
+
+  function recordCompletion() {
+    if (level === 5) setCommanderWon(true)
+    try {
+      window.localStorage.setItem(`lamoon-level-${level}-complete`, 'true')
+      if (level === 5) window.localStorage.setItem('lamoon-ultimate-commander', 'complete')
+    } catch { /* The mission result is still available. */ }
   }
 
   function goHome() {
@@ -39,7 +61,7 @@ export function App() {
       {(entry === 'approach' || entry === 'base') && (
         <div hidden={tourOpen} inert={entry === 'approach'}>
           <MissionFeedback key={attempt} trainingLevel={1} startAtHabitat spawnInsideHabitat={startInsideHome || attempt > 1}
-            onHome={goHome} onNextLevel={nextLevel}
+            onHome={goHome} onNextLevel={nextLevel} onComplete={recordCompletion}
             onReplayIntro={() => setTourOpen(true)}
             onRestart={() => setAttempt((previous) => previous + 1)} />
         </div>
@@ -59,11 +81,7 @@ export function App() {
       {(entry === 'habitat' || entry === 'base') && (
         <div inert={entry === 'habitat'}>
           <MissionFeedback key={attempt} trainingLevel={level} startAtHabitat showBaseOverview={entry === 'base'}
-            onComplete={level === 5 ? () => {
-              setCommanderWon(true)
-              try { window.localStorage.setItem('lamoon-ultimate-commander', 'complete') } catch { /* Keep the medal in this session. */ }
-            } : undefined}
-            onHome={goHome} onNextLevel={nextLevel}
+            onHome={goHome} onNextLevel={nextLevel} onComplete={recordCompletion}
             onRestart={() => setAttempt((previous) => previous + 1)} />
         </div>
       )}
@@ -71,14 +89,14 @@ export function App() {
         <MoonArrival onApproach={() => setEntry('approach')} onArrival={() => setEntry('habitat')} />
       )}
       {(entry === 'approach' || entry === 'habitat') && (
-        <HabitatArrival active={entry === 'habitat'} onBegin={() => setEntry('base')} />
+        <HabitatArrival onHome={goHome} active={entry === 'habitat'} onBegin={() => setEntry('base')} />
       )}
     </>
   }
 
   return <WelcomeScreen
     onExplore={() => launchMission(1)}
-    onSkip={() => { setEntry('base'); setAttempt(1) }}
+    onSkip={skipIntro} introSkipped={introSkipped}
     onLevelTwo={() => launchMission(2)}
     onLevelThree={() => launchMission(3)}
     onLevelFour={() => launchMission(4)}

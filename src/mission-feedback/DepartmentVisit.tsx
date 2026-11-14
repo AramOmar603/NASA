@@ -82,7 +82,7 @@ function UtilityRoom({ id, active, showFilter, damaged, disasterFault, commander
   )
 }
 
-export function DepartmentVisit({ id, damaged, repairAvailable, repairBlockedReason, session, disasterFault, commanderLesson, commanderResolved, assignment, inspectionOnly = false, onRepair, onBack, onTour }: {
+export function DepartmentVisit({ id, damaged, repairAvailable, repairBlockedReason, session, disasterFault, commanderLesson, commanderResolved, assignment, inspectionOnly = false, onRepair, onBack, onHome, onTour }: {
   id: DepartmentId
   damaged: boolean
   repairAvailable: boolean
@@ -95,12 +95,13 @@ export function DepartmentVisit({ id, damaged, repairAvailable, repairBlockedRea
   inspectionOnly?: boolean
   onRepair: () => void
   onBack: () => void
+  onHome?: () => void
   onTour?: () => void
 }) {
   const [learned, setLearned] = useState(false)
   const habitat = id === 'HAB-01'
   if (id === 'BIO-01') return (
-    <GreenhouseInterior assignment={assignment} departmentInfo={<DepartmentInfo id={id} session={session} greenhouseFault={damaged} />} damaged={damaged} inspectionOnly={inspectionOnly} onClose={onBack} onStartRepair={repairAvailable ? onRepair : undefined} />
+    <GreenhouseInterior assignment={assignment} departmentInfo={<DepartmentInfo id={id} session={session} greenhouseFault={damaged} />} damaged={damaged} inspectionOnly={inspectionOnly} onClose={onBack} onHome={onHome} onStartRepair={repairAvailable ? onRepair : undefined} />
   )
 
   const equipment = id === 'OXY-01' || id === 'SOL-01'
@@ -128,6 +129,7 @@ export function DepartmentVisit({ id, damaged, repairAvailable, repairBlockedRea
           {habitat && onTour && <button className="visit-tour" type="button" onClick={onTour}>
             <span aria-hidden="true">🚀</span> Take the Base Tour
           </button>}
+          {onHome && <button type="button" onClick={onHome}>🏠 Home</button>}
           <button autoFocus type="button" onClick={onBack}>{habitat ? '🚪 Explore Moon Base' : '↩ Back to Base'}</button>
         </div>
       </div>}

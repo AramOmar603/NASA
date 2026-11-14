@@ -3,7 +3,7 @@ import { useState } from 'react'
 import type { SurvivalSession } from '../components/dashboard/survivalController'
 import { planningOptions } from './commander'
 
-export function CommanderPlanning({ session, onComplete }: { session: SurvivalSession; onComplete: () => void }) {
+export function CommanderPlanning({ session, onComplete, onHome, onSkip, skipWarning }: { session: SurvivalSession; onComplete: () => void; onHome?: () => void; onSkip?: () => void; skipWarning?: string }) {
   const { weakestSupply, priority, days } = planningOptions(session)
   const [choice, setChoice] = useState<keyof typeof days | 'wait'>()
   const [tested, setTested] = useState(false)
@@ -32,6 +32,11 @@ export function CommanderPlanning({ session, onComplete }: { session: SurvivalSe
         </div>
         <button type="button" disabled={!choice} onClick={() => setTested(true)}>Check my plan</button>
       </>}
+      {skipWarning && <p role="status">{skipWarning}</p>}
+      <div className="field-choices">
+        {onSkip && <button type="button" onClick={onSkip}>Skip Mission</button>}
+        {onHome && <button type="button" onClick={onHome}>🏠 Home</button>}
+      </div>
     </div>
   </section>
 }
