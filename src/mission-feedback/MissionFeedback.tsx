@@ -15,6 +15,7 @@ import type { Equipment } from '../engine/survival'
 import { LunarBase, outpost } from '../scene/buildings'
 import { LunarEnvironment } from '../scene/environment'
 import type { LunarCameraFocus } from '../scene/environment/LunarEnvironment'
+import { DepartmentVisit, facilityTitles } from './DepartmentVisit'
 import { DepartmentLabels, LabelPositions, useLabelButtons } from './DepartmentLabels'
 import { updateProblems, type EquipmentProblem, departments, repairFeedback, type DepartmentId } from './departments'
 import '../styles.css'
@@ -47,10 +48,11 @@ const problemCopy = {
   shielding: ['🛡️ Shield Problem!', 'Astronauts need protection.'],
 } satisfies Record<Equipment, readonly [string, string]>
 
-export function MissionFeedback({ rookie = false, trainingLevel, startAtHabitat = false, onReplayIntro, onRestart, onComplete }: {
+export function MissionFeedback({ rookie = false, trainingLevel, startAtHabitat = false, spawnInsideHabitat = false, onReplayIntro, onRestart, onComplete }: {
   rookie?: boolean
   trainingLevel?: TrainingLevel
   startAtHabitat?: boolean
+  spawnInsideHabitat?: boolean
   onReplayIntro?: () => void
   onRestart?: () => void
   onComplete?: () => void
@@ -58,6 +60,8 @@ export function MissionFeedback({ rookie = false, trainingLevel, startAtHabitat 
   const level = trainingLevel ?? (rookie ? 1 : undefined)
   const [session, setSession] = useState(() => level ? createRookieSession(level) : createSurvivalSession())
   const [training, setTraining] = useState<Equipment>()
+  const [visit, setVisit] = useState<DepartmentId | undefined>(spawnInsideHabitat ? 'HAB-01' : undefined)
+  const [navigation, setNavigation] = useState<'map' | 'help'>()
   const repairApplied = useRef(false)
   const [focus, setFocus] = useState<LunarCameraFocus | undefined>(() => startAtHabitat ? { x: 0, z: 0, distance: 28 } : undefined)
 
@@ -97,19 +101,22 @@ export function MissionFeedback({ rookie = false, trainingLevel, startAtHabitat 
       || (level === 2 && (equipment === 'solar' || equipment === 'oxygenPlant'))
   }
 
+  function explore(id: DepartmentId) {
+    const { position } = outpost.find((building) => building.id === id)!
+    select(id)
+    setFocus({ x: position.x, z: position.y, distance: 26 })
+    setNavigation(undefined)
+    setVisit(id)
+  }
+
   function inspectEquipment(equipment: Equipment) {
-    const building = facilityFor(equipment)
-    select(building.id)
-    setFocus({ x: building.position.x, z: building.position.y, distance: level === 2 ? 26 : undefined })
-    if (canPlay && hasLesson(equipment)) {
-      repairApplied.current = false
-      setTraining(equipment)
-    }
+    explore(facilityFor(equipment).id)
   }
 
   function repair(equipment: Equipment, lessonPassed = false) {
     if (hasLesson(equipment) && !lessonPassed) {
-      inspectEquipment(equipment)
+      repairApplied.current = false
+      setTraining(equipment)
       return
     }
     const next = reduceSurvivalSession(session, { type: 'maintain', equipment })
@@ -122,8 +129,12 @@ export function MissionFeedback({ rookie = false, trainingLevel, startAtHabitat 
     return next.state.condition[equipment] === 1 && feedback === 'operational'
   }
 
+  const visitingEquipment = visit ? equipmentFor(visit) : undefined
+  const canRepairVisit = canPlay && visitingEquipment !== undefined &&
+    state.condition[visitingEquipment] < 1 && state.resources.spareKits > 0
+
   return <main className="lg-survival mf-mission">
-    <div inert={Boolean(training)} aria-hidden={training ? true : undefined}>
+    <div inert={Boolean(visit || training)}>
       <div className="mf-world">
         <LunarEnvironment className="lg-survival-world" focus={focus}>
           <CameraStart />
@@ -133,6 +144,24 @@ export function MissionFeedback({ rookie = false, trainingLevel, startAtHabitat 
         </LunarEnvironment>
         <DepartmentLabels buttons={buttons} selected={selected} offline={offline} onSelect={select} />
       </div>
+      <nav className="base-navigation" aria-label="Base navigation">
+        <button type="button" onClick={() => explore('HAB-01')}>🏠 Return Home</button>
+        <button type="button" aria-expanded={navigation === 'map'} onClick={() => setNavigation(navigation === 'map' ? undefined : 'map')}>🗺️ Base Map</button>
+        <button type="button" aria-expanded={navigation === 'help'} onClick={() => setNavigation(navigation === 'help' ? undefined : 'help')}>❓ Help</button>
+      </nav>
+      {navigation && <section className="base-navigation-panel" aria-label={navigation === 'map' ? 'Base Map' : 'Help'}>
+        <button autoFocus type="button" onClick={() => setNavigation(undefined)}>↩ Back</button>
+        {navigation === 'map' ? <>
+          <h2>Base Map</h2>
+          <div className="base-map">
+            {outpost.map(({ id, position }) => <button key={id} type="button"
+              style={{ left: `${50 + position.x * 1.28}%`, top: `${48 + position.y * 1.45}%` }}
+              aria-label={`Explore ${facilityTitles[id]}`} onClick={() => explore(id)}>
+              {departments[id].icon}<small>{facilityTitles[id]}</small>
+            </button>)}
+          </div>
+        </> : <p>Pick a place on the Base Map to explore. Use Return Home to find your crew.</p>}
+      </section>}
       <GameHUD state={view} day={state.tick} missionDays={config.missionDays} alerts={alerts}
         showAllResources={Boolean(level)} overviewOpen={overview} onOverviewToggle={() => setOverview(!overview)} />
       <div className="lg-survival-controls">
@@ -163,11 +192,12 @@ export function MissionFeedback({ rookie = false, trainingLevel, startAtHabitat 
         onClose={() => select(undefined)} onAction={(action) => {
           if (action.type !== 'repair' || !selected || action.buildingId !== selected) return
           const equipment = equipmentFor(selected)
-          if (equipment) repair(equipment)
+          if (equipment) inspectEquipment(equipment)
         }}>
       {selected && <div className="mf-lesson">
         <strong>{departments[selected].name}</strong>
         <p>{departments[selected].lesson}</p>
+        <button className="lg-button" type="button" onClick={() => explore(selected)}>🔍 Explore {facilityTitles[selected]}</button>
         {selected === 'PWR-01' && <p>Battery reserve {state.resources.batteryKWh.toFixed(1)} kWh</p>}
         {selected === 'WTR-01' && <p>{flows ? 'Water recovered last day ' + flows.water.production.toFixed(1) + ' L' : 'Water recovery measurements start after the first day.'}</p>}
         {offline.has(selected) && <p>Offline. Restore this equipment to resume its work.</p>}
@@ -190,7 +220,7 @@ export function MissionFeedback({ rookie = false, trainingLevel, startAtHabitat 
             <div role="alert"><strong>{offline || (level === 2 && hasLesson(equipment)) ? title : '🚨 Oh no! ' + equipmentNames[equipment] + ' damaged!'}</strong><p>{detail}</p></div>
             <button className="lg-button" type="button" onClick={() => inspectEquipment(equipment)}>🔍 Check it</button>
             <button className="lg-button" type="button" disabled={!canPlay || state.resources.spareKits < 1}
-              onClick={() => repair(equipment)}>🔧 Fix it</button>
+              onClick={() => inspectEquipment(equipment)}>🔧 Fix it</button>
             <button className="lg-button" type="button"
               onClick={() => postpone((previous) => new Set([...previous, index]))}>Later</button>
           </article>
@@ -198,6 +228,10 @@ export function MissionFeedback({ rookie = false, trainingLevel, startAtHabitat 
         {pending.length > 2 && <p className="mf-notice">{pending.length - 2} more to check</p>}
       </section>
     </div>
+    {visit && !training && <DepartmentVisit key={visit} id={visit} damaged={problems.some(({ equipment }) => equipment === visitingEquipment)} repairAvailable={canRepairVisit}
+      onBack={() => setVisit(undefined)} onRepair={() => {
+        if (visitingEquipment) repair(visitingEquipment)
+      }} />}
     {level === 1 && training === 'greenhouse' && canPlay && <GreenhouseInterior
       unavailable={state.resources.spareKits < 1 ? 'No spare kits left.' : state.condition.greenhouse >= 1 ? 'The greenhouse is already fixed.' : undefined}
       onClose={() => setTraining(undefined)} onRepair={() => {

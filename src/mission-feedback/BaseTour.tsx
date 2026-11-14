@@ -40,10 +40,11 @@ function TourCamera({ step, reducedMotion }: { step: number; reducedMotion: bool
     const to = toTarget.clone().add(wide
       ? new Vector3(45, 48, 93).multiplyScalar(portraitScale)
       : new Vector3(14, 20, 29))
-    if (firstFlight.current) {
+    if (firstFlight.current && step === 1) {
       firstFlight.current = false
       camera.position.set(6, BASE_ELEVATION + 8, 17)
     }
+    firstFlight.current = false
     flight.current = {
       start: performance.now(),
       from: camera.position.clone(),
@@ -68,14 +69,14 @@ function TourCamera({ step, reducedMotion }: { step: number; reducedMotion: bool
 }
 
 export function BaseTour({ onFinish }: { onFinish: () => void }) {
-  const [step, setStep] = useState(0)
+  const [step, setStep] = useState(-1)
   const [moving, setMoving] = useState(false)
   const [leaving, setLeaving] = useState(false)
   const reducedMotion = useRef(typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches).current
   const timers = useRef<number[]>([])
   const primary = useRef<HTMLButtonElement>(null)
   const stop = buildingStops[step - 1]
-  const card = step === 0 ? intro : stop ?? finale
+  const card = step < 0 ? { ...intro, icon: '🌕', title: 'Welcome to the Moon base!', note: 'Look around. Then meet your crew at home.' } : step === 0 ? intro : stop ?? finale
 
   useEffect(() => () => timers.current.forEach((timer) => window.clearTimeout(timer)), [])
   useEffect(() => { if (!moving) primary.current?.focus() }, [moving, step])
@@ -110,12 +111,12 @@ export function BaseTour({ onFinish }: { onFinish: () => void }) {
       <section className="base-tour-card" key={step} data-side={card.side} data-leaving={leaving}
         style={{ '--tour-accent': card.color } as CSSProperties} aria-labelledby="tour-title">
         <div role="status">
-          <p className="base-tour-progress">Base tour · {step + 1} / {finalStep + 1}</p>
+          <p className="base-tour-progress">Base tour · {step + 2} / {finalStep + 2}</p>
           <h1 id="tour-title"><span>{card.icon}</span> {card.title}</h1>
           <p>{card.note}</p>
         </div>
         <nav aria-label="Base tour controls">
-          {step > 0 && <button type="button" disabled={moving} onClick={() => goTo(step - 1)}>Back</button>}
+          {step >= 0 && <button type="button" disabled={moving} onClick={() => goTo(step - 1)}>Back</button>}
           <button className="base-tour-primary" type="button" ref={primary} disabled={moving}
             onClick={() => step === finalStep ? onFinish() : goTo(step + 1)}>
             {step === finalStep ? 'Start Mission' : 'Next'}

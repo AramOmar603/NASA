@@ -25,7 +25,7 @@ export function HabitatArrival({ active, onBegin }: { active: boolean; onBegin: 
   )
 }
 
-export function HabitatInterior({ checked = false, onCheck }: { checked?: boolean; onCheck?: () => void }) {
+export function HabitatInterior({ checked = false, onCheck, onExit }: { checked?: boolean; onCheck?: () => void; onExit?: () => void }) {
   return (
     <div className="habitat-arrival-scene" aria-hidden="true">
       <Canvas camera={{ position: [0, 1.55, 4.7], fov: 58 }} frameloop="demand"
@@ -53,6 +53,14 @@ export function HabitatInterior({ checked = false, onCheck }: { checked?: boolea
             <boxGeometry args={[.82, .16, .48]} /><meshStandardMaterial color="#e8ebdc" />
           </mesh>
         </group>)}
+        {[-2.5, 2.5].map((x) => <group key={x} position={[x, 1.45, -2.84]}>
+          <mesh><boxGeometry args={[.9, 1.75, .28]} /><meshStandardMaterial color={x < 0 ? '#7867ae' : '#4eaaa9'} /></mesh>
+          <mesh position={[0, .34, .17]}><boxGeometry args={[.53, .06, .05]} /><meshBasicMaterial color="#ffe0a4" /></mesh>
+        </group>)}
+        <group position={[2.7, 1.12, -3.02]} onClick={onExit}>
+          <mesh><boxGeometry args={[1.15, 2.2, .18]} /><meshStandardMaterial color="#335677" /></mesh>
+          <mesh position={[0, .83, .11]}><boxGeometry args={[.7, .12, .05]} /><meshBasicMaterial color="#82ffd6" /></mesh>
+        </group>
         <mesh position={[0, 1.1, -2.85]} onClick={onCheck}>
           <boxGeometry args={[1.65, .85, .22]} /><meshStandardMaterial color="#213b57" />
         </mesh>

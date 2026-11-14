@@ -1,0 +1,89 @@
+.base-navigation, .base-navigation-panel, .visit-card {
+  position: absolute;
+  z-index: 12;
+  color: #edfaff;
+  font-family: system-ui, sans-serif;
+}
+.base-navigation {
+  top: 9rem;
+  right: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: .35rem;
+}
+.base-navigation button, .base-navigation-panel button, .visit-card button {
+  padding: .55rem .75rem;
+  border: 1px solid #76c9d3;
+  border-radius: .65rem;
+  background: #17384e;
+  color: #edfaff;
+  font-weight: 750;
+  cursor: pointer;
+}
+.base-navigation button:focus-visible, .base-navigation-panel button:focus-visible, .visit-card button:focus-visible {
+  outline: 3px solid #ffe18a;
+  outline-offset: 3px;
+}
+.base-navigation-panel {
+  top: 12rem;
+  right: 1rem;
+  width: min(30rem, calc(100% - 2rem));
+  max-height: calc(100dvh - 13rem);
+  overflow: auto;
+  background: #10283a;
+  border: 1px solid #7ce4db;
+  border-radius: 1rem;
+  padding: .75rem;
+}
+.base-navigation-panel h2 { font-size: 1.35rem; font-weight: 800; }
+.base-map {
+  position: relative;
+  height: 19rem;
+  margin-top: .5rem;
+  border-radius: .7rem;
+  background: repeating-linear-gradient(0deg, transparent 0 24px, #a0e8f42b 25px 26px), #203950;
+}
+.base-map button {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  min-width: 2.75rem;
+  max-width: 26%;
+  padding: .25rem;
+  line-height: 1.05;
+}
+.base-map small { display: block; margin-top: .25rem; font-size: .68rem; }
+.department-visit {
+  position: fixed;
+  inset: 0;
+  z-index: 25;
+  background: #182741;
+  color: #effcff;
+  animation: visit-in .4s ease-out both;
+}
+.department-visit.visit-exterior { background: transparent; pointer-events: none; }
+.visit-room, .visit-equipment { position: absolute; inset: 0; }
+.visit-equipment .equipment-scene { height: 100%; border: 0; }
+.visit-scene-fallback { display: grid; height: 100%; place-items: center; font-size: 5rem; }
+.visit-card {
+  pointer-events: auto;
+  inset: auto 1rem max(1rem, env(safe-area-inset-bottom));
+  width: min(32rem, calc(100% - 2rem));
+  margin-inline: auto;
+  padding: 1rem;
+  border: 2px solid #8fe5dc;
+  border-radius: 1.1rem;
+  background: #10283af5;
+}
+.visit-card h2 { font-size: clamp(1.3rem, 4vw, 1.8rem); font-weight: 850; }
+.visit-card p { margin-block: .35rem .75rem; }
+.visit-actions { display: flex; flex-wrap: wrap; gap: .45rem; }
+.visit-actions button:last-child { background: #87ffe5; color: #10283a; }
+@keyframes visit-in { from { opacity: 0; } }
+@media (max-width: 44rem) {
+  .base-navigation { top: 11rem; right: .65rem; }
+  .base-navigation-panel { top: 14rem; max-height: calc(100dvh - 15rem); }
+  .base-map button { min-width: 2.35rem; }
+  .base-map small { font-size: .6rem; }
+}
+@media (prefers-reduced-motion: reduce) { .department-visit { animation: none; } }

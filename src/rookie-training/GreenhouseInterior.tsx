@@ -46,8 +46,12 @@ function PlantBed({ dry, restored, onClick }: { dry: boolean; restored: boolean;
   </group>
 }
 
-export function GreenhouseInterior({ guided = false, unavailable, onClose, onRepair }: {
+export function GreenhouseInterior({ guided = false, exploring = false, damaged = false, repairAvailable = false, onStartRepair, unavailable, onClose, onRepair }: {
   guided?: boolean
+  exploring?: boolean
+  damaged?: boolean
+  repairAvailable?: boolean
+  onStartRepair?: () => void
   unavailable?: string
   onClose: () => void
   onRepair: () => boolean
@@ -56,7 +60,7 @@ export function GreenhouseInterior({ guided = false, unavailable, onClose, onRep
   const [selected, select] = useState<(typeof tools)[number]['id']>()
   const [retry, setRetry] = useState(false)
   const [restored, restore] = useState(false)
-  const [message, tell] = useState('🌱 Oh no! Tap the thirsty plants.')
+  const [message, tell] = useState(exploring ? '🌱 Welcome to the greenhouse. Check a plant bed to learn how crops grow.' : '🌱 Oh no! Tap the thirsty plants.')
   const [look, setLook] = useState(0)
   const [depth, setDepth] = useState(4.7)
   const marker = useRef<HTMLButtonElement>(null)
@@ -69,6 +73,10 @@ export function GreenhouseInterior({ guided = false, unavailable, onClose, onRep
   const cardText = !inspected ? 'The wilted plants need help. Tap the marked bed to look closer.' : message
 
   function useBed() {
+    if (exploring) {
+      tell(damaged ? '🌱 These plants look thirsty. Check the equipment to see if it can be repaired.' : '🌱 Plants need light, water at their roots, and nutrients to grow food.')
+      return
+    }
     if (restored || retry) return
     if (!inspected || !selected) {
       inspect(true)
@@ -124,12 +132,12 @@ export function GreenhouseInterior({ guided = false, unavailable, onClose, onRep
           <mesh position={[0, .015, .5]}><boxGeometry args={[1.38, .02, 9]} /><meshStandardMaterial color="#284454" roughness={.92} /></mesh>
           <mesh position={[0, 1.65, -4.88]}><boxGeometry args={[2.6, 2.75, .16]} /><meshStandardMaterial color="#263e51" metalness={.35} /></mesh>
           <mesh position={[0, 2.35, -4.76]}><boxGeometry args={[1.8, .6, .05]} /><meshBasicMaterial color="#85ead5" /></mesh>
-          <PlantBed dry restored={restored} onClick={(event) => { if (event.delta < 5) useBed() }} />
+          <PlantBed dry restored={restored || (exploring && !damaged)} onClick={(event) => { if (event.delta < 5) useBed() }} />
           <PlantBed dry={false} restored />
         </group>
       </Canvas>
     </div>
-    {!restored && <button disabled={retry} ref={marker} className="rookie-bed-marker" type="button" onClick={() => {
+    {!exploring && !restored && <button disabled={retry} ref={marker} className="rookie-bed-marker" type="button" onClick={() => {
       setLook(0)
       setDepth(4.2)
       useBed()
@@ -151,7 +159,10 @@ export function GreenhouseInterior({ guided = false, unavailable, onClose, onRep
       <button type="button" onClick={() => { setLook(0); setDepth(depth > 4 ? 3.35 : 4.7) }}>{depth > 4 ? 'Step closer' : 'Step back'}</button>
     </div>
     {restored && <div className="rookie-water" aria-hidden="true">💧 💧 💧</div>}
-    <footer data-pick-tool={inspected && !selected && !restored}>
+    {exploring ? <footer>
+      <button type="button" onClick={useBed}>🌱 Check plant bed</button>
+      {repairAvailable && <button type="button" onClick={onStartRepair}>Start repair</button>}
+    </footer> : <footer data-pick-tool={inspected && !selected && !restored}>
       <button type="button" disabled={restored || retry} onClick={useBed}>{inspected && selected ? 'Use tool on plant bed' : '🌱 Check plant bed'}</button>
       <div className="rookie-tools" aria-label="Tool station">
         {tools.map(({ id, icon, name, hint }) => <button key={id} type="button" title={hint} aria-label={name}
@@ -160,6 +171,6 @@ export function GreenhouseInterior({ guided = false, unavailable, onClose, onRep
             tell(guided && id === 'water' ? '💧 Good idea! Water helps thirsty plants. Use it on the marked bed.' : 'Tap the thirsty bed to use your tool.')
           }}><span aria-hidden="true">{icon}</span><small>{name}</small><small>{hint}</small></button>)}
       </div>
-    </footer>
+    </footer>}
   </section>
 }
